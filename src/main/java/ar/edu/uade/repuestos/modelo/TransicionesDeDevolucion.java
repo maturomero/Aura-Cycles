@@ -7,6 +7,10 @@ public interface TransicionesDeDevolucion {
 
     String name();
 
+    default EstadoDevolucion validar() {
+        throw new TransicionInvalidaException(name(), "validar");
+    }
+
     default EstadoDevolucion aprobar() {
         throw new TransicionInvalidaException(name(), "aprobar");
     }

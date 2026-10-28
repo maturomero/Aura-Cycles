@@ -1,6 +1,7 @@
 package ar.edu.uade.repuestos.presentacion;
 
 import ar.edu.uade.repuestos.modelo.Devolucion;
+import ar.edu.uade.repuestos.modelo.EstadoDevolucion;
 import ar.edu.uade.repuestos.modelo.MotivoDevolucion;
 import ar.edu.uade.repuestos.negocio.ServicioDeDevoluciones;
 import ar.edu.uade.repuestos.util.ReglaNegocioException;
@@ -39,7 +40,8 @@ public class DevolucionBean implements Serializable {
             servicioDeDevoluciones.cargarMotivo(motivo, comentario);
             this.confirmada = servicioDeDevoluciones.confirmar();
             servicioDeDevoluciones.finalizar();
-            return "devolucion-ok?faces-redirect=true&codigo=" + confirmada.getCodigo();
+            return "devolucion-ok?faces-redirect=true&codigo=" + confirmada.getCodigo()
+                    + "&validando=" + (confirmada.getEstado() == EstadoDevolucion.PENDIENTE_VALIDACION);
         } catch (ReglaNegocioException e) {
             Mensajes.error(e.getMessage());
             return null;

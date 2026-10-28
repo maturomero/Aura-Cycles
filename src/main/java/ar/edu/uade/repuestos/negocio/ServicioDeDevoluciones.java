@@ -1,6 +1,7 @@
 package ar.edu.uade.repuestos.negocio;
 
 import ar.edu.uade.repuestos.datos.DevolucionRepository;
+import ar.edu.uade.repuestos.integracion.ProveedorNoDisponibleException;
 import ar.edu.uade.repuestos.modelo.Devolucion;
 import ar.edu.uade.repuestos.modelo.EstadoDevolucion;
 import ar.edu.uade.repuestos.modelo.EstadoVenta;
@@ -39,6 +40,9 @@ public class ServicioDeDevoluciones implements Serializable {
 
     @Inject
     private ServicioDeNotificaciones servicioDeNotificaciones;
+
+    @Inject
+    private ValidadorDeGarantias validadorDeGarantias;
 
     @Resource
     private SessionContext contexto;
@@ -111,12 +115,18 @@ public class ServicioDeDevoluciones implements Serializable {
             throw new ReglaNegocioException("Falta elegir el motivo.");
         }
 
-        Devolucion devolucion = devolucionRepository.guardar(
-            new Devolucion(ventaSeleccionada, motivo, comentario));
+        // La garantia se valida con el proveedor antes de guardar: si no la acepta, no se crea nada
+        Devolucion nueva = new Devolucion(ventaSeleccionada, motivo, comentario);
+        try {
+            nueva.garantiaValidada(validadorDeGarantias.consultar(ventaSeleccionada, motivo));
+        } catch (ProveedorNoDisponibleException e) {
+            LOG.warning(() -> "[SOAP] el proveedor no respondio, la devolucion queda PENDIENTE_VALIDACION");
+        }
 
+        Devolucion devolucion = devolucionRepository.guardar(nueva);
         servicioDeNotificaciones.devolucionRecibida(devolucion);
 
-        LOG.info(() -> "Devolucion " + devolucion.getCodigo() + " registrada. Borrador cerrado.");
+        LOG.info(() -> "Devolucion " + devolucion.getCodigo() + " registrada (" + devolucion.getEstado() + ").");
         return devolucion;
     }
 
