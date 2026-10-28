@@ -6,16 +6,19 @@ import ar.edu.uade.repuestos.negocio.ServicioDeModeracion;
 import ar.edu.uade.repuestos.util.ReglaNegocioException;
 import jakarta.annotation.PostConstruct;
 import jakarta.ejb.EJBAccessException;
+import jakarta.ejb.EJBException;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.io.Serializable;
 import java.util.List;
+import java.util.logging.Logger;
 
 @Named("moderacionBean")
 @ViewScoped
 public class ModeracionBean implements Serializable {
     private static final long serialVersionUID = 1L;
+    private static final Logger LOG = Logger.getLogger(ModeracionBean.class.getName());
 
     @Inject
     private ServicioDeModeracion servicioDeModeracion;
@@ -62,6 +65,10 @@ public class ModeracionBean implements Serializable {
             Mensajes.error("No tenes permiso para hacer esa operacion.");
         } catch (ReglaNegocioException e) {
             Mensajes.error(e.getMessage());
+        } catch (EJBException e) {
+            // Red de seguridad: si algo falla al confirmar la transaccion, aviso y no la pagina de error
+            LOG.warning(() -> "[MODERACION] fallo la operacion: " + e.getMessage());
+            Mensajes.error("No se pudo completar la operación. No se cambió nada, probá de nuevo en un rato.");
         }
     }
 

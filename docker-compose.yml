@@ -1,0 +1,72 @@
+# Aura Cycles completo con un solo comando:  docker compose up --build
+# App en http://localhost:8080/repuestos  (usuarios de prueba en el README, clave Clave1234)
+# Mercado Pago simulado en http://localhost:8089/__modo  y proveedor SOAP simulado en http://localhost:8090/__modo
+# DB_PASSWORD es la clave de la base local del contenedor (no se publica afuera de docker). Se puede cambiar con un .env
+
+services:
+
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_DATABASE: repuestos_bici
+      MYSQL_USER: aura
+      MYSQL_PASSWORD: ${DB_PASSWORD:-aura-local}
+      TZ: America/Argentina/Buenos_Aires
+    volumes:
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysql -uaura -p\"$$MYSQL_PASSWORD\" -e 'SELECT 1 FROM repuestos_bici.venta LIMIT 1' >/dev/null 2>&1"]
+      interval: 3s
+      timeout: 3s
+      retries: 60
+
+  artemis:
+    image: apache/activemq-artemis:2.42.0
+    environment:
+      ANONYMOUS_LOGIN: "true"
+    volumes:
+      - ./docker/artemis/broker.properties:/var/lib/artemis-instance/etc-override/broker.properties:ro
+    ports:
+      - "8161:8161"
+
+  mercadopago-mock:
+    image: eclipse-temurin:21-jdk
+    command: ["java", "/mock/MockMercadoPago.java", "8089"]
+    environment:
+      MOCK_URL_PUBLICA: http://localhost:8089
+    volumes:
+      - ./src/test/java/ar/edu/uade/repuestos/integracion:/mock:ro
+    ports:
+      - "8089:8089"
+
+  proveedor-mock:
+    image: eclipse-temurin:21-jdk
+    command: ["java", "/mock/MockProveedorSoap.java", "8090"]
+    environment:
+      MOCK_WSDL: /wsdl/ProveedorMayorista.wsdl
+    volumes:
+      - ./src/test/java/ar/edu/uade/repuestos/integracion:/mock:ro
+      - ./src/main/resources/wsdl:/wsdl:ro
+    ports:
+      - "8090:8090"
+
+  app:
+    build: .
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD:-aura-local}
+      MP_BASE_URL: http://mercadopago-mock:8089
+      PROVEEDOR_URL: http://proveedor-mock:8090/proveedor
+      AURA_URL: http://localhost:8080/repuestos
+      TZ: America/Argentina/Buenos_Aires
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      artemis:
+        condition: service_started
+      mercadopago-mock:
+        condition: service_started
+      proveedor-mock:
+        condition: service_started

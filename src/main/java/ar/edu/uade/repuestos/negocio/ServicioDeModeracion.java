@@ -6,6 +6,7 @@ import ar.edu.uade.repuestos.modelo.Devolucion;
 import ar.edu.uade.repuestos.modelo.EstadoDevolucion;
 import ar.edu.uade.repuestos.modelo.EstadoResena;
 import ar.edu.uade.repuestos.modelo.Resena;
+import ar.edu.uade.repuestos.util.MensajeriaNoDisponibleException;
 import ar.edu.uade.repuestos.util.ReglaNegocioException;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -17,6 +18,7 @@ import jakarta.ejb.TransactionAttributeType;
 import jakarta.inject.Inject;
 import jakarta.jms.JMSContext;
 import jakarta.jms.JMSDestinationDefinition;
+import jakarta.jms.JMSRuntimeException;
 import jakarta.jms.Topic;
 import java.math.BigDecimal;
 import java.util.List;
@@ -119,9 +121,14 @@ public class ServicioDeModeracion {
 
     // Sale recien cuando la transaccion confirma: si algo falla, no se publica nada
     private void publicar(Devolucion devolucion) {
-        jms.createProducer()
-           .setProperty("estado", devolucion.getEstado().name())
-           .send(topicoDevoluciones, Map.<String, Object>of("idDevolucion", devolucion.getId()));
+        try {
+            jms.createProducer()
+               .setProperty("estado", devolucion.getEstado().name())
+               .send(topicoDevoluciones, Map.<String, Object>of("idDevolucion", devolucion.getId()));
+        } catch (JMSRuntimeException e) {
+            LOG.warning(() -> "[TOPICO] broker no disponible, " + devolucion.getCodigo() + " vuelve atras");
+            throw new MensajeriaNoDisponibleException(e);
+        }
         LOG.info(() -> "[TOPICO] publicada " + devolucion.getCodigo() + " " + devolucion.getEstado());
     }
 
