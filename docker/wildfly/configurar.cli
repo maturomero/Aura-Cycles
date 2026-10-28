@@ -13,7 +13,8 @@ data-source add --name=RepuestosDS --jndi-name=java:/RepuestosDS --driver-name=m
 
 # Broker Artemis en su propio contenedor, asi se puede apagar y prender en la demo.
 /socket-binding-group=standard-sockets/remote-destination-outbound-socket-binding=artemis:add(host=${env.ARTEMIS_HOST:artemis},port=61616)
-/subsystem=messaging-activemq/remote-connector=artemis:add(socket-binding=artemis)
+# connect-timeout corto: con el broker apagado, Netty esperaria 60 s por conexion
+/subsystem=messaging-activemq/remote-connector=artemis:add(socket-binding=artemis,params={connect-timeout-millis=2000})
 # Para publicar: si el broker no esta, falla rapido y la aprobacion vuelve atras entera
 /subsystem=messaging-activemq/pooled-connection-factory=artemis-envio:add(connectors=[artemis],entries=[java:/RemoteJmsXA],enable-amq1-prefix=false,initial-connect-attempts=2,reconnect-attempts=2,retry-interval=1000,call-timeout=5000,transaction=xa)
 # Para los MDB: reintentan sin limite, asi se reconectan solos cuando vuelve el broker

@@ -1,6 +1,29 @@
-# Sistema de Reseñas y Devoluciones — Repuestos de Bicicleta
+# Aura Cycles — Reseñas y Devoluciones de Repuestos de Bicicleta
 
-TP Integrador · Desarrollo de Aplicaciones II · UADE
+TP Integrador · Desarrollo de Aplicaciones II · UADE · Grupo 3
+
+## Levantar todo con un comando
+
+Solo hace falta **Docker** (Docker Desktop en Windows o Mac). Desde la carpeta del repo:
+
+```bash
+docker compose up --build
+```
+
+La primera vez tarda unos minutos (baja las imágenes y compila con Maven adentro del contenedor). Cuando en la consola aparece `WFLYSRV0025: WildFly ... started`, está listo:
+
+| Qué | Dónde |
+|---|---|
+| La tienda | http://localhost:8080/repuestos |
+| Mercado Pago simulado (modos para la demo) | http://localhost:8089/__modo |
+| Proveedor SOAP simulado (WSDL y modos) | http://localhost:8090/proveedor?wsdl · http://localhost:8090/__modo |
+| Consola del broker Artemis | http://localhost:8161 |
+
+Usuarios de prueba, todos con la clave `Clave1234`: `ana@mail.com`, `carlos@mail.com`, `lucia@mail.com`, `javier@mail.com` (clientes) y `mod@mail.com` (moderador).
+
+Qué levanta: WildFly 37 con la app, MySQL 8.4 con `sql/schema.sql`, Artemis aparte (así se puede apagar en la demo: `docker compose stop artemis` / `docker compose start artemis`) y los dos sistemas externos simulados. Para empezar de cero: `docker compose down -v`.
+
+Para desarrollar se sigue usando Eclipse como siempre (secciones de abajo). Sin configurar nada, la app desde Eclipse usa los simulados en `localhost:8089` y `localhost:8090`: se levantan con Run As > Java Application sobre `MockMercadoPago.java` y `MockProveedorSoap.java` (en `src/test/java`).
 
 Arquitectura en capas sobre Jakarta EE 10, según el diagrama de capas del grupo.
 
