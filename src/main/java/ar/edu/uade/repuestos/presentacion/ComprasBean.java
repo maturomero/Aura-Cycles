@@ -1,6 +1,7 @@
 package ar.edu.uade.repuestos.presentacion;
 
 import ar.edu.uade.repuestos.modelo.Venta;
+import ar.edu.uade.repuestos.negocio.ServicioDeCobros;
 import ar.edu.uade.repuestos.negocio.ServicioDeDevoluciones;
 import ar.edu.uade.repuestos.negocio.ServicioDeVentas;
 import jakarta.annotation.PostConstruct;
@@ -22,6 +23,9 @@ public class ComprasBean implements Serializable {
     private ServicioDeDevoluciones servicioDeDevoluciones;
 
     @Inject
+    private ServicioDeCobros servicioDeCobros;
+
+    @Inject
     private SesionBean sesion;
 
     private List<Venta> compras;
@@ -31,6 +35,21 @@ public class ComprasBean implements Serializable {
         if (sesion.isLogueado()) {
             this.compras = servicioDeVentas.comprasDe(sesion.getUsuarioId());
         }
+    }
+
+    public String pagar(Long ventaId) {
+        String orden = String.format("ORD-%06d", ventaId);
+        IrAPagar.ejecutar(servicioDeCobros, ventaId, sesion.getUsuarioId(), orden);
+        cargar();
+        return null;
+    }
+
+    public String claseEstado(Venta venta) {
+        return switch (venta.getEstado()) {
+            case PAGADA -> "badge-aprobada";
+            case PENDIENTE_PAGO -> "badge-pendiente";
+            default -> "badge-rechazada";
+        };
     }
 
     public boolean sePuedeDevolver(Venta venta) {

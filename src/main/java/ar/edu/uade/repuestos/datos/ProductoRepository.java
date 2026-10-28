@@ -39,7 +39,11 @@ public class ProductoRepository {
 
     // Bloqueo pesimista: dos compras del ultimo repuesto no pueden dejar stock negativo.
     public Optional<Producto> porIdBloqueado(Long id) {
-        return Optional.ofNullable(
-            em.find(Producto.class, id, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE));
+        Producto producto = em.find(Producto.class, id);
+        if (producto != null) {
+            // refresh y no find con lock: si el producto ya estaba cargado (por la venta), find no relee el stock
+            em.refresh(producto, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+        }
+        return Optional.ofNullable(producto);
     }
 }

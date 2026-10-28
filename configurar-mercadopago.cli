@@ -1,0 +1,10 @@
+# Reintentos del broker. Se corre una sola vez, con WildFly levantado en standalone-full.
+# Desde Eclipse: Run > External Tools (ver LEEME). Mercado Pago no se configura aca: sin token la app usa el simulado.
+
+# Si Mercado Pago no responde al reembolsar, el mensaje vuelve cada 10 s, hasta 10 veces, y despues va a la DLQ.
+# max-redelivery-delay hace falta: si queda en 0, Artemis reintenta todo de golpe sin esperar.
+/subsystem=messaging-activemq/server=default/address-setting=#:write-attribute(name=redelivery-delay,value=10000)
+/subsystem=messaging-activemq/server=default/address-setting=#:write-attribute(name=max-redelivery-delay,value=60000)
+/subsystem=messaging-activemq/server=default/address-setting=#:write-attribute(name=max-delivery-attempts,value=10)
+
+reload

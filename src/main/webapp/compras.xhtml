@@ -14,7 +14,8 @@
     <div class="pagina-encabezado">
       <span class="eyebrow">Historial</span>
       <h2>Mis compras</h2>
-      <p>Ten&#233;s 30 d&#237;as desde la compra para pedir una devoluci&#243;n.</p>
+      <p>Ten&#233;s 30 d&#237;as desde la compra para pedir una devoluci&#243;n.
+         Si una compra qued&#243; pendiente, ten&#233;s 30 minutos para pagarla.</p>
     </div>
 
     <ui:fragment rendered="#{empty comprasBean.compras}">
@@ -34,6 +35,7 @@
               <th>Repuesto</th>
               <th>Cant.</th>
               <th>Importe</th>
+              <th>Estado</th>
               <th>Acci&#243;n</th>
             </tr>
           </thead>
@@ -55,14 +57,23 @@
                     <f:convertNumber type="currency" currencySymbol="$" maxFractionDigits="0"/>
                   </h:outputText>
                 </td>
+                <td data-etiqueta="Estado">
+                  <span class="badge #{comprasBean.claseEstado(v)}">#{v.estado.descripcion}</span>
+                </td>
                 <td data-etiqueta="Acci&#243;n">
-                  <ui:fragment rendered="#{comprasBean.sePuedeDevolver(v)}">
+                  <ui:fragment rendered="#{v.pendienteDePago}">
+                    <h:form>
+                      <h:commandButton value="Pagar" action="#{comprasBean.pagar(v.id)}"
+                                       styleClass="btn btn-primario btn-chico"/>
+                    </h:form>
+                  </ui:fragment>
+                  <ui:fragment rendered="#{not v.pendienteDePago and comprasBean.sePuedeDevolver(v)}">
                     <h:link outcome="devolucion" value="Solicitar devoluci&#243;n"
                             styleClass="btn btn-secundario btn-chico">
                       <f:param name="ventaId" value="#{v.id}"/>
                     </h:link>
                   </ui:fragment>
-                  <ui:fragment rendered="#{not comprasBean.sePuedeDevolver(v)}">
+                  <ui:fragment rendered="#{not v.pendienteDePago and not comprasBean.sePuedeDevolver(v)}">
                     <span class="badge badge-neutro">No disponible</span>
                   </ui:fragment>
                 </td>

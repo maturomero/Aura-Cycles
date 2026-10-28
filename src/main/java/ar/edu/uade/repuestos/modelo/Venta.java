@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.UUID;
 
 @Entity
 @Table(name = "venta")
@@ -14,7 +15,11 @@ import java.util.Objects;
                       + "ORDER BY v.fecha DESC"),
     @NamedQuery(name = "Venta.comproProducto",
                 query = "SELECT COUNT(v) FROM Venta v "
-                      + "WHERE v.usuario.id = :usuarioId AND v.producto.id = :productoId")
+                      + "WHERE v.usuario.id = :usuarioId AND v.producto.id = :productoId "
+                      + "AND v.estado = :pagada"),
+    @NamedQuery(name = "Venta.pendientesAntesDe",
+                query = "SELECT v FROM Venta v WHERE v.estado = :pendiente AND v.fecha < :limite "
+                      + "ORDER BY v.fecha")
 })
 public class Venta implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -40,15 +45,54 @@ public class Venta implements Serializable {
     @Column(nullable = false)
     private LocalDateTime fecha;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private EstadoVenta estado;
+
+    // Es el external_reference en Mercado Pago. UUID y no el id, porque el grupo comparte la cuenta de prueba
+    @Column(name = "referencia_pago", nullable = false, unique = true, length = 36)
+    private String referenciaPago;
+
+    @Column(name = "mp_preferencia_id", length = 100)
+    private String mpPreferenciaId;
+
+    @Column(name = "mp_pago_id", unique = true, length = 30)
+    private String mpPagoId;
+
     public Venta() {
     }
 
+    // Nace reservando stock y esperando el pago
     public Venta(Usuario usuario, Producto producto, int cantidad, BigDecimal importe) {
         this.usuario = usuario;
         this.producto = producto;
         this.cantidad = cantidad;
         this.importe = importe;
         this.fecha = LocalDateTime.now();
+        this.estado = EstadoVenta.PENDIENTE_PAGO;
+        this.referenciaPago = UUID.randomUUID().toString();
+    }
+
+    public void marcarPagada(String pagoId) {
+        this.estado = estado.pagar();
+        this.mpPagoId = pagoId;
+    }
+
+    public void marcarRechazada() {
+        this.estado = estado.rechazar();
+    }
+
+    public void vencer() {
+        this.estado = estado.vencer();
+    }
+
+    // email es el usuario que conoce el contenedor (getCallerPrincipal)
+    public boolean esDe(String email) {
+        return email != null && usuario != null && email.equalsIgnoreCase(usuario.getEmail());
+    }
+
+    public boolean isPendienteDePago() {
+        return estado == EstadoVenta.PENDIENTE_PAGO;
     }
 
     @Transient
@@ -73,6 +117,18 @@ public class Venta implements Serializable {
 
     public LocalDateTime getFecha() { return fecha; }
     public void setFecha(LocalDateTime fecha) { this.fecha = fecha; }
+
+    public EstadoVenta getEstado() { return estado; }
+    public void setEstado(EstadoVenta estado) { this.estado = estado; }
+
+    public String getReferenciaPago() { return referenciaPago; }
+    public void setReferenciaPago(String referenciaPago) { this.referenciaPago = referenciaPago; }
+
+    public String getMpPreferenciaId() { return mpPreferenciaId; }
+    public void setMpPreferenciaId(String mpPreferenciaId) { this.mpPreferenciaId = mpPreferenciaId; }
+
+    public String getMpPagoId() { return mpPagoId; }
+    public void setMpPagoId(String mpPagoId) { this.mpPagoId = mpPagoId; }
 
     @Override
     public boolean equals(Object o) {

@@ -57,6 +57,7 @@
       <url-pattern>/devolucion-ok.xhtml</url-pattern>
       <url-pattern>/resena.xhtml</url-pattern>
       <url-pattern>/perfil.xhtml</url-pattern>
+      <url-pattern>/pago.xhtml</url-pattern>
     </web-resource-collection>
     <auth-constraint>
       <role-name>CLIENTE</role-name>

@@ -9,18 +9,31 @@ import ar.edu.uade.repuestos.modelo.Resena;
 import ar.edu.uade.repuestos.util.ReglaNegocioException;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.annotation.Resource;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
 import jakarta.inject.Inject;
+import jakarta.jms.JMSContext;
+import jakarta.jms.JMSDestinationDefinition;
+import jakarta.jms.Topic;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 // Fachada del panel de moderacion. La autorizacion la aplica el contenedor, no un if.
+// El topico se crea solo al desplegar, no hace falta configurarlo a mano en WildFly
+@JMSDestinationDefinition(
+        name = ServicioDeModeracion.TOPICO_DEVOLUCIONES,
+        interfaceName = "jakarta.jms.Topic",
+        destinationName = "topico.devoluciones")
 @Stateless
 public class ServicioDeModeracion {
+
+    public static final String TOPICO_DEVOLUCIONES = "java:/jms/topic/devoluciones";
+
     private static final Logger LOG = Logger.getLogger(ServicioDeModeracion.class.getName());
 
     @Inject
@@ -36,8 +49,12 @@ public class ServicioDeModeracion {
     private ServicioDeNotificaciones servicioDeNotificaciones;
 
     @Inject
-    private ServicioDeVentas servicioDeVentas;
+    private JMSContext jms;
 
+    @Resource(lookup = TOPICO_DEVOLUCIONES)
+    private Topic topicoDevoluciones;
+
+    // Stateless: el pool reutiliza instancias, por eso esto aparece pocas veces en la consola
     @PostConstruct
     void alCrear() {
         LOG.info(() -> "[CICLO DE VIDA] @PostConstruct ServicioDeModeracion (stateless) instancia #"
@@ -78,31 +95,34 @@ public class ServicioDeModeracion {
         servicioDeNotificaciones.resenaResuelta(resena);
     }
 
-    // Calcular, aprobar, guardar, reponer stock, reembolsar y notificar: una sola transaccion.
+    // Aprueba y publica el evento. Stock, reembolso y aviso los hacen los MDB.
     @RolesAllowed("MODERADOR")
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void aprobarDevolucion(Long devolucionId) {
         Devolucion devolucion = buscarDevolucion(devolucionId);
-        exigirPendiente(devolucion);
 
         BigDecimal monto = servicioDeReembolsos.calcularMonto(devolucion);
         devolucion.aprobar(monto);
         devolucionRepository.guardar(devolucion);
-
-        servicioDeVentas.reponerStockDe(devolucion.getVenta());
-        servicioDeReembolsos.emitir(devolucion);
-        servicioDeNotificaciones.devolucionResuelta(devolucion);
+        publicar(devolucion);
     }
 
     @RolesAllowed("MODERADOR")
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void rechazarDevolucion(Long devolucionId) {
         Devolucion devolucion = buscarDevolucion(devolucionId);
-        exigirPendiente(devolucion);
 
         devolucion.rechazar();
         devolucionRepository.guardar(devolucion);
-        servicioDeNotificaciones.devolucionResuelta(devolucion);
+        publicar(devolucion);
+    }
+
+    // Sale recien cuando la transaccion confirma: si algo falla, no se publica nada
+    private void publicar(Devolucion devolucion) {
+        jms.createProducer()
+           .setProperty("estado", devolucion.getEstado().name())
+           .send(topicoDevoluciones, Map.<String, Object>of("idDevolucion", devolucion.getId()));
+        LOG.info(() -> "[TOPICO] publicada " + devolucion.getCodigo() + " " + devolucion.getEstado());
     }
 
     private Resena buscarResena(Long id) {
@@ -118,12 +138,6 @@ public class ServicioDeModeracion {
     private void exigirPendiente(Resena resena) {
         if (resena.getEstado() != EstadoResena.PENDIENTE) {
             throw new ReglaNegocioException("Esa resena ya fue resuelta.");
-        }
-    }
-
-    private void exigirPendiente(Devolucion devolucion) {
-        if (devolucion.getEstado() != EstadoDevolucion.PENDIENTE) {
-            throw new ReglaNegocioException("Esa solicitud ya fue resuelta.");
         }
     }
 }

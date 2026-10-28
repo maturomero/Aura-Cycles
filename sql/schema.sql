@@ -1,5 +1,11 @@
--- Sistema de Resenas y Devoluciones - Repuestos de Bicicleta
--- Ejecutar completo antes del primer despliegue. Hibernate no genera el esquema.
+-- =========================================================================
+--  Sistema de Resenas y Devoluciones - Repuestos de Bicicleta
+--  TP Integrador - Desarrollo de Aplicaciones II
+--
+--  Ejecutar completo en MySQL Workbench antes del primer despliegue.
+--  El esquema se versiona aca a proposito: Hibernate NO lo genera
+--  (persistence.xml tiene schema-generation.database.action = none).
+-- =========================================================================
 
 DROP DATABASE IF EXISTS repuestos_bici;
 CREATE DATABASE repuestos_bici CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -34,9 +40,17 @@ CREATE TABLE venta (
   cantidad    INT NOT NULL,
   importe     DECIMAL(12,2) NOT NULL,
   fecha       DATETIME NOT NULL,
+  -- PENDIENTE_PAGO reserva stock hasta que Mercado Pago aprueba, rechaza o vence la reserva
+  estado            VARCHAR(20)  NOT NULL DEFAULT 'PAGADA',
+  referencia_pago   VARCHAR(36)  NOT NULL,
+  mp_preferencia_id VARCHAR(100),
+  mp_pago_id        VARCHAR(30),
+  CONSTRAINT uq_venta_referencia UNIQUE (referencia_pago),
+  CONSTRAINT uq_venta_mp_pago    UNIQUE (mp_pago_id),
   CONSTRAINT fk_venta_usuario  FOREIGN KEY (usuario_id)  REFERENCES usuario(id),
   CONSTRAINT fk_venta_producto FOREIGN KEY (producto_id) REFERENCES producto(id),
-  INDEX idx_venta_usuario (usuario_id)
+  INDEX idx_venta_usuario (usuario_id),
+  INDEX idx_venta_estado (estado, fecha)
 ) ENGINE=InnoDB;
 
 -- ---------- RESENA ----------
@@ -58,7 +72,9 @@ CREATE TABLE resena (
 ) ENGINE=InnoDB;
 
 -- ---------- DEVOLUCION ----------
--- El monto del reembolso vive aca: no existe fuera de la devolucion que lo origina.
+-- El monto del reembolso vive aca y no en una tabla propia: un reembolso no
+-- existe fuera de la devolucion que lo origina. Por eso ServicioDeReembolsos
+-- no tiene repositorio propio en el diagrama de capas.
 CREATE TABLE devolucion (
   id              BIGINT AUTO_INCREMENT PRIMARY KEY,
   venta_id        BIGINT NOT NULL,
@@ -66,6 +82,7 @@ CREATE TABLE devolucion (
   comentario      TEXT,
   estado          VARCHAR(20) NOT NULL,
   monto_reembolso DECIMAL(12,2),
+  mp_reembolso_id VARCHAR(30),
   fecha_solicitud DATETIME NOT NULL,
   fecha_resolucion DATETIME,
   CONSTRAINT fk_devolucion_venta FOREIGN KEY (venta_id) REFERENCES venta(id),
@@ -74,8 +91,12 @@ CREATE TABLE devolucion (
 ) ENGINE=InnoDB;
 
 
--- Datos de prueba. Todos los usuarios tienen la contrasena Clave1234;
--- los hashes se generaron con GeneradorHash, cada uno con su propio salt.
+-- =========================================================================
+--  DATOS DE PRUEBA
+--  Todos los usuarios tienen la contrasena: Clave1234
+--  Los hashes se generaron con ar.edu.uade.repuestos.util.GeneradorHash,
+--  cada uno con su propio salt (por eso son distintos entre si).
+-- =========================================================================
 
 INSERT INTO usuario (email, password_hash, nombre, rol) VALUES
 ('ana@mail.com',    'LbXeJJyPwq0KuE0kHzDnfw==:lwE9/IYKe2vZglC2y0YVdLwRBJTLhohBWoK7iu4b320=', 'Ana Torres',      'CLIENTE'),
@@ -109,18 +130,20 @@ INSERT INTO producto (codigo, nombre, categoria, descripcion, precio, stock) VAL
 ('SIL-COMF-1', 'Sillin comfort con gel',        'Contacto',
  'Sillin ancho con relleno de gel, pensado para uso urbano y paseos largos.', 18600.00, 18);
 
--- Compras: mezcla de recientes (devolvibles) y viejas (fuera de los 30 dias)
-INSERT INTO venta (usuario_id, producto_id, cantidad, importe, fecha) VALUES
-(1, 1, 1,  46800.00, DATE_SUB(NOW(), INTERVAL  4 DAY)),   -- Ana, cubierta       -> devolvible
-(1, 4, 2,  18400.00, DATE_SUB(NOW(), INTERVAL 12 DAY)),   -- Ana, pastillas      -> devolvible
-(2, 3, 1,  23400.00, DATE_SUB(NOW(), INTERVAL  6 DAY)),   -- Carlos, cadena      -> devolvible
-(2, 5, 1,  71500.00, DATE_SUB(NOW(), INTERVAL 45 DAY)),   -- Carlos, desviador   -> VENCIDO
-(3, 2, 1,  58700.00, DATE_SUB(NOW(), INTERVAL  9 DAY)),   -- Lucia, cassette     -> devolvible
-(3, 6, 3,  23400.00, DATE_SUB(NOW(), INTERVAL  2 DAY)),   -- Lucia, camaras      -> devolvible
-(4, 5, 1,  71500.00, DATE_SUB(NOW(), INTERVAL 15 DAY)),   -- Javier, desviador   -> devolvible
-(4, 8, 1,  18600.00, DATE_SUB(NOW(), INTERVAL 20 DAY));   -- Javier, sillin      -> devolvible
+-- Compras: mezcla de recientes (devolvibles) y viejas (fuera de los 30 dias).
+-- Son anteriores a Mercado Pago: quedan PAGADA y sin mp_pago_id, asi que su reembolso es manual.
+INSERT INTO venta (usuario_id, producto_id, cantidad, importe, fecha, estado, referencia_pago) VALUES
+(1, 1, 1,  46800.00, DATE_SUB(NOW(), INTERVAL  4 DAY), 'PAGADA', UUID()),   -- Ana, cubierta       -> devolvible
+(1, 4, 2,  18400.00, DATE_SUB(NOW(), INTERVAL 12 DAY), 'PAGADA', UUID()),   -- Ana, pastillas      -> devolvible
+(2, 3, 1,  23400.00, DATE_SUB(NOW(), INTERVAL  6 DAY), 'PAGADA', UUID()),   -- Carlos, cadena      -> devolvible
+(2, 5, 1,  71500.00, DATE_SUB(NOW(), INTERVAL 45 DAY), 'PAGADA', UUID()),   -- Carlos, desviador   -> VENCIDO
+(3, 2, 1,  58700.00, DATE_SUB(NOW(), INTERVAL  9 DAY), 'PAGADA', UUID()),   -- Lucia, cassette     -> devolvible
+(3, 6, 3,  23400.00, DATE_SUB(NOW(), INTERVAL  2 DAY), 'PAGADA', UUID()),   -- Lucia, camaras      -> devolvible
+(4, 5, 1,  71500.00, DATE_SUB(NOW(), INTERVAL 15 DAY), 'PAGADA', UUID()),   -- Javier, desviador   -> devolvible
+(4, 8, 1,  18600.00, DATE_SUB(NOW(), INTERVAL 20 DAY), 'PAGADA', UUID());   -- Javier, sillin      -> devolvible
 
--- Dos resenas aprobadas y dos pendientes, para ver las dos pantallas.
+-- Resenas: dos aprobadas (se ven en la pantalla de producto) y dos
+-- pendientes (aparecen en la cola del panel de moderacion)
 INSERT INTO resena (usuario_id, producto_id, puntaje, titulo, texto, estado, fecha) VALUES
 (1, 1, 5, 'Excelente agarre',
  'La use en tierra y en asfalto. En mojado responde mucho mejor de lo que esperaba.',
@@ -138,14 +161,16 @@ INSERT INTO resena (usuario_id, producto_id, puntaje, titulo, texto, estado, fec
  'El gel se siente poco. Para salidas de mas de una hora me resulto incomodo.',
  'PENDIENTE', NOW());
 
--- Una devolucion pendiente, para el panel de moderacion.
+-- Devoluciones: una pendiente para probar el panel de moderacion
 INSERT INTO devolucion (venta_id, motivo, comentario, estado, fecha_solicitud) VALUES
 (7, 'NO_COMPATIBLE',
  'Lo pedi para una bici de 8 velocidades y es de 9. No entra en el patin.',
  'PENDIENTE', DATE_SUB(NOW(), INTERVAL 1 DAY));
 
 
--- Verificacion
+-- =========================================================================
+--  VERIFICACION
+-- =========================================================================
 SELECT 'usuarios'    AS tabla, COUNT(*) AS filas FROM usuario
 UNION ALL SELECT 'productos',    COUNT(*) FROM producto
 UNION ALL SELECT 'ventas',       COUNT(*) FROM venta
