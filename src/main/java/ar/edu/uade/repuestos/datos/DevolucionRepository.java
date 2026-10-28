@@ -26,6 +26,15 @@ public class DevolucionRepository {
         return Optional.ofNullable(em.find(Devolucion.class, id));
     }
 
+    // Dos entregas del mismo evento a la vez: la segunda espera y ve el flag ya marcado
+    public Optional<Devolucion> porIdBloqueado(Long id) {
+        Devolucion d = em.find(Devolucion.class, id);
+        if (d != null) {
+            em.refresh(d, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+        }
+        return Optional.ofNullable(d);
+    }
+
     public List<Devolucion> porEstado(EstadoDevolucion estado) {
         return em.createNamedQuery("Devolucion.porEstado", Devolucion.class)
                  .setParameter("estado", estado)

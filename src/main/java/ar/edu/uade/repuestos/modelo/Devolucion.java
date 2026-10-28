@@ -54,6 +54,10 @@ public class Devolucion implements Serializable {
     @Column(name = "intentos_validacion", nullable = false)
     private int intentosValidacion;
 
+    // Consumidor idempotente: si el broker reentrega el evento, el stock no se repone dos veces
+    @Column(name = "stock_repuesto", nullable = false)
+    private boolean stockRepuesto;
+
     @Column(name = "fecha_solicitud", nullable = false)
     private LocalDateTime fechaSolicitud;
 
@@ -137,6 +141,18 @@ public class Devolucion implements Serializable {
 
     public String getMpReembolsoId() { return mpReembolsoId; }
     public void setMpReembolsoId(String mpReembolsoId) { this.mpReembolsoId = mpReembolsoId; }
+
+    // Devuelve false si ya se habia repuesto (mensaje repetido)
+    public boolean marcarStockRepuesto() {
+        if (stockRepuesto) {
+            return false;
+        }
+        stockRepuesto = true;
+        return true;
+    }
+
+    public boolean isStockRepuesto() { return stockRepuesto; }
+    public void setStockRepuesto(boolean stockRepuesto) { this.stockRepuesto = stockRepuesto; }
 
     public String getRma() { return rma; }
     public void setRma(String rma) { this.rma = rma; }

@@ -85,6 +85,7 @@ CREATE TABLE devolucion (
   mp_reembolso_id VARCHAR(30),
   rma             VARCHAR(40),
   intentos_validacion INT NOT NULL DEFAULT 0,
+  stock_repuesto  BOOLEAN NOT NULL DEFAULT FALSE,
   fecha_solicitud DATETIME NOT NULL,
   fecha_resolucion DATETIME,
   CONSTRAINT fk_devolucion_venta FOREIGN KEY (venta_id) REFERENCES venta(id),

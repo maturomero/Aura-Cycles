@@ -29,6 +29,6 @@ public class StockMDB implements MessageListener {
     @Override
     public void onMessage(Message mensaje) {
         EventoDevolucion.devolucionDe(mensaje, devolucionRepository)
-                .ifPresent(d -> servicioDeVentas.reponerStockDe(d.getVenta()));
+                .ifPresent(d -> servicioDeVentas.reponerStockDeDevolucion(d.getId()));
     }
 }
