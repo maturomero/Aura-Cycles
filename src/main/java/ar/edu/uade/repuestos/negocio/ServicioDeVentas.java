@@ -1,8 +1,10 @@
 package ar.edu.uade.repuestos.negocio;
 
+import ar.edu.uade.repuestos.datos.DevolucionRepository;
 import ar.edu.uade.repuestos.datos.ProductoRepository;
 import ar.edu.uade.repuestos.datos.UsuarioRepository;
 import ar.edu.uade.repuestos.datos.VentaRepository;
+import ar.edu.uade.repuestos.modelo.Devolucion;
 import ar.edu.uade.repuestos.modelo.Producto;
 import ar.edu.uade.repuestos.modelo.Usuario;
 import ar.edu.uade.repuestos.modelo.Venta;
@@ -13,9 +15,15 @@ import jakarta.ejb.TransactionAttributeType;
 import jakarta.inject.Inject;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.logging.Logger;
 
 @Stateless
 public class ServicioDeVentas {
+
+    private static final Logger LOG = Logger.getLogger(ServicioDeVentas.class.getName());
+
+    @Inject
+    private DevolucionRepository devolucionRepository;
     @Inject
     private VentaRepository ventaRepository;
 
@@ -58,6 +66,19 @@ public class ServicioDeVentas {
     public Venta porId(Long ventaId) {
         return ventaRepository.porId(ventaId)
                 .orElseThrow(() -> new ReglaNegocioException("La compra no existe."));
+    }
+
+    // Lo llama StockMDB. Si el mismo evento llega dos veces, la segunda no hace nada
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public boolean reponerStockDeDevolucion(Long devolucionId) {
+        Devolucion devolucion = devolucionRepository.porIdBloqueado(devolucionId).orElse(null);
+        if (devolucion == null || !devolucion.marcarStockRepuesto()) {
+            LOG.info(() -> "[STOCK] devolucion " + devolucionId + " ya repuesta o inexistente, mensaje repetido");
+            return false;
+        }
+        reponerStockDe(devolucion.getVenta());
+        devolucionRepository.guardar(devolucion);
+        return true;
     }
 
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
