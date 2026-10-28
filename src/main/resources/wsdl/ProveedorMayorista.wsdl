@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Contrato del sistema legado del proveedor mayorista. Nosotros solo consumimos validarGarantia. -->
+<definitions name="ProveedorMayorista"
+             targetNamespace="http://proveedor.mayorista.ar/ws"
+             xmlns="http://schemas.xmlsoap.org/wsdl/"
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+             xmlns:tns="http://proveedor.mayorista.ar/ws"
+             xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <types>
+    <xs:schema targetNamespace="http://proveedor.mayorista.ar/ws" elementFormDefault="qualified">
+
+      <xs:element name="consultarStock">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="codigoProducto" type="tns:Codigo"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+
+      <xs:element name="consultarStockResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="disponible" type="xs:nonNegativeInteger"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+
+      <xs:element name="validarGarantia">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="codigoProducto" type="tns:Codigo"/>
+            <xs:element name="fechaCompra" type="xs:date"/>
+            <xs:element name="cantidad" type="xs:positiveInteger"/>
+            <xs:element name="motivo" type="tns:Texto"/>
+            <xs:element name="referencia" type="tns:Texto"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+
+      <xs:element name="validarGarantiaResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="rma" type="tns:Rma"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+
+      <xs:element name="garantiaNoValida">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="codigo" type="tns:CodigoRechazo"/>
+            <xs:element name="mensaje" type="tns:Texto"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+
+      <xs:simpleType name="Codigo">
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1"/>
+          <xs:maxLength value="40"/>
+        </xs:restriction>
+      </xs:simpleType>
+
+      <xs:simpleType name="Texto">
+        <xs:restriction base="xs:string">
+          <xs:maxLength value="200"/>
+        </xs:restriction>
+      </xs:simpleType>
+
+      <xs:simpleType name="Rma">
+        <xs:restriction base="xs:string">
+          <xs:pattern value="RMA-[0-9]{4}-[0-9]{4,8}"/>
+        </xs:restriction>
+      </xs:simpleType>
+
+      <xs:simpleType name="CodigoRechazo">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="CONSUMIBLE"/>
+          <xs:enumeration value="FUERA_DE_PLAZO"/>
+          <xs:enumeration value="PRODUCTO_DESCONOCIDO"/>
+        </xs:restriction>
+      </xs:simpleType>
+
+    </xs:schema>
+  </types>
+
+  <message name="consultarStockRequest">
+    <part name="parameters" element="tns:consultarStock"/>
+  </message>
+  <message name="consultarStockResponse">
+    <part name="parameters" element="tns:consultarStockResponse"/>
+  </message>
+  <message name="validarGarantiaRequest">
+    <part name="parameters" element="tns:validarGarantia"/>
+  </message>
+  <message name="validarGarantiaResponse">
+    <part name="parameters" element="tns:validarGarantiaResponse"/>
+  </message>
+  <message name="GarantiaNoValidaFault">
+    <part name="fault" element="tns:garantiaNoValida"/>
+  </message>
+
+  <portType name="ProveedorMayoristaPort">
+    <operation name="consultarStock">
+      <input message="tns:consultarStockRequest"/>
+      <output message="tns:consultarStockResponse"/>
+    </operation>
+    <operation name="validarGarantia">
+      <input message="tns:validarGarantiaRequest"/>
+      <output message="tns:validarGarantiaResponse"/>
+      <fault name="GarantiaNoValidaFault" message="tns:GarantiaNoValidaFault"/>
+    </operation>
+  </portType>
+
+  <binding name="ProveedorMayoristaBinding" type="tns:ProveedorMayoristaPort">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <operation name="consultarStock">
+      <soap:operation soapAction="consultarStock"/>
+      <input><soap:body use="literal"/></input>
+      <output><soap:body use="literal"/></output>
+    </operation>
+    <operation name="validarGarantia">
+      <soap:operation soapAction="validarGarantia"/>
+      <input><soap:body use="literal"/></input>
+      <output><soap:body use="literal"/></output>
+      <fault name="GarantiaNoValidaFault"><soap:fault name="GarantiaNoValidaFault" use="literal"/></fault>
+    </operation>
+  </binding>
+
+  <service name="ProveedorMayorista">
+    <port name="ProveedorMayoristaPort" binding="tns:ProveedorMayoristaBinding">
+      <soap:address location="http://localhost:8090/proveedor"/>
+    </port>
+  </service>
+</definitions>

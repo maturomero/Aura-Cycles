@@ -117,7 +117,15 @@
                 <tbody>
                   <ui:repeat value="#{moderacionBean.devolucionesPendientes}" var="d">
                     <tr>
-                      <td data-etiqueta="C&#243;digo"><span class="codigo">#{d.codigo}</span></td>
+                      <td data-etiqueta="C&#243;digo">
+                        <span class="codigo">#{d.codigo}</span>
+                        <ui:fragment rendered="#{not empty d.rma}">
+                          <div class="celda-tenue" style="font-size:11.5px">#{d.rma}</div>
+                        </ui:fragment>
+                        <ui:fragment rendered="#{d.sinValidar}">
+                          <div><span class="badge badge-pendiente" title="El proveedor no respondi&#243;: revisarla con el proveedor">Sin validar con el proveedor</span></div>
+                        </ui:fragment>
+                      </td>
                       <td data-etiqueta="Orden" class="celda-tenue">#{d.venta.numeroOrden}</td>
                       <td data-etiqueta="Cliente" class="celda-tenue">#{d.venta.usuario.nombre}</td>
                       <td data-etiqueta="Repuesto" class="celda-titulo">#{d.venta.producto.nombre}</td>

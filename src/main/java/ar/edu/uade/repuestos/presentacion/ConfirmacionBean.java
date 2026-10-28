@@ -10,7 +10,11 @@ public class ConfirmacionBean implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String codigo;
+    private boolean validando;
 
     public String getCodigo() { return codigo; }
     public void setCodigo(String codigo) { this.codigo = codigo; }
+
+    public boolean isValidando() { return validando; }
+    public void setValidando(boolean validando) { this.validando = validando; }
 }

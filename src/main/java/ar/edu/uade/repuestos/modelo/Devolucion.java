@@ -47,6 +47,13 @@ public class Devolucion implements Serializable {
     @Column(name = "mp_reembolso_id", length = 30)
     private String mpReembolsoId;
 
+    // Codigo de autorizacion del proveedor. Null si se derivo al moderador sin poder validar
+    @Column(length = 40)
+    private String rma;
+
+    @Column(name = "intentos_validacion", nullable = false)
+    private int intentosValidacion;
+
     @Column(name = "fecha_solicitud", nullable = false)
     private LocalDateTime fechaSolicitud;
 
@@ -60,8 +67,32 @@ public class Devolucion implements Serializable {
         this.venta = venta;
         this.motivo = motivo;
         this.comentario = comentario;
-        this.estado = EstadoDevolucion.PENDIENTE;
+        this.estado = EstadoDevolucion.PENDIENTE_VALIDACION;
         this.fechaSolicitud = LocalDateTime.now();
+    }
+
+    public void garantiaValidada(String rma) {
+        this.estado = estado.validar();
+        this.rma = rma;
+    }
+
+    public void garantiaRechazada() {
+        this.estado = estado.rechazar();
+        this.fechaResolucion = LocalDateTime.now();
+    }
+
+    // Devuelve true si ya se agotaron los intentos y paso al moderador sin RMA
+    public boolean validacionFallida(int maximo) {
+        this.intentosValidacion++;
+        if (intentosValidacion >= maximo) {
+            this.estado = estado.validar();
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isSinValidar() {
+        return rma == null && estado != EstadoDevolucion.PENDIENTE_VALIDACION;
     }
 
     // La entidad no pregunta en que estado esta: delega en el estado (State)
@@ -106,6 +137,12 @@ public class Devolucion implements Serializable {
 
     public String getMpReembolsoId() { return mpReembolsoId; }
     public void setMpReembolsoId(String mpReembolsoId) { this.mpReembolsoId = mpReembolsoId; }
+
+    public String getRma() { return rma; }
+    public void setRma(String rma) { this.rma = rma; }
+
+    public int getIntentosValidacion() { return intentosValidacion; }
+    public void setIntentosValidacion(int intentosValidacion) { this.intentosValidacion = intentosValidacion; }
 
     public LocalDateTime getFechaSolicitud() { return fechaSolicitud; }
     public void setFechaSolicitud(LocalDateTime fechaSolicitud) { this.fechaSolicitud = fechaSolicitud; }

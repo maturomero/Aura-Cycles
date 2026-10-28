@@ -9,6 +9,7 @@
 
   <f:metadata>
     <f:viewParam name="codigo" value="#{confirmacionBean.codigo}"/>
+    <f:viewParam name="validando" value="#{confirmacionBean.validando}"/>
   </f:metadata>
 
   <ui:define name="titulo">Solicitud enviada</ui:define>
@@ -29,9 +30,19 @@
 
       <div class="confirmacion-codigo">#{confirmacionBean.codigo}</div>
 
-      <p style="margin:0 0 20px">
-        <span class="badge badge-pendiente">Pendiente de revisi&#243;n</span>
-      </p>
+      <ui:fragment rendered="#{not confirmacionBean.validando}">
+        <p style="margin:0 0 20px">
+          <span class="badge badge-pendiente">Pendiente de revisi&#243;n</span>
+        </p>
+      </ui:fragment>
+      <ui:fragment rendered="#{confirmacionBean.validando}">
+        <p style="margin:0 0 8px">
+          <span class="badge badge-neutro">Validando la garant&#237;a con el proveedor</span>
+        </p>
+        <p style="margin:0 0 20px;color:var(--text-muted);font-size:13px">
+          El proveedor no respondi&#243; ahora. Lo reintentamos solos en unos minutos; no hace falta que hagas nada.
+        </p>
+      </ui:fragment>
 
       <div style="display:flex;gap:9px;justify-content:center;flex-wrap:wrap">
         <h:link outcome="compras" value="Volver a mis compras"

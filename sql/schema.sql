@@ -83,6 +83,8 @@ CREATE TABLE devolucion (
   estado          VARCHAR(20) NOT NULL,
   monto_reembolso DECIMAL(12,2),
   mp_reembolso_id VARCHAR(30),
+  rma             VARCHAR(40),
+  intentos_validacion INT NOT NULL DEFAULT 0,
   fecha_solicitud DATETIME NOT NULL,
   fecha_resolucion DATETIME,
   CONSTRAINT fk_devolucion_venta FOREIGN KEY (venta_id) REFERENCES venta(id),
@@ -162,10 +164,10 @@ INSERT INTO resena (usuario_id, producto_id, puntaje, titulo, texto, estado, fec
  'PENDIENTE', NOW());
 
 -- Devoluciones: una pendiente para probar el panel de moderacion
-INSERT INTO devolucion (venta_id, motivo, comentario, estado, fecha_solicitud) VALUES
+INSERT INTO devolucion (venta_id, motivo, comentario, estado, rma, fecha_solicitud) VALUES
 (7, 'NO_COMPATIBLE',
  'Lo pedi para una bici de 8 velocidades y es de 9. No entra en el patin.',
- 'PENDIENTE', DATE_SUB(NOW(), INTERVAL 1 DAY));
+ 'PENDIENTE', 'RMA-2026-00001', DATE_SUB(NOW(), INTERVAL 1 DAY));
 
 
 -- =========================================================================
