@@ -26,6 +26,7 @@ public class ServicioDeVentas {
     private UsuarioRepository usuarioRepository;
 
     // Descontar stock y registrar la venta van juntos: si falla el guardado, el stock vuelve.
+    // La venta queda PENDIENTE_PAGO con el stock reservado hasta que ServicioDeCobros la resuelva.
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public Venta comprar(Long usuarioId, Long productoId, int cantidad) {
         if (cantidad <= 0) {

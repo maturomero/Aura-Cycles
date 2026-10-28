@@ -2,6 +2,8 @@ package ar.edu.uade.repuestos.presentacion;
 
 import ar.edu.uade.repuestos.modelo.Producto;
 import ar.edu.uade.repuestos.modelo.Resena;
+import ar.edu.uade.repuestos.modelo.Venta;
+import ar.edu.uade.repuestos.negocio.ServicioDeCobros;
 import ar.edu.uade.repuestos.negocio.ServicioDeProductos;
 import ar.edu.uade.repuestos.negocio.ServicioDeResenas;
 import ar.edu.uade.repuestos.negocio.ServicioDeVentas;
@@ -26,6 +28,9 @@ public class ProductosBean implements Serializable {
 
     @Inject
     private ServicioDeVentas servicioDeVentas;
+
+    @Inject
+    private ServicioDeCobros servicioDeCobros;
 
     @Inject
     private SesionBean sesion;
@@ -59,16 +64,19 @@ public class ProductosBean implements Serializable {
         this.productos = servicioDeProductos.buscar(busqueda);
     }
 
+    // Reserva el stock y manda a Mercado Pago. Si MP no responde, la compra queda reservada para pagar despues
     public String comprar(Long id) {
         try {
-            servicioDeVentas.comprar(sesion.getUsuarioId(), id, cantidad);
-            Mensajes.ok("Compra registrada. La ves en Mis compras.");
-            cargar();
-            return null;
+            Venta venta = servicioDeVentas.comprar(sesion.getUsuarioId(), id, cantidad);
+            IrAPagar.ejecutar(servicioDeCobros, venta.getId(), sesion.getUsuarioId(), venta.getNumeroOrden());
         } catch (ReglaNegocioException e) {
             Mensajes.error(e.getMessage());
-            return null;
         }
+        cargar();
+        if (seleccionado != null) {
+            cargarDetalle();
+        }
+        return null;
     }
 
     public double promedio(Long id) {

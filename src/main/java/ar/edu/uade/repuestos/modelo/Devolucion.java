@@ -44,6 +44,9 @@ public class Devolucion implements Serializable {
     @Column(name = "monto_reembolso", precision = 12, scale = 2)
     private BigDecimal montoReembolso;
 
+    @Column(name = "mp_reembolso_id", length = 30)
+    private String mpReembolsoId;
+
     @Column(name = "fecha_solicitud", nullable = false)
     private LocalDateTime fechaSolicitud;
 
@@ -61,16 +64,21 @@ public class Devolucion implements Serializable {
         this.fechaSolicitud = LocalDateTime.now();
     }
 
+    // La entidad no pregunta en que estado esta: delega en el estado (State)
     public void aprobar(BigDecimal monto) {
-        this.estado = EstadoDevolucion.APROBADA;
+        this.estado = estado.aprobar();
         this.montoReembolso = monto;
         this.fechaResolucion = LocalDateTime.now();
     }
 
     public void rechazar() {
-        this.estado = EstadoDevolucion.RECHAZADA;
+        this.estado = estado.rechazar();
         this.montoReembolso = null;
         this.fechaResolucion = LocalDateTime.now();
+    }
+
+    public void reembolsar() {
+        this.estado = estado.reembolsar();
     }
 
     @Transient
@@ -95,6 +103,9 @@ public class Devolucion implements Serializable {
 
     public BigDecimal getMontoReembolso() { return montoReembolso; }
     public void setMontoReembolso(BigDecimal montoReembolso) { this.montoReembolso = montoReembolso; }
+
+    public String getMpReembolsoId() { return mpReembolsoId; }
+    public void setMpReembolsoId(String mpReembolsoId) { this.mpReembolsoId = mpReembolsoId; }
 
     public LocalDateTime getFechaSolicitud() { return fechaSolicitud; }
     public void setFechaSolicitud(LocalDateTime fechaSolicitud) { this.fechaSolicitud = fechaSolicitud; }

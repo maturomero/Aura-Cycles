@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<ui:composition template="/WEB-INF/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets">
+
+  <ui:param name="seccion" value="compras"/>
+
+  <!-- Mercado Pago agrega payment_id, status y otros. Solo usamos payment_id; status no se cree -->
+  <f:metadata>
+    <f:viewParam name="venta" value="#{pagoBean.ventaId}"/>
+    <f:viewParam name="payment_id" value="#{pagoBean.paymentId}"/>
+    <f:viewAction action="#{pagoBean.confirmar}"/>
+  </f:metadata>
+
+  <ui:define name="titulo">Pago</ui:define>
+
+  <ui:define name="contenido">
+
+    <div class="confirmacion">
+
+      <ui:fragment rendered="#{pagoBean.es('PAGADA')}">
+        <div class="confirmacion-icono">&#10003;</div>
+        <h2 style="margin:0 0 7px;font:600 20px 'IBM Plex Sans',sans-serif">Pago acreditado</h2>
+        <p style="margin:0;color:var(--text-muted);font-size:13.5px">
+          Mercado Pago confirm&#243; el pago de #{pagoBean.venta.producto.nombre}.
+        </p>
+        <div class="confirmacion-codigo">#{pagoBean.venta.numeroOrden}</div>
+        <p style="margin:0 0 20px"><span class="badge badge-aprobada">Pagada</span></p>
+      </ui:fragment>
+
+      <ui:fragment rendered="#{pagoBean.es('RECHAZADA')}">
+        <h2 style="margin:0 0 7px;font:600 20px 'IBM Plex Sans',sans-serif">El pago fue rechazado</h2>
+        <p style="margin:0;color:var(--text-muted);font-size:13.5px">
+          No se cobr&#243; nada y el repuesto volvi&#243; al stock. Si quer&#233;s, hac&#233; la compra de nuevo con otro medio de pago.
+        </p>
+        <div class="confirmacion-codigo">#{pagoBean.venta.numeroOrden}</div>
+        <p style="margin:0 0 20px"><span class="badge badge-rechazada">Pago rechazado</span></p>
+      </ui:fragment>
+
+      <ui:fragment rendered="#{pagoBean.es('PENDIENTE_PAGO')}">
+        <h2 style="margin:0 0 7px;font:600 20px 'IBM Plex Sans',sans-serif">Todav&#237;a no hay un pago acreditado</h2>
+        <p style="margin:0;color:var(--text-muted);font-size:13.5px">
+          Si no terminaste de pagar, pod&#233;s hacerlo desde Mis compras. La reserva dura 30 minutos.
+        </p>
+        <div class="confirmacion-codigo">#{pagoBean.venta.numeroOrden}</div>
+        <p style="margin:0 0 20px"><span class="badge badge-pendiente">Pendiente de pago</span></p>
+      </ui:fragment>
+
+      <ui:fragment rendered="#{pagoBean.es('VENCIDA')}">
+        <h2 style="margin:0 0 7px;font:600 20px 'IBM Plex Sans',sans-serif">La reserva venci&#243;</h2>
+        <p style="margin:0;color:var(--text-muted);font-size:13.5px">
+          Pasaron m&#225;s de 30 minutos sin pago y el repuesto volvi&#243; al stock.
+        </p>
+      </ui:fragment>
+
+      <ui:fragment rendered="#{pagoBean.sinRespuesta}">
+        <h2 style="margin:0 0 7px;font:600 20px 'IBM Plex Sans',sans-serif">No pudimos confirmar el pago</h2>
+        <p style="margin:0 0 20px;color:var(--text-muted);font-size:13.5px">
+          Mercado Pago no responde. Tu compra sigue reservada: en unos minutos la ves actualizada en Mis compras.
+          No vuelvas a pagar, si el pago se hizo lo vamos a encontrar.
+        </p>
+      </ui:fragment>
+
+      <div style="display:flex;gap:9px;justify-content:center;flex-wrap:wrap">
+        <h:link outcome="compras" value="Ir a mis compras" styleClass="btn btn-primario"/>
+        <h:link outcome="productos" value="Seguir comprando" styleClass="btn btn-secundario"/>
+      </div>
+
+    </div>
+
+  </ui:define>
+</ui:composition>

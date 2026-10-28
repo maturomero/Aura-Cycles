@@ -1,9 +1,12 @@
 package ar.edu.uade.repuestos.datos;
 
+import ar.edu.uade.repuestos.modelo.EstadoVenta;
 import ar.edu.uade.repuestos.modelo.Venta;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.PersistenceContext;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +27,22 @@ public class VentaRepository {
         return Optional.ofNullable(em.find(Venta.class, id));
     }
 
+    // Dos confirmaciones del mismo pago al mismo tiempo: la segunda espera y ve la venta ya resuelta
+    public Optional<Venta> porIdBloqueado(Long id) {
+        Venta venta = em.find(Venta.class, id);
+        if (venta != null) {
+            em.refresh(venta, LockModeType.PESSIMISTIC_WRITE);  // relee con FOR UPDATE aunque ya estuviera cargada
+        }
+        return Optional.ofNullable(venta);
+    }
+
+    public List<Venta> pendientesDePagoAntesDe(LocalDateTime limite) {
+        return em.createNamedQuery("Venta.pendientesAntesDe", Venta.class)
+                 .setParameter("pendiente", EstadoVenta.PENDIENTE_PAGO)
+                 .setParameter("limite", limite)
+                 .getResultList();
+    }
+
     public List<Venta> porUsuario(Long usuarioId) {
         return em.createNamedQuery("Venta.porUsuario", Venta.class)
                  .setParameter("usuarioId", usuarioId)
@@ -34,6 +53,7 @@ public class VentaRepository {
         Long cantidad = em.createNamedQuery("Venta.comproProducto", Long.class)
                           .setParameter("usuarioId", usuarioId)
                           .setParameter("productoId", productoId)
+                          .setParameter("pagada", EstadoVenta.PAGADA)
                           .getSingleResult();
         return cantidad != null && cantidad > 0;
     }

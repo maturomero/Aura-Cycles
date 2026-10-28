@@ -1,0 +1,84 @@
+Entrega 4 - Cobro y reembolso con Mercado Pago (AUR-55 y AUR-39) + SEC-05 (AUR-62)
+
+Todo se corre desde Eclipse, sin terminal.
+
+Que hay que hacer
+1. Reemplazar en el proyecto: src, sql, docs, pom.xml, README.md, LEEME.txt, .gitignore,
+   configurar-standalone-full.cli, configurar-mercadopago.cli y db.local.properties.example.
+   Esta version ya incluye lo de la clase 12 (State de la devolucion). Si alguien toco codigo despues,
+   mejor aplicar cambios-mercadopago.patch con git (configurar-standalone-full.cli no esta en el patch:
+   reemplazarlo entero).
+2. F5 sobre el proyecto y Maven > Update Project.
+3. Correr de nuevo sql/schema.sql en MySQL Workbench (venta y devolucion tienen columnas nuevas).
+4. El servidor tiene que estar en standalone-full: en la vista Servers, doble clic en WildFly >
+   Runtime Environment > Configuration file: standalone-full.xml (si ya lo hicieron para AUR-38, nada).
+5. Una sola vez, con el servidor levantado, los reintentos del broker:
+   Run > External Tools > External Tools Configurations... > Program > New
+     Name:              configurar-mercadopago
+     Location:          la carpeta de WildFly + /bin/jboss-cli.sh   (en Windows: \bin\jboss-cli.bat)
+     Working Directory: ${project_loc}
+     Arguments:         --connect --file=configurar-mercadopago.cli
+   Seleccionar el proyecto en el Project Explorer y tocar Run. En la consola tiene que salir
+   {"outcome" => "success"} tres veces.
+6. Levantar el Mercado Pago simulado: src/test/java > ar.edu.uade.repuestos.integracion >
+   MockMercadoPago.java > clic derecho > Run As > Java Application. Queda corriendo en su propia
+   consola (se para con el cuadradito rojo). Se puede dejar abierto todo el dia.
+7. Levantar WildFly y desplegar como siempre. En la consola del servidor, en la primera compra sale:
+   [MP] usando el Mercado Pago SIMULADO en http://localhost:8089
+
+Sin configurar nada, la app usa el simulado. Mercado Pago real solo se usa si se carga el token (abajo).
+
+Los tests: clic derecho en src/test/java > Run As > JUnit Test (59 tests, tarda unos 10 s).
+
+Que probar (con el simulado)
+- Comprar un repuesto: te manda al checkout simulado. "Pagar (aprobado)" vuelve a la tienda con la orden pagada.
+- "Pagar (rechazado)": la orden queda rechazada y el stock vuelve.
+- Abrir http://localhost:8089/__modo y poner "lento" o "error". Comprar: a los 5 s sale el aviso y la
+  compra queda reservada. Volver a "normal" y pagarla desde Mis compras.
+- Pedir la devolucion de una compra pagada y aprobarla como mod@mail.com: en la consola sale
+  [REEMBOLSO] ... en Mercado Pago. Con el simulado en "error", la devolucion queda APROBADA y cada
+  10 s se reintenta; al volver a "normal" se reembolsa una sola vez.
+- Recargar la pagina de vuelta, cambiar status=approved en la URL o poner el payment_id de otra
+  compra: no cambia nada.
+- SEC-05: como ana@mail.com abrir /repuestos/devolucion.xhtml?ventaId=3 (es de Carlos): sale
+  "No pudimos abrir la solicitud" y no se ve nada de la compra.
+
+Para usar el sandbox real de Mercado Pago (la demo)
+Crear la aplicacion Checkout Pro en mercadopago.com.ar/developers y copiar el Access Token de prueba.
+En Eclipse, vista Servers > doble clic en WildFly > Open launch configuration > pestaña Arguments >
+VM arguments, agregar al final (con un espacio adelante):
+  -DMP_ACCESS_TOKEN=EL_TOKEN_DE_PRUEBA -DAURA_URL=http://IP_DE_TU_MAQUINA:8080/repuestos
+Reiniciar el servidor. En la consola tiene que salir "[MP] usando Mercado Pago real". Para volver al
+simulado, borrar esas dos opciones y reiniciar.
+- El token queda en el workspace de Eclipse, no en el repo. En la pestaña Common no tildar "Shared file".
+- Mercado Pago no acepta localhost como URL de vuelta: por eso AURA_URL va con la IP de la maquina
+  (ipconfig en Windows, ifconfig en Mac) y la tienda se abre con esa misma direccion.
+- Pagar desde una ventana de incognito, sin iniciar sesion en Mercado Pago, con las tarjetas de
+  prueba (titular APRO aprueba, OTHE rechaza). Si la vuelta falla igual, no pasa nada: cerrar la
+  pestaña y tocar Pagar en Mis compras, que primero busca el pago en Mercado Pago.
+
+Si alguien arma WildFly de cero (datasource y seguridad)
+Copiar db.local.properties.example como db.local.properties y poner la clave de su MySQL (ese archivo
+no se sube, esta en el .gitignore). Otra External Tool igual a la del paso 5, con Arguments:
+  --connect --file=configurar-standalone-full.cli --properties=db.local.properties --resolve-parameter-values
+
+Que cambio
+- Venta tiene estado (PENDIENTE_PAGO, PAGADA, RECHAZADA, VENCIDA), mismo State que la devolucion.
+  Al comprar se reserva el stock; si nadie paga en 30 minutos, un timer la vence y devuelve el stock.
+- Paquete nuevo integracion: ClienteMercadoPago (REST, timeout de 5 s) y los records del pago.
+- ServicioDeCobros: crea la preferencia, confirma el pago contra Mercado Pago y vence reservas.
+- pago.xhtml: la pantalla de vuelta. Mis compras muestra el estado y el boton Pagar.
+- ServicioDeReembolsos devuelve la plata por Mercado Pago con X-Idempotency-Key. Si el mensaje llega
+  repetido, no reembolsa dos veces.
+- Solo se puede devolver o reseñar una compra PAGADA.
+- Arreglo: ProductoRepository.porIdBloqueado ahora relee el stock con el bloqueo. Antes, si el producto
+  ya estaba cargado, se escribia un stock viejo.
+- SEC-05 (AUR-62): al pedir una devolucion, ServicioDeDevoluciones compara el dueño de la compra con
+  el usuario del contenedor (getCallerPrincipal). Si no es suya, el mismo "La compra no existe." que si
+  no existiera, y la pantalla no muestra nada de la compra.
+- configurar-standalone-full.cli ya no tiene la clave de MySQL: la lee de db.local.properties.
+  Si el archivo viejo con la clave ya se subio a GitHub, la clave sigue en el historial: cambien la
+  clave de root de su MySQL local (gitleaks no la marca, pero el profe puede verla).
+- docs/adr/ADR-005: por que asi y que descartamos.
+- Tests: 59 (cliente contra el simulado, configuracion, reglas del cobro, estados de la venta y
+  dueño de la compra).

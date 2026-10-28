@@ -46,7 +46,7 @@ public class ModeracionBean implements Serializable {
 
     public void aprobarDevolucion(Long id) {
         ejecutar(() -> servicioDeModeracion.aprobarDevolucion(id),
-                 "Devoluci\u00f3n aprobada. Se emiti\u00f3 el reembolso y se repuso el stock.");
+                 "Devoluci\u00f3n aprobada. El reembolso, el stock y el aviso al cliente se procesan en segundo plano.");
     }
 
     public void rechazarDevolucion(Long id) {

@@ -1,0 +1,20 @@
+# Configura el perfil standalone-full (el que trae mensajeria) igual que el standalone que ya usabamos.
+# La clave de MySQL no va en este archivo: sale de db.local.properties, que no se sube (esta en .gitignore).
+#   1. Copiar db.local.properties.example como db.local.properties y poner la clave de tu MySQL.
+#   2. Con WildFly levantado en standalone-full:
+#      jboss-cli.sh --connect --file=configurar-standalone-full.cli --properties=db.local.properties --resolve-parameter-values
+# Sin --resolve-parameter-values la CLI no reemplaza ${db.password} y falla.
+
+/subsystem=datasources/jdbc-driver=mysql:add(driver-name=mysql,driver-module-name=com.mysql,driver-xa-datasource-class-name=com.mysql.cj.jdbc.MysqlXADataSource)
+
+data-source add --name=RepuestosDS --jndi-name=java:/RepuestosDS --driver-name=mysql --connection-url=jdbc:mysql://localhost:3306/repuestos_bici?serverTimezone=America/Argentina/Buenos_Aires --user-name=${db.user} --password=${db.password} --use-ccm=true --min-pool-size=5 --max-pool-size=20
+
+/subsystem=elytron/jdbc-realm=repuestos-realm:add(principal-query=[{sql="SELECT SUBSTRING_INDEX(password_hash, ':', -1), SUBSTRING_INDEX(password_hash, ':', 1), rol FROM usuario WHERE email = ?",data-source=RepuestosDS,salted-simple-digest-mapper={algorithm=salt-password-digest-sha-256,password-index=1,salt-index=2},attribute-mapping=[{index=3,to=Roles}]}])
+
+/subsystem=elytron/security-domain=repuestos-domain:add(default-realm=repuestos-realm,permission-mapper=default-permission-mapper,realms=[{realm=repuestos-realm}])
+
+/subsystem=undertow/application-security-domain=repuestos-domain:add(security-domain=repuestos-domain)
+
+/subsystem=ejb3/application-security-domain=repuestos-domain:add(security-domain=repuestos-domain)
+
+reload

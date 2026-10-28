@@ -4,4 +4,6 @@ target/
 .project
 .idea/
 *.iml
-.DS_Store
+.env
+*.local.cli
+*.local.properties

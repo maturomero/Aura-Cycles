@@ -3,12 +3,15 @@ package ar.edu.uade.repuestos.negocio;
 import ar.edu.uade.repuestos.datos.DevolucionRepository;
 import ar.edu.uade.repuestos.modelo.Devolucion;
 import ar.edu.uade.repuestos.modelo.EstadoDevolucion;
+import ar.edu.uade.repuestos.modelo.EstadoVenta;
 import ar.edu.uade.repuestos.modelo.MotivoDevolucion;
 import ar.edu.uade.repuestos.modelo.Venta;
 import ar.edu.uade.repuestos.util.ReglaNegocioException;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.annotation.Resource;
 import jakarta.ejb.Remove;
+import jakarta.ejb.SessionContext;
 import jakarta.ejb.Stateful;
 import jakarta.ejb.TransactionAttribute;
 import jakarta.ejb.TransactionAttributeType;
@@ -37,6 +40,9 @@ public class ServicioDeDevoluciones implements Serializable {
     @Inject
     private ServicioDeNotificaciones servicioDeNotificaciones;
 
+    @Resource
+    private SessionContext contexto;
+
     private Venta ventaSeleccionada;
     private MotivoDevolucion motivo;
     private String comentario;
@@ -57,6 +63,15 @@ public class ServicioDeDevoluciones implements Serializable {
 
     public void seleccionarCompra(Long ventaId) {
         Venta venta = servicioDeVentas.porId(ventaId);
+
+        // SEC-05 (BOLA): el usuario sale del contenedor, no de la pantalla. Si no es suya, mismo error que si no existiera
+        if (!venta.esDe(contexto.getCallerPrincipal().getName())) {
+            throw new ReglaNegocioException("La compra no existe.");
+        }
+
+        if (venta.getEstado() != EstadoVenta.PAGADA) {
+            throw new ReglaNegocioException("La orden " + venta.getNumeroOrden() + " no esta pagada.");
+        }
 
         if (devolucionRepository.existeParaVenta(ventaId)) {
             throw new ReglaNegocioException(
@@ -120,7 +135,7 @@ public class ServicioDeDevoluciones implements Serializable {
     }
 
     public boolean sePuedeDevolver(Venta venta) {
-        if (devolucionRepository.existeParaVenta(venta.getId())) {
+        if (venta.getEstado() != EstadoVenta.PAGADA || devolucionRepository.existeParaVenta(venta.getId())) {
             return false;
         }
         long dias = Duration.between(venta.getFecha(), LocalDateTime.now()).toDays();

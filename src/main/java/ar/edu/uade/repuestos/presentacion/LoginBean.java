@@ -66,6 +66,7 @@ public class LoginBean implements Serializable {
         try {
             ((HttpServletRequest) ec.getRequest()).logout();
         } catch (ServletException e) {
+            // ya no habia identidad en el contenedor
         }
         ec.invalidateSession();
         return "login?faces-redirect=true";
