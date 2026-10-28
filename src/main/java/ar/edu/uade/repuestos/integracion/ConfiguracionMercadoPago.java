@@ -13,7 +13,7 @@ public record ConfiguracionMercadoPago(String urlBase, String accessToken, Strin
     // Sin token se usa el Mercado Pago simulado: alcanza con correr MockMercadoPago desde Eclipse
     public static ConfiguracionMercadoPago desdeEntorno() {
         String token = valor("MP_ACCESS_TOKEN", null);
-        String urlApp = valor("AURA_URL", "http://localhost:8080/repuestos");
+        String urlApp = valor("AURA_URL", "https://localhost:8443/repuestos");
         if (token == null) {
             return new ConfiguracionMercadoPago(valor("MP_BASE_URL", SIMULADO), "TEST-simulado", urlApp, TIMEOUT);
         }

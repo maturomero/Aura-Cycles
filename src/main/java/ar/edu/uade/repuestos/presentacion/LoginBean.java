@@ -24,6 +24,9 @@ public class LoginBean implements Serializable {
     @Inject
     private SesionBean sesion;
 
+    @Inject
+    private LimitadorDeIntentos limitador;
+
     private String email;
     private String password;
 
@@ -33,12 +36,21 @@ public class LoginBean implements Serializable {
     private boolean mostrandoRegistro;
 
     public String ingresar() {
+        String[] claves = clavesDeIntento();
+        long espera = limitador.segundosDeBloqueo(claves);
+        if (espera > 0) {
+            bloqueado(espera);
+            return null;
+        }
+
         Optional<Usuario> usuario = servicioDeUsuarios.autenticar(email, password);
 
         if (usuario.isEmpty()) {
+            limitador.fallo(claves);
             Mensajes.error("Email o contrase\u00f1a incorrectos.");
             return null;
         }
+        limitador.exito(claves);
         if (!ingresarEnContenedor(usuario.get().getEmail(), password)) {
             return null;
         }
@@ -87,6 +99,21 @@ public class LoginBean implements Serializable {
             Mensajes.error("El servidor rechaz\u00f3 el ingreso: revisar repuestos-realm en WildFly (README, paso 4).");
             return false;
         }
+    }
+
+    // Mismo limite para el email y para la IP: no sirve probar muchas claves ni muchos emails
+    private String[] clavesDeIntento() {
+        HttpServletRequest request = (HttpServletRequest)
+                FacesContext.getCurrentInstance().getExternalContext().getRequest();
+        String mail = email == null ? "" : email.trim().toLowerCase();
+        return new String[] {"email:" + mail, "ip:" + request.getRemoteAddr()};
+    }
+
+    private void bloqueado(long segundos) {
+        ExternalContext ec = FacesContext.getCurrentInstance().getExternalContext();
+        ec.setResponseStatus(429);
+        ec.setResponseHeader("Retry-After", String.valueOf(segundos));
+        Mensajes.error("Demasiados intentos fallidos. Prob\u00e1 de nuevo en " + Math.max(1, (segundos + 59) / 60) + " minutos.");
     }
 
     public void alternarRegistro() {

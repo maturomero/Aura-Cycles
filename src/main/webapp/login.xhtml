@@ -47,9 +47,9 @@
           <div class="form-acciones">
             <h:commandButton value="Ingresar" action="#{loginBean.ingresar}"
                              styleClass="btn btn-primario"/>
-            <h:commandLink value="Crear una cuenta"
-                           action="#{loginBean.alternarRegistro}"
-                           styleClass="campo-ayuda"/>
+            <h:commandButton value="Crear una cuenta"
+                             action="#{loginBean.alternarRegistro}"
+                             styleClass="btn-enlace campo-ayuda"/>
           </div>
         </h:form>
       </ui:fragment>
@@ -78,9 +78,9 @@
           <div class="form-acciones">
             <h:commandButton value="Crear cuenta" action="#{loginBean.registrarse}"
                              styleClass="btn btn-primario"/>
-            <h:commandLink value="Ya tengo cuenta"
-                           action="#{loginBean.alternarRegistro}"
-                           styleClass="campo-ayuda"/>
+            <h:commandButton value="Ya tengo cuenta"
+                             action="#{loginBean.alternarRegistro}"
+                             styleClass="btn-enlace campo-ayuda"/>
           </div>
         </h:form>
       </ui:fragment>

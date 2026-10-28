@@ -18,8 +18,12 @@ public class ServicioDeUsuarios {
         if (email == null || email.isBlank() || password == null || password.isBlank()) {
             return Optional.empty();
         }
-        return usuarioRepository.porEmail(email.trim().toLowerCase())
-                .filter(u -> PasswordHash.verificar(password, u.getPasswordHash()));
+        Optional<Usuario> usuario = usuarioRepository.porEmail(email.trim().toLowerCase());
+        if (usuario.isEmpty()) {
+            PasswordHash.gastarTiempo(password);
+            return Optional.empty();
+        }
+        return usuario.filter(u -> PasswordHash.verificar(password, u.getPasswordHash()));
     }
 
     public Usuario registrar(String email, String password, String nombre) {
@@ -28,8 +32,8 @@ public class ServicioDeUsuarios {
         if (limpio.isBlank() || !limpio.contains("@")) {
             throw new ReglaNegocioException("El email no es valido.");
         }
-        if (password == null || password.length() < 8) {
-            throw new ReglaNegocioException("La contrasena necesita al menos 8 caracteres.");
+        if (password == null || password.length() < 8 || password.length() > PasswordHash.LARGO_MAXIMO) {
+            throw new ReglaNegocioException("La contrasena necesita entre 8 y 64 caracteres.");
         }
         if (usuarioRepository.existeEmail(limpio)) {
             throw new ReglaNegocioException("Ya hay una cuenta registrada con ese email.");
@@ -60,8 +64,8 @@ public class ServicioDeUsuarios {
         if (!PasswordHash.verificar(actual, usuario.getPasswordHash())) {
             throw new ReglaNegocioException("La contrasena actual no coincide.");
         }
-        if (nueva == null || nueva.length() < 8) {
-            throw new ReglaNegocioException("La contrasena nueva necesita al menos 8 caracteres.");
+        if (nueva == null || nueva.length() < 8 || nueva.length() > PasswordHash.LARGO_MAXIMO) {
+            throw new ReglaNegocioException("La contrasena nueva necesita entre 8 y 64 caracteres.");
         }
 
         usuario.setPasswordHash(PasswordHash.hashear(nueva));

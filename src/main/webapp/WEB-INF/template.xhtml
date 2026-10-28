@@ -79,14 +79,14 @@
           </h:form>
 
           <div class="usuario-chip">
-            <div class="avatar">#{sesion.nombre.substring(0,1)}</div>
+            <div class="avatar">#{empty sesion.nombre ? '' : sesion.nombre.substring(0,1)}</div>
             <span class="nombre">#{sesion.nombre}</span>
           </div>
 
           <h:form>
-            <h:commandLink value="Cerrar sesi&#243;n"
-                           action="#{loginBean.salir}"
-                           styleClass="btn btn-secundario btn-chico"/>
+            <h:commandButton value="Cerrar sesi&#243;n"
+                             action="#{loginBean.salir}"
+                             styleClass="btn btn-secundario btn-chico"/>
           </h:form>
         </div>
       </header>
