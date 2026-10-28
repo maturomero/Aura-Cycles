@@ -1,5 +1,5 @@
 # Aura Cycles completo con un solo comando:  docker compose up --build
-# App en http://localhost:8080/repuestos  (usuarios de prueba en el README, clave Clave1234)
+# App en https://localhost:8443/repuestos (http://localhost:8080 redirige). Certificado autofirmado: el navegador avisa la primera vez
 # Mercado Pago simulado en http://localhost:8089/__modo  y proveedor SOAP simulado en http://localhost:8090/__modo
 # DB_PASSWORD es la clave de la base local del contenedor (no se publica afuera de docker). Se puede cambiar con un .env
 
@@ -57,10 +57,11 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-aura-local}
       MP_BASE_URL: http://mercadopago-mock:8089
       PROVEEDOR_URL: http://proveedor-mock:8090/proveedor
-      AURA_URL: http://localhost:8080/repuestos
+      AURA_URL: https://localhost:8443/repuestos
       TZ: America/Argentina/Buenos_Aires
     ports:
       - "8080:8080"
+      - "8443:8443"
     depends_on:
       mysql:
         condition: service_healthy

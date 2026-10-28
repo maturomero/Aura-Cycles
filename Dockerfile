@@ -14,5 +14,5 @@ COPY --chown=jboss:root docker/wildfly/configurar.cli /tmp/configurar.cli
 RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/tmp/configurar.cli \
  && rm -rf /opt/jboss/wildfly/standalone/configuration/standalone_xml_history /tmp/mysql-connector-j.jar
 COPY --from=build --chown=jboss:root /src/target/repuestos.war /opt/jboss/wildfly/standalone/deployments/
-EXPOSE 8080
+EXPOSE 8080 8443
 CMD ["/opt/jboss/wildfly/bin/standalone.sh", "-c", "standalone-full.xml", "-b", "0.0.0.0"]

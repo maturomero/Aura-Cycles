@@ -14,10 +14,12 @@ La primera vez tarda unos minutos (baja las imágenes y compila con Maven adentr
 
 | Qué | Dónde |
 |---|---|
-| La tienda | http://localhost:8080/repuestos |
+| La tienda | https://localhost:8443/repuestos (http://localhost:8080 redirige) |
 | Mercado Pago simulado (modos para la demo) | http://localhost:8089/__modo |
 | Proveedor SOAP simulado (WSDL y modos) | http://localhost:8090/proveedor?wsdl · http://localhost:8090/__modo |
 | Consola del broker Artemis | http://localhost:8161 |
+
+El certificado es autofirmado (lo genera WildFly), así que la primera vez el navegador avisa: "Avanzado" > "Continuar a localhost".
 
 Usuarios de prueba, todos con la clave `Clave1234`: `ana@mail.com`, `carlos@mail.com`, `lucia@mail.com`, `javier@mail.com` (clientes) y `mod@mail.com` (moderador).
 
@@ -113,7 +115,7 @@ El sistema usa `@RolesAllowed("MODERADOR")` en las operaciones sensibles de
 security domain. En el CLI:
 
 ```
-/subsystem=elytron/jdbc-realm=repuestos-realm:add(principal-query=[{sql="SELECT SUBSTRING_INDEX(password_hash, ':', -1), SUBSTRING_INDEX(password_hash, ':', 1), rol FROM usuario WHERE email = ?",data-source=RepuestosDS,salted-simple-digest-mapper={algorithm=salt-password-digest-sha-256,password-index=1,salt-index=2},attribute-mapping=[{index=3,to=Roles}]}])
+/subsystem=elytron/jdbc-realm=repuestos-realm:add(principal-query=[{sql="SELECT password_hash, rol FROM usuario WHERE email = ?",data-source=RepuestosDS,modular-crypt-mapper={password-index=1},attribute-mapping=[{index=2,to=Roles}]}])
 
 /subsystem=elytron/security-domain=repuestos-domain:add(default-realm=repuestos-realm,permission-mapper=default-permission-mapper,realms=[{realm=repuestos-realm}])
 
@@ -124,14 +126,14 @@ security domain. En el CLI:
 reload
 ```
 
-> **Para la defensa oral.** `PasswordHash` guarda `salt:hash` en una sola
-> columna. La consulta la parte en dos con `SUBSTRING_INDEX` y Elytron
-> recalcula SHA-256 sobre salt + contraseña, igual que `PasswordHash`. Así la
-> aplicación y el contenedor validan el mismo hash, sin contraseñas en claro.
+> **Para la defensa oral.** `PasswordHash` guarda bcrypt con costo 12 en el
+> formato estándar `$2a$12$...` (sal y costo van adentro del mismo texto).
+> Elytron lo entiende con el `modular-crypt-mapper`, así la aplicación y el
+> contenedor validan el mismo hash. bcrypt es lento a propósito: unas 250 ms
+> por intento, contra millones por segundo con un SHA-256 de una pasada.
 >
-> Si el realm ya estaba creado con `clear-password-mapper`, no hace falta
-> borrarlo: alcanza con `write-attribute(name=principal-query, value=[...])`
-> con la consulta de arriba y `reload`.
+> Si el realm ya estaba creado, no hace falta borrarlo: `configurar-entrega4.cli`
+> le cambia la consulta con `write-attribute` y hace `reload`.
 
 ---
 

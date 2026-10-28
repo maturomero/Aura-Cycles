@@ -23,6 +23,7 @@ class ConfiguracionMercadoPagoTest {
         assertEquals("http://localhost:8089", c.urlBase());
         assertTrue(c.esSimulado());
         assertTrue(c.urlAppEsLocal());
+        assertEquals("https://localhost:8443/repuestos", c.urlApp());
     }
 
     @Test

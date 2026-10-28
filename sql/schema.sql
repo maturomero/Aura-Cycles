@@ -101,11 +101,11 @@ CREATE TABLE devolucion (
 -- =========================================================================
 
 INSERT INTO usuario (email, password_hash, nombre, rol) VALUES
-('ana@mail.com',    'LbXeJJyPwq0KuE0kHzDnfw==:lwE9/IYKe2vZglC2y0YVdLwRBJTLhohBWoK7iu4b320=', 'Ana Torres',      'CLIENTE'),
-('carlos@mail.com', 'otOtU0dwI9Ng9lEHFamnRQ==:ePW0LG68Si/jzCjf9Rqps9dZPjPqcdiBoBWtCZspa54=', 'Carlos Duarte',   'CLIENTE'),
-('lucia@mail.com',  'U0nDdfxt/ff9WXFRM9+b6g==:dfLTdL3fBeDJt9BJENQz/VxJc49xGa27jW3UNInVIgQ=', 'Lucia Ferreyra',  'CLIENTE'),
-('javier@mail.com', 'm4arGOOpZ9XTMcA0Rww8Og==:z/gcin7CWcx7dVCGR7CDRnxJg+ajTQ/nZsdeLzfpZDA=', 'Javier Pereyra',  'CLIENTE'),
-('mod@mail.com',    'y+KNs4Z53pzYiI3uQ+FBVg==:x/d/y5Ga6rkfSw5g1qXxIz7jT/EJRsvZwrUDMiCqTgg=', 'Marina Avalos',   'MODERADOR');
+('ana@mail.com', '$2a$12$jN983Xpe0k6NFs11Jcqu3uAaCW8xf6jMQeI0SUG76HCvcHSLQcQiG', 'Ana Torres',      'CLIENTE'),
+('carlos@mail.com', '$2a$12$6IZyKmMIIWGtncwsNwoBE.l9Fl8eguy6uCEX1ezy5g.t6BiWpQPwa', 'Carlos Duarte',   'CLIENTE'),
+('lucia@mail.com', '$2a$12$fPBbEvBHd/1.963uAmGwqOs9..GVRGQ0z2KNLzoVNtinvl/ThDwA6', 'Lucia Ferreyra',  'CLIENTE'),
+('javier@mail.com', '$2a$12$BrTzd8yL4FObwKpctmK.DeFaO.CbUAwd2qXpAKSFVi9c4IzT/6.8i', 'Javier Pereyra',  'CLIENTE'),
+('mod@mail.com', '$2a$12$30aRUWsIp6/Cb/JpL/mlS.31EwkF7/ux1kX0rL0ChXTKhW4TXZ5Ju', 'Marina Avalos',   'MODERADOR');
 
 INSERT INTO producto (codigo, nombre, categoria, descripcion, precio, stock) VALUES
 ('CUB-29-210', 'Cubierta MTB 29 x 2.10',        'Cubiertas',

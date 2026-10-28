@@ -1,0 +1,13 @@
+# Cambios de la Entrega 4 en un WildFly que ya estaba configurado. Se corre una sola vez con el servidor levantado
+# en standalone-full. Desde Eclipse: Run > External Tools (ver LEEME). En docker compose ya viene todo.
+
+# SEC-02: las claves pasan a bcrypt ($2a$). El realm valida el mismo hash que guarda la app
+/subsystem=elytron/jdbc-realm=repuestos-realm:write-attribute(name=principal-query,value=[{sql="SELECT password_hash, rol FROM usuario WHERE email = ?",data-source=RepuestosDS,modular-crypt-mapper={password-index=1},attribute-mapping=[{index=2,to=Roles}]}])
+
+# Si Mercado Pago no responde al reembolsar, el mensaje vuelve cada 10 s, hasta 10 veces, y despues va a la DLQ.
+# max-redelivery-delay hace falta: si queda en 0, Artemis reintenta todo de golpe sin esperar.
+/subsystem=messaging-activemq/server=default/address-setting=#:write-attribute(name=redelivery-delay,value=10000)
+/subsystem=messaging-activemq/server=default/address-setting=#:write-attribute(name=max-redelivery-delay,value=60000)
+/subsystem=messaging-activemq/server=default/address-setting=#:write-attribute(name=max-delivery-attempts,value=10)
+
+reload
