@@ -16,8 +16,10 @@ import ar.edu.uade.repuestos.datos.VentaRepository;
 import ar.edu.uade.repuestos.modelo.EstadoResena;
 import ar.edu.uade.repuestos.modelo.Producto;
 import ar.edu.uade.repuestos.modelo.Resena;
+import ar.edu.uade.repuestos.modelo.ResumenResenas;
 import ar.edu.uade.repuestos.util.ReglaNegocioException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -126,10 +128,16 @@ class ServicioDeResenasYProductosTest {
         @Test
         void puntajeYCantidadDeResenas() {
             when(resenas.promedioPuntaje(1L)).thenReturn(4.5);
-            Resena r = new Resena(Datos.ana(), Datos.cubierta(), 5, "t", "x");
-            when(resenas.aprobadasPorProducto(1L)).thenReturn(List.of(r, r));
+            when(resenas.cantidadAprobadas(1L)).thenReturn(2L);
             assertEquals(4.5, servicio.promedioPuntaje(1L));
             assertEquals(2, servicio.cantidadResenas(1L));
+        }
+
+        @Test
+        void resumenDelCatalogoEnUnaSolaConsulta() {
+            Map<Long, ResumenResenas> resumen = Map.of(1L, new ResumenResenas(4.5, 2));
+            when(resenas.resumenAprobadas()).thenReturn(resumen);
+            assertSame(resumen, servicio.resumenResenas());
         }
     }
 }

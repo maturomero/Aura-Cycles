@@ -43,6 +43,11 @@
   </session-config>
 
   <!-- SEC-06: nunca un stack trace al cliente -->
+  <mime-mapping>
+    <extension>woff2</extension>
+    <mime-type>font/woff2</mime-type>
+  </mime-mapping>
+
   <error-page>
     <exception-type>jakarta.faces.application.ViewExpiredException</exception-type>
     <location>/error.xhtml</location>

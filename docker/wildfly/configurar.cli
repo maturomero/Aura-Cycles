@@ -22,4 +22,9 @@ data-source add --name=RepuestosDS --jndi-name=java:/RepuestosDS --driver-name=m
 /subsystem=ee/service=default-bindings:write-attribute(name=jms-connection-factory,value=java:/RemoteJmsXA)
 /subsystem=ejb3:write-attribute(name=default-resource-adapter-name,value=artemis-mdb)
 
+# Sin la pagina de bienvenida de WildFly (ZAP la marcaba): todo lo que no es la app redirige a la app
+/subsystem=undertow/server=default-server/host=default-host/location=\/:remove
+/subsystem=undertow/configuration=filter/expression-filter=raiz-a-la-app:add(expression="not path-prefix('/repuestos') -> redirect('/repuestos/')")
+/subsystem=undertow/server=default-server/host=default-host/filter-ref=raiz-a-la-app:add
+
 stop-embedded-server

@@ -20,7 +20,7 @@
 
     <h:form>
       <div class="buscador">
-        <span class="campo" style="margin:0;flex:1;max-width:380px">
+        <span class="campo campo-buscar">
           <h:inputText value="#{productosBean.busqueda}"
                        pt:placeholder="Buscar cubiertas, frenos, transmisi&#243;n..."/>
         </span>
@@ -50,7 +50,7 @@
 
           <div class="estrellas">
             <h:outputText value="#{productosBean.estrellas(productosBean.promedio(p.id))}"/>
-            <span class="celda-tenue" style="margin-left:6px">
+            <span class="celda-tenue ml-6">
               <h:outputText value="#{productosBean.cantidadResenas(p.id)} rese&#241;as"
                             escape="false"/>
             </span>

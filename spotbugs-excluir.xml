@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Lo que se excluye es falso positivo propio de Jakarta EE. Revisado a mano, ver informe de seguridad -->
+<FindBugsFilter>
+  <!-- Los EJB y beans CDI inyectados en beans @ViewScoped/@SessionScoped/@Stateful son proxies serializables del contenedor -->
+  <Match>
+    <Bug pattern="SE_BAD_FIELD"/>
+    <Or>
+      <Package name="ar.edu.uade.repuestos.presentacion"/>
+      <Class name="ar.edu.uade.repuestos.negocio.ServicioDeDevoluciones"/>
+    </Or>
+  </Match>
+  <!-- Entidades JPA y beans de JSF: las relaciones y listas se exponen a proposito para que JPA y las vistas las usen -->
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+    <Or>
+      <Package name="ar.edu.uade.repuestos.modelo"/>
+      <Package name="ar.edu.uade.repuestos.presentacion"/>
+      <Class name="ar.edu.uade.repuestos.negocio.ServicioDeDevoluciones"/>
+    </Or>
+  </Match>
+  <!-- IMPROPER_UNICODE: mitigado. Los emails se validan solo ASCII antes de guardarse (ServicioDeUsuarios.emailValido),
+       asi que pasar a minusculas con Locale.ROOT no puede hacer que dos emails distintos coincidan -->
+  <Match>
+    <Bug pattern="IMPROPER_UNICODE"/>
+    <Or>
+      <And><Class name="ar.edu.uade.repuestos.modelo.Venta"/><Method name="esDe"/></And>
+      <And><Class name="ar.edu.uade.repuestos.negocio.ServicioDeUsuarios"/><Method name="emailValido"/></And>
+    </Or>
+  </Match>
+</FindBugsFilter>
