@@ -192,8 +192,7 @@ hamburguesa y las tablas en tarjetas apiladas.
 
 | Mensajería pub/sub | Tópico `topico.devoluciones` con tres suscriptores durables en `mensajeria/` |
 | Integración REST con sistema externo | Mercado Pago (cobro y reembolso), `integracion/ClienteMercadoPago` |
-
-Falta todavía: SOAP con WSDL contra el proveedor (AUR-32).
+| Integración SOAP con WSDL | Proveedor mayorista, `validarGarantia` (`integracion/ClienteProveedor`, AUR-32) |
 
 ---
 
@@ -261,3 +260,28 @@ En `negocio/`, nunca en las pantallas. `DevolucionBean` no valida plazos ni
 duplicados: llama a `ServicioDeDevoluciones.seleccionarCompra()` y ese método
 decide. Comparalo con `ProductosBean.comprar()`, que tampoco chequea stock:
 lo hace `ServicioDeVentas` dentro de una transacción con bloqueo pesimista.
+
+---
+
+## 9. Pruebas y CI (Clase 15)
+
+| Qué | Cómo se corre | Qué exige |
+|---|---|---|
+| Unitarios (JUnit 5 + Mockito) | `mvn test` | |
+| Integración con Testcontainers (MySQL y Artemis reales) | `mvn verify` (necesita Docker) | |
+| Cobertura JaCoCo | `mvn verify`, reporte en `target/site/jacoco` | 80 % líneas y 70 % ramas en `negocio` y `modelo`, si no falla el build |
+| Mutación PIT | `mvn org.pitest:pitest-maven:mutationCoverage`, reporte en `target/pit-reports` | 60 % |
+| Análisis estático SpotBugs + FindSecBugs | `mvn compile spotbugs:check` | 0 hallazgos (los excluidos están justificados en `spotbugs-excluir.xml`) |
+| E2E (Playwright) | `docker compose up -d --build` y después `cd e2e && pytest` | |
+| DAST con ZAP | con la app levantada: `seguridad/zap.sh` | 0 High, y cada Medium justificado en `seguridad/zap-justificadas.tsv` |
+| Carga con k6 | con la app levantada: `carga/correr.sh` | 50 usuarios, 5 min, p95 < 500 ms y < 1 % de errores |
+| Secretos | `docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.30.1 git /repo` | nada encontrado en todo el historial |
+
+Los E2E dejan la IP de la máquina bloqueada 5 minutos (el último prueba fuerza bruta). Para correrlos de nuevo enseguida: `docker compose restart app`. Para arrancar con la base limpia: `docker compose down -v`.
+
+**CI (GitHub Actions).** `.github/workflows/ci.yml` corre en cada push a `main` y `entrega-testing`, en cada PR y en los tags `v*`. Son tres trabajos en paralelo (unos 10 minutos): pruebas + cobertura + mutación + SpotBugs; gitleaks + Trivy + E2E contra el compose; y ZAP sin sesión, como cliente y como moderador. Los reportes quedan como artefactos de cada corrida.
+
+Dos workflows más, a mano desde la pestaña Actions ("Run workflow") o empujando un tag:
+
+- `inestables.yml` (tag `inestables-N`): corre toda la suite 3 veces en paralelo para detectar tests inestables.
+- `carga.yml` (tag `carga-N`): la prueba de carga con k6.

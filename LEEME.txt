@@ -1,84 +1,80 @@
-Entrega 4 - Cobro y reembolso con Mercado Pago (AUR-55 y AUR-39) + SEC-05 (AUR-62)
+Aura Cycles - como correrlo desde Eclipse (Entrega 4 + Clase 15)
 
-Todo se corre desde Eclipse, sin terminal.
+Todo se hace desde Eclipse, sin terminal. Con Docker hay un atajo de un solo comando (README, arriba de todo),
+pero el dia a dia es Eclipse.
 
-Que hay que hacer
-1. Reemplazar en el proyecto: src, sql, docs, pom.xml, README.md, LEEME.txt, .gitignore,
-   configurar-standalone-full.cli, configurar-mercadopago.cli y db.local.properties.example.
-   Esta version ya incluye lo de la clase 12 (State de la devolucion). Si alguien toco codigo despues,
-   mejor aplicar cambios-mercadopago.patch con git (configurar-standalone-full.cli no esta en el patch:
-   reemplazarlo entero).
-2. F5 sobre el proyecto y Maven > Update Project.
-3. Correr de nuevo sql/schema.sql en MySQL Workbench (venta y devolucion tienen columnas nuevas).
-4. El servidor tiene que estar en standalone-full: en la vista Servers, doble clic en WildFly >
-   Runtime Environment > Configuration file: standalone-full.xml (si ya lo hicieron para AUR-38, nada).
-5. Una sola vez, con el servidor levantado, los reintentos del broker:
+Una sola vez
+1. Traer la rama: clic derecho en el proyecto > Team > Pull. Despues F5 y Maven > Update Project.
+2. Correr sql/schema.sql en MySQL Workbench (borra y crea la base con los datos de prueba).
+3. El servidor tiene que estar en standalone-full: vista Servers, doble clic en WildFly >
+   Runtime Environment > Configuration file: standalone-full.xml.
+4. Con el servidor levantado, correr configurar-entrega4.cli:
    Run > External Tools > External Tools Configurations... > Program > New
-     Name:              configurar-mercadopago
+     Name:              configurar-entrega4
      Location:          la carpeta de WildFly + /bin/jboss-cli.sh   (en Windows: \bin\jboss-cli.bat)
      Working Directory: ${project_loc}
-     Arguments:         --connect --file=configurar-mercadopago.cli
-   Seleccionar el proyecto en el Project Explorer y tocar Run. En la consola tiene que salir
-   {"outcome" => "success"} tres veces.
-6. Levantar el Mercado Pago simulado: src/test/java > ar.edu.uade.repuestos.integracion >
-   MockMercadoPago.java > clic derecho > Run As > Java Application. Queda corriendo en su propia
-   consola (se para con el cuadradito rojo). Se puede dejar abierto todo el dia.
-7. Levantar WildFly y desplegar como siempre. En la consola del servidor, en la primera compra sale:
-   [MP] usando el Mercado Pago SIMULADO en http://localhost:8089
+     Arguments:         --connect --file=configurar-entrega4.cli
+   Seleccionar el proyecto en el Project Explorer y tocar Run. Tienen que salir varios
+   {"outcome" => "success"} y ningun "failed". Se puede correr de nuevo sin romper nada.
+   Hace tres cosas: el realm valida las claves bcrypt, los reintentos del broker (cada 10 s, 10 veces)
+   y saca la pagina de bienvenida de WildFly (la raiz pasa a redirigir a la app).
 
-Sin configurar nada, la app usa el simulado. Mercado Pago real solo se usa si se carga el token (abajo).
+Cada vez que se trabaja
+1. Levantar los dos sistemas externos simulados. En src/test/java > ar.edu.uade.repuestos.integracion,
+   clic derecho > Run As > Java Application sobre:
+     MockMercadoPago.java     (Mercado Pago, puerto 8089)
+     MockProveedorSoap.java   (proveedor mayorista SOAP, puerto 8090)
+   Cada uno queda en su consola (se paran con el cuadradito rojo).
+2. Levantar WildFly y desplegar como siempre.
+3. La tienda queda en https://localhost:8443/repuestos (http://localhost:8080 redirige).
+   El certificado es autofirmado: la primera vez, "Avanzado" > "Continuar a localhost".
+   Usuarios: ana@mail.com, carlos@mail.com, lucia@mail.com, javier@mail.com y mod@mail.com (moderador),
+   todos con Clave1234.
 
-Los tests: clic derecho en src/test/java > Run As > JUnit Test (59 tests, tarda unos 10 s).
+Tests desde Eclipse
+- Unitarios: clic derecho en src/test/java > Run As > JUnit Test (unos 260, menos de un minuto).
+- Las clases que terminan en IT (RepositoriosIT, MensajeriaIT) usan Testcontainers y necesitan Docker
+  abierto. Sin Docker, Eclipse las saltea solas. Con Maven: clic derecho en el proyecto > Run As >
+  Maven build... > Goals: verify (corre todo, mas cobertura JaCoCo).
+- Mutacion: Run As > Maven build... > Goals: test-compile org.pitest:pitest-maven:mutationCoverage
+  El reporte queda en target/pit-reports/index.html.
+- Los E2E, ZAP y la carga con k6 corren contra docker compose (README, seccion 9). En el CI corren solos.
 
-Que probar (con el simulado)
-- Comprar un repuesto: te manda al checkout simulado. "Pagar (aprobado)" vuelve a la tienda con la orden pagada.
-- "Pagar (rechazado)": la orden queda rechazada y el stock vuelve.
-- Abrir http://localhost:8089/__modo y poner "lento" o "error". Comprar: a los 5 s sale el aviso y la
-  compra queda reservada. Volver a "normal" y pagarla desde Mis compras.
-- Pedir la devolucion de una compra pagada y aprobarla como mod@mail.com: en la consola sale
-  [REEMBOLSO] ... en Mercado Pago. Con el simulado en "error", la devolucion queda APROBADA y cada
-  10 s se reintenta; al volver a "normal" se reembolsa una sola vez.
-- Recargar la pagina de vuelta, cambiar status=approved en la URL o poner el payment_id de otra
-  compra: no cambia nada.
+Que probar
+- Comprar: te manda al checkout simulado. "Pagar (aprobado)" vuelve con la orden pagada;
+  "Pagar (rechazado)" la deja rechazada y devuelve el stock.
+- http://localhost:8089/__modo en "lento" o "error" y comprar: a los 5 s sale el aviso y la compra queda
+  reservada. Volver a "normal" y pagarla desde Mis compras.
+- Devolucion de una compra pagada (que no sea camara ni pastillas, esas son de desgaste): el proveedor
+  devuelve un RMA. Con http://localhost:8090/__modo en "lento" o "error" la devolucion queda
+  "validando con el proveedor" y un timer la reintenta cada 2 minutos (5 veces).
+- Aprobarla como mod@mail.com: en la consola sale [REEMBOLSO]. Con Mercado Pago en "error", cada 10 s
+  se reintenta; al volver a "normal" se reembolsa una sola vez.
 - SEC-05: como ana@mail.com abrir /repuestos/devolucion.xhtml?ventaId=3 (es de Carlos): sale
-  "No pudimos abrir la solicitud" y no se ve nada de la compra.
+  "No pudimos abrir la solicitud" y no se ve nada.
+- 5 claves malas seguidas: la sexta vez, aunque sea la buena, "Demasiados intentos" por 5 minutos.
 
-Para usar el sandbox real de Mercado Pago (la demo)
+Mercado Pago real (sandbox)
 Crear la aplicacion Checkout Pro en mercadopago.com.ar/developers y copiar el Access Token de prueba.
-En Eclipse, vista Servers > doble clic en WildFly > Open launch configuration > pestaña Arguments >
-VM arguments, agregar al final (con un espacio adelante):
-  -DMP_ACCESS_TOKEN=EL_TOKEN_DE_PRUEBA -DAURA_URL=http://IP_DE_TU_MAQUINA:8080/repuestos
-Reiniciar el servidor. En la consola tiene que salir "[MP] usando Mercado Pago real". Para volver al
-simulado, borrar esas dos opciones y reiniciar.
+Vista Servers > doble clic en WildFly > Open launch configuration > Arguments > VM arguments, agregar:
+  -DMP_ACCESS_TOKEN=EL_TOKEN_DE_PRUEBA -DAURA_URL=https://IP_DE_TU_MAQUINA:8443/repuestos
+Reiniciar. En la consola sale "[MP] usando Mercado Pago real". Para volver al simulado, borrarlas.
 - El token queda en el workspace de Eclipse, no en el repo. En la pestaña Common no tildar "Shared file".
-- Mercado Pago no acepta localhost como URL de vuelta: por eso AURA_URL va con la IP de la maquina
-  (ipconfig en Windows, ifconfig en Mac) y la tienda se abre con esa misma direccion.
-- Pagar desde una ventana de incognito, sin iniciar sesion en Mercado Pago, con las tarjetas de
-  prueba (titular APRO aprueba, OTHE rechaza). Si la vuelta falla igual, no pasa nada: cerrar la
-  pestaña y tocar Pagar en Mis compras, que primero busca el pago en Mercado Pago.
+- Mercado Pago no acepta localhost como URL de vuelta: por eso la IP de la maquina (ipconfig / ifconfig)
+  y la tienda se abre con esa misma direccion.
+- Pagar desde una ventana de incognito con las tarjetas de prueba (titular APRO aprueba, OTHE rechaza).
 
-Si alguien arma WildFly de cero (datasource y seguridad)
-Copiar db.local.properties.example como db.local.properties y poner la clave de su MySQL (ese archivo
-no se sube, esta en el .gitignore). Otra External Tool igual a la del paso 5, con Arguments:
+Si alguien arma WildFly de cero
+Copiar db.local.properties.example como db.local.properties y poner la clave de su MySQL (no se sube,
+esta en el .gitignore). Otra External Tool igual a la del paso 4, con Arguments:
   --connect --file=configurar-standalone-full.cli --properties=db.local.properties --resolve-parameter-values
+Ese ya incluye lo de configurar-entrega4.cli salvo los reintentos del broker: correr los dos.
 
-Que cambio
-- Venta tiene estado (PENDIENTE_PAGO, PAGADA, RECHAZADA, VENCIDA), mismo State que la devolucion.
-  Al comprar se reserva el stock; si nadie paga en 30 minutos, un timer la vence y devuelve el stock.
-- Paquete nuevo integracion: ClienteMercadoPago (REST, timeout de 5 s) y los records del pago.
-- ServicioDeCobros: crea la preferencia, confirma el pago contra Mercado Pago y vence reservas.
-- pago.xhtml: la pantalla de vuelta. Mis compras muestra el estado y el boton Pagar.
-- ServicioDeReembolsos devuelve la plata por Mercado Pago con X-Idempotency-Key. Si el mensaje llega
-  repetido, no reembolsa dos veces.
-- Solo se puede devolver o reseñar una compra PAGADA.
-- Arreglo: ProductoRepository.porIdBloqueado ahora relee el stock con el bloqueo. Antes, si el producto
-  ya estaba cargado, se escribia un stock viejo.
-- SEC-05 (AUR-62): al pedir una devolucion, ServicioDeDevoluciones compara el dueño de la compra con
-  el usuario del contenedor (getCallerPrincipal). Si no es suya, el mismo "La compra no existe." que si
-  no existiera, y la pantalla no muestra nada de la compra.
-- configurar-standalone-full.cli ya no tiene la clave de MySQL: la lee de db.local.properties.
-  Si el archivo viejo con la clave ya se subio a GitHub, la clave sigue en el historial: cambien la
-  clave de root de su MySQL local (gitleaks no la marca, pero el profe puede verla).
-- docs/adr/ADR-005: por que asi y que descartamos.
-- Tests: 59 (cliente contra el simulado, configuracion, reglas del cobro, estados de la venta y
-  dueño de la compra).
+Que cambio para la Clase 15 (testing)
+- Tests: unitarios con Mockito, integracion con Testcontainers (MySQL y Artemis de verdad), E2E con
+  Playwright, mutacion con PIT, ZAP, k6 y SpotBugs con FindSecBugs. Todo corre en GitHub Actions.
+- Seguridad: CSP sin 'unsafe-inline' (los style="..." pasaron a clases de app.css), headers tambien en
+  el login que muestra el contenedor y en las paginas de error, emails solo ASCII (registro y perfil),
+  vista vencida vuelve a la pagina con un aviso en vez de un 500.
+- Las fuentes IBM Plex ahora las sirve la app (la CSP bloqueaba Google Fonts y no cargaban).
+- El detalle de cada defecto encontrado esta en el registro de defectos del documento de QA.
