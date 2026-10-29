@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -88,7 +89,8 @@ public class Venta implements Serializable {
 
     // email es el usuario que conoce el contenedor (getCallerPrincipal)
     public boolean esDe(String email) {
-        return email != null && usuario != null && email.equalsIgnoreCase(usuario.getEmail());
+        return email != null && usuario != null && usuario.getEmail() != null
+                && email.trim().toLowerCase(Locale.ROOT).equals(usuario.getEmail().toLowerCase(Locale.ROOT));
     }
 
     public boolean isPendienteDePago() {

@@ -11,6 +11,7 @@ import jakarta.inject.Named;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.Serializable;
+import java.util.Locale;
 import java.util.Optional;
 
 @Named("loginBean")
@@ -105,7 +106,7 @@ public class LoginBean implements Serializable {
     private String[] clavesDeIntento() {
         HttpServletRequest request = (HttpServletRequest)
                 FacesContext.getCurrentInstance().getExternalContext().getRequest();
-        String mail = email == null ? "" : email.trim().toLowerCase();
+        String mail = email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
         return new String[] {"email:" + mail, "ip:" + request.getRemoteAddr()};
     }
 

@@ -7,10 +7,16 @@ import ar.edu.uade.repuestos.util.PasswordHash;
 import ar.edu.uade.repuestos.util.ReglaNegocioException;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Stateless
 public class ServicioDeUsuarios {
+    // Solo ASCII (evita emails que se confunden al pasar a minusculas). Sin grupos repetidos: no hay ReDoS
+    private static final Pattern LOCAL = Pattern.compile("[A-Za-z0-9._%+-]{1,64}");
+    private static final Pattern DOMINIO = Pattern.compile("[A-Za-z0-9.-]{1,189}\\.[A-Za-z]{2,63}");
+
     @Inject
     private UsuarioRepository usuarioRepository;
 
@@ -18,7 +24,7 @@ public class ServicioDeUsuarios {
         if (email == null || email.isBlank() || password == null || password.isBlank()) {
             return Optional.empty();
         }
-        Optional<Usuario> usuario = usuarioRepository.porEmail(email.trim().toLowerCase());
+        Optional<Usuario> usuario = usuarioRepository.porEmail(email.trim().toLowerCase(Locale.ROOT));
         if (usuario.isEmpty()) {
             PasswordHash.gastarTiempo(password);
             return Optional.empty();
@@ -27,11 +33,7 @@ public class ServicioDeUsuarios {
     }
 
     public Usuario registrar(String email, String password, String nombre) {
-        String limpio = email == null ? "" : email.trim().toLowerCase();
-
-        if (limpio.isBlank() || !limpio.contains("@")) {
-            throw new ReglaNegocioException("El email no es valido.");
-        }
+        String limpio = emailValido(email);
         if (password == null || password.length() < 8 || password.length() > PasswordHash.LARGO_MAXIMO) {
             throw new ReglaNegocioException("La contrasena necesita entre 8 y 64 caracteres.");
         }
@@ -47,7 +49,7 @@ public class ServicioDeUsuarios {
         Usuario usuario = usuarioRepository.porId(usuarioId)
                 .orElseThrow(() -> new ReglaNegocioException("El usuario no existe."));
 
-        String limpio = email == null ? "" : email.trim().toLowerCase();
+        String limpio = emailValido(email);
         if (!limpio.equals(usuario.getEmail()) && usuarioRepository.existeEmail(limpio)) {
             throw new ReglaNegocioException("Ese email ya esta en uso.");
         }
@@ -70,6 +72,17 @@ public class ServicioDeUsuarios {
 
         usuario.setPasswordHash(PasswordHash.hashear(nueva));
         usuarioRepository.guardar(usuario);
+    }
+
+    static String emailValido(String email) {
+        String limpio = email == null ? "" : email.trim();
+        int arroba = limpio.indexOf('@');
+        if (arroba < 0 || arroba != limpio.lastIndexOf('@') || limpio.contains("..")
+                || !LOCAL.matcher(limpio.substring(0, arroba)).matches()
+                || !DOMINIO.matcher(limpio.substring(arroba + 1)).matches()) {
+            throw new ReglaNegocioException("El email no es valido.");
+        }
+        return limpio.toLowerCase(Locale.ROOT);
     }
 
     public Optional<Usuario> porId(Long id) {

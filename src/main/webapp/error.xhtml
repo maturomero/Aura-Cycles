@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="jakarta.faces.html">
 <!-- SEC-06: pagina de error sin detalles internos. No usa el template para no depender de la sesion -->
 <h:head>
@@ -9,14 +9,14 @@
   <h:outputStylesheet library="css" name="app.css"/>
 </h:head>
 <h:body styleClass="tema-claro">
-  <main class="contenido" style="max-width:520px;margin:60px auto">
+  <main class="contenido contenido-angosto">
     <div class="confirmacion">
-      <h1 style="margin:0 0 8px;font:600 20px 'IBM Plex Sans',sans-serif">No pudimos mostrar esa p&#225;gina</h1>
-      <p style="margin:0 0 20px;color:var(--text-muted);font-size:13.5px">
+      <h1 class="titulo-error">No pudimos mostrar esa p&#225;gina</h1>
+      <p class="texto-estado-mb">
         Puede que la sesi&#243;n haya vencido, que la p&#225;gina no exista o que no tengas permiso para verla.
         Si estabas en medio de una operaci&#243;n, no se guard&#243; nada a medias.
       </p>
-      <div style="display:flex;gap:9px;justify-content:center;flex-wrap:wrap">
+      <div class="acciones-centro">
         <h:link outcome="productos" value="Ir a la tienda" styleClass="btn btn-primario"/>
         <h:link outcome="login" value="Ingresar de nuevo" styleClass="btn btn-secundario"/>
       </div>

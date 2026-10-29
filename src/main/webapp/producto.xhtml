@@ -33,11 +33,11 @@
       </div>
 
       <div class="card">
-        <p style="color:var(--text-muted);margin-top:0">
+        <p class="texto-suave-mt0">
           #{productosBean.seleccionado.descripcion}
         </p>
 
-        <dl class="resumen" style="margin-bottom:0">
+        <dl class="resumen mb-0">
           <div class="resumen-fila">
             <dt>Precio</dt>
             <dd>
@@ -79,27 +79,27 @@
         <h3 class="card-titulo">Rese&#241;as del producto</h3>
 
         <ui:fragment rendered="#{empty productosBean.resenas}">
-          <div class="vacio" style="border:none;padding:26px 0">
+          <div class="vacio vacio-sin-borde">
             <strong>Todav&#237;a no hay rese&#241;as publicadas</strong>
             Solo se muestran las que aprob&#243; un moderador.
           </div>
         </ui:fragment>
 
         <ui:repeat value="#{productosBean.resenas}" var="r">
-          <div style="padding:13px 0;border-bottom:1px solid var(--line-soft)">
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div class="resena-item">
+            <div class="resena-cabecera">
               <span class="estrellas">
                 <h:outputText value="#{productosBean.estrellas(r.puntaje)}"/>
               </span>
-              <strong style="font-size:13.5px">#{r.titulo}</strong>
-              <span class="celda-tenue" style="margin-left:auto">
+              <strong class="texto-135">#{r.titulo}</strong>
+              <span class="celda-tenue ml-auto">
                 #{r.usuario.nombre} &#183;
                 <h:outputText value="#{r.fecha}">
                   <f:convertDateTime type="localDate" pattern="dd/MM/yyyy"/>
                 </h:outputText>
               </span>
             </div>
-            <p style="margin:7px 0 0;color:var(--text-muted);font-size:13px">#{r.texto}</p>
+            <p class="resena-texto">#{r.texto}</p>
           </div>
         </ui:repeat>
       </div>

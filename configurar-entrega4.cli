@@ -10,4 +10,13 @@
 /subsystem=messaging-activemq/server=default/address-setting=#:write-attribute(name=max-redelivery-delay,value=60000)
 /subsystem=messaging-activemq/server=default/address-setting=#:write-attribute(name=max-delivery-attempts,value=10)
 
+# Sin la pagina de bienvenida de WildFly (ZAP la marcaba): todo lo que no es la app redirige a la app
+if (outcome == success) of /subsystem=undertow/server=default-server/host=default-host/location=\/:read-resource
+    /subsystem=undertow/server=default-server/host=default-host/location=\/:remove
+end-if
+if (outcome != success) of /subsystem=undertow/configuration=filter/expression-filter=raiz-a-la-app:read-resource
+    /subsystem=undertow/configuration=filter/expression-filter=raiz-a-la-app:add(expression="not path-prefix('/repuestos') -> redirect('/repuestos/')")
+    /subsystem=undertow/server=default-server/host=default-host/filter-ref=raiz-a-la-app:add
+end-if
+
 reload

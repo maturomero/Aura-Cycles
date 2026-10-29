@@ -3,6 +3,7 @@ package ar.edu.uade.repuestos.negocio;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
@@ -20,11 +21,15 @@ import ar.edu.uade.repuestos.modelo.Resena;
 import ar.edu.uade.repuestos.util.MensajeriaNoDisponibleException;
 import ar.edu.uade.repuestos.util.ReglaNegocioException;
 import ar.edu.uade.repuestos.util.TransicionInvalidaException;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.jms.JMSContext;
 import jakarta.jms.JMSProducer;
 import jakarta.jms.JMSRuntimeException;
 import jakarta.jms.Topic;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -59,6 +64,19 @@ class ServicioDeModeracionTest {
         when(devoluciones.porId(7L)).thenReturn(Optional.of(devolucion));
         when(jms.createProducer()).thenReturn(productor);
         when(productor.setProperty(anyString(), anyString())).thenReturn(productor);
+    }
+
+    // SEC-04: el rol lo exige el EJB, no solo la pantalla. Un metodo publico nuevo sin @RolesAllowed rompe este test
+    @Test
+    void todosLosMetodosPublicosExigenElRolModerador() {
+        Method[] publicos = Arrays.stream(ServicioDeModeracion.class.getDeclaredMethods())
+                .filter(m -> Modifier.isPublic(m.getModifiers()) && !m.isSynthetic())
+                .toArray(Method[]::new);
+        assertTrue(publicos.length >= 6);
+        for (Method m : publicos) {
+            RolesAllowed roles = m.getAnnotation(RolesAllowed.class);
+            assertTrue(roles != null && Arrays.asList(roles.value()).equals(List.of("MODERADOR")), m.getName());
+        }
     }
 
     @Test

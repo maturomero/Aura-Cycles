@@ -5,6 +5,7 @@ import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 @Stateless
@@ -33,7 +34,7 @@ public class ProductoRepository {
             return todos();
         }
         return em.createNamedQuery("Producto.buscar", Producto.class)
-                 .setParameter("texto", "%" + texto.toLowerCase() + "%")
+                 .setParameter("texto", "%" + texto.toLowerCase(Locale.ROOT) + "%")
                  .getResultList();
     }
 

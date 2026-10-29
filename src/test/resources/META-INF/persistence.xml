@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Unidad de persistencia de las pruebas de integracion: las mismas entidades contra el MySQL de Testcontainers -->
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence" version="3.0">
+  <persistence-unit name="repuestosIT" transaction-type="RESOURCE_LOCAL">
+    <class>ar.edu.uade.repuestos.modelo.Usuario</class>
+    <class>ar.edu.uade.repuestos.modelo.Producto</class>
+    <class>ar.edu.uade.repuestos.modelo.Venta</class>
+    <class>ar.edu.uade.repuestos.modelo.Resena</class>
+    <class>ar.edu.uade.repuestos.modelo.Devolucion</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
+    <properties>
+      <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
+      <property name="hibernate.show_sql" value="false"/>
+    </properties>
+  </persistence-unit>
+</persistence>

@@ -85,7 +85,8 @@ class ServicioDeUsuariosTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    @ValueSource(strings = {"sin-arroba", "   "})
+    @ValueSource(strings = {"sin-arroba", "   ", "@mail.com", "ana@", "ana@mail", "ana @mail.com", "ana@mail..com",
+            "ana<script>@mail.com", "\u0130na@mail.com", "an\u0131@mail.com", "ana@m\u00e1il.com"})
     void emailInvalido(String email) {
         assertEquals("El email no es valido.",
                 assertThrows(ReglaNegocioException.class, () -> servicio.registrar(email, "Clave1234", "X")).getMessage());
@@ -140,6 +141,21 @@ class ServicioDeUsuariosTest {
         when(repo.existeEmail("carlos@mail.com")).thenReturn(true);
         assertThrows(ReglaNegocioException.class, () -> servicio.actualizarPerfil(1L, "Ana", "carlos@mail.com"));
         verify(repo, never()).guardar(any());
+    }
+
+    // Antes el perfil aceptaba cualquier cosa como email (lo encontro FindSecBugs)
+    @ParameterizedTest
+    @ValueSource(strings = {"", "sin-arroba", "\u0130na@mail.com"})
+    void actualizarPerfilValidaElEmail(String email) {
+        when(repo.porId(1L)).thenReturn(Optional.of(ana()));
+        assertThrows(ReglaNegocioException.class, () -> servicio.actualizarPerfil(1L, "Ana", email));
+        verify(repo, never()).guardar(any());
+    }
+
+    @Test
+    void emailLargoDeMasNoVale() {
+        assertThrows(ReglaNegocioException.class,
+                () -> servicio.registrar("a".repeat(64) + "@" + "b".repeat(190) + ".com", "Clave1234", "X"));
     }
 
     @Test

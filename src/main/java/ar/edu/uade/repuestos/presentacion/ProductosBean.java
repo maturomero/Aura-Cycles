@@ -2,6 +2,7 @@ package ar.edu.uade.repuestos.presentacion;
 
 import ar.edu.uade.repuestos.modelo.Producto;
 import ar.edu.uade.repuestos.modelo.Resena;
+import ar.edu.uade.repuestos.modelo.ResumenResenas;
 import ar.edu.uade.repuestos.modelo.Venta;
 import ar.edu.uade.repuestos.negocio.ServicioDeCobros;
 import ar.edu.uade.repuestos.negocio.ServicioDeProductos;
@@ -14,6 +15,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 @Named("productosBean")
 @ViewScoped
@@ -42,10 +44,12 @@ public class ProductosBean implements Serializable {
     private Producto seleccionado;
     private List<Resena> resenas;
     private int cantidad = 1;
+    private Map<Long, ResumenResenas> resumen = Map.of();
 
     @PostConstruct
     public void cargar() {
         this.productos = servicioDeProductos.listar();
+        this.resumen = servicioDeProductos.resumenResenas();
     }
 
     public void cargarDetalle() {
@@ -80,11 +84,11 @@ public class ProductosBean implements Serializable {
     }
 
     public double promedio(Long id) {
-        return servicioDeProductos.promedioPuntaje(id);
+        return resumen.getOrDefault(id, ResumenResenas.SIN_RESENAS).promedio();
     }
 
     public int cantidadResenas(Long id) {
-        return servicioDeProductos.cantidadResenas(id);
+        return (int) resumen.getOrDefault(id, ResumenResenas.SIN_RESENAS).cantidad();
     }
 
     public String estrellas(int puntaje) {
