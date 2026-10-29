@@ -1,11 +1,11 @@
 # Busca tests inestables: corre toda la suite (unitarios, integracion y E2E) 3 veces en paralelo.
-# Se dispara a mano desde Actions o empujando un tag inestables-N
+# Se dispara a mano desde Actions (Run workflow) o con [inestables] en el mensaje de un commit
 name: Tests inestables (3 corridas)
 
 on:
   workflow_dispatch:
   push:
-    tags: ['inestables-*']
+    branches: [main, entrega-testing]
 
 permissions:
   contents: read
@@ -17,6 +17,7 @@ env:
 jobs:
   corrida:
     name: Corrida ${{ matrix.corrida }}
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[inestables]')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
