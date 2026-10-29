@@ -32,6 +32,8 @@ public class CabecerasDeSeguridad implements Filter {
         r.setHeader("Referrer-Policy", "same-origin");
         r.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
         r.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+        r.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+        r.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
         r.setHeader("Cache-Control", "no-store");
         chain.doFilter(req, res);
     }

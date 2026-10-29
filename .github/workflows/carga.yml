@@ -22,7 +22,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Levantar todo
-        run: docker compose up -d --build
+        run: |
+          # Maven Central a veces devuelve 502: un reintento antes de dar el build por fallado
+          docker compose build || { sleep 20; docker compose build; }
+          docker compose up -d
       - name: Esperar a la app
         run: |
           for i in $(seq 1 120); do
