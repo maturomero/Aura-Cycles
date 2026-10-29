@@ -35,7 +35,7 @@
 
           <div class="campo">
             <h:outputLabel for="email" value="Email"/>
-            <h:inputText id="email" value="#{loginBean.email}"
+            <h:inputText id="email" maxlength="120" value="#{loginBean.email}"
                          autocomplete="username"/>
           </div>
 
@@ -61,12 +61,12 @@
 
           <div class="campo">
             <h:outputLabel for="nom" value="Nombre y apellido"/>
-            <h:inputText id="nom" value="#{loginBean.nombreNuevo}"/>
+            <h:inputText id="nom" maxlength="120" value="#{loginBean.nombreNuevo}"/>
           </div>
 
           <div class="campo">
             <h:outputLabel for="mailN" value="Email"/>
-            <h:inputText id="mailN" value="#{loginBean.emailNuevo}"/>
+            <h:inputText id="mailN" maxlength="120" value="#{loginBean.emailNuevo}"/>
           </div>
 
           <div class="campo">

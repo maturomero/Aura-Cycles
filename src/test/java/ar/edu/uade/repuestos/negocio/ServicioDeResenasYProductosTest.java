@@ -71,6 +71,12 @@ class ServicioDeResenasYProductosTest {
         }
 
         @Test
+        void tituloYTextoConElLargoDeLaColumna() {
+            assertThrows(ReglaNegocioException.class, () -> servicio.escribir(1L, 1L, 4, "t".repeat(161), "ok"));
+            assertThrows(ReglaNegocioException.class, () -> servicio.escribir(1L, 1L, 4, "t", "x".repeat(2001)));
+        }
+
+        @Test
         void soloSiLoCompro() {
             when(ventas.usuarioComproProducto(1L, 1L)).thenReturn(false);
             assertEquals("Solo podes resenar repuestos que compraste.",

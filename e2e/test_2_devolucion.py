@@ -1,5 +1,8 @@
 """HU Pedir una devolucion (AUR-32, AUR-39, SEC-05): garantia por SOAP, reembolso por Mercado Pago y compra ajena."""
-from conftest import APP, aprobar, comprar, modo_soap, pedir_devolucion, sql, esperar, ultima_venta
+import json
+import urllib.request
+
+from conftest import APP, MP, aprobar, comprar, modo_soap, pedir_devolucion, sql, esperar, ultima_venta
 
 CARLOS = 2
 
@@ -52,3 +55,29 @@ def test_no_se_puede_devolver_una_compra_ajena(abrir):
     assert "No pudimos abrir la solicitud" in html and "La compra no existe" in html
     assert "Carlos" not in html and "Cadena" not in html
     assert ana.locator("input[value='Enviar solicitud']").count() == 0
+
+
+# Equivale al 409 de REST: dos moderadores aprueban la misma devolucion a la vez; uno solo pasa y hay un solo reembolso
+def test_dos_moderadores_aprueban_la_misma_devolucion_a_la_vez(abrir):
+    carlos = abrir("carlos@mail.com")
+    venta = _compra_pagada(carlos, 2)
+    codigo = pedir_devolucion(carlos, venta, "ARREPENTIMIENTO", "")
+    dev = int(codigo[4:])
+
+    uno, otro = abrir("mod@mail.com"), abrir("mod@mail.com")
+    for m in (uno, otro):
+        m.goto(f"{APP}/moderacion.xhtml")
+        m.click("input[value^='Devoluciones pendientes']")
+        m.wait_for_load_state()
+    with uno.expect_navigation(), otro.expect_navigation():
+        uno.locator("tr", has_text=codigo).locator("input[value='Aprobar']").click(no_wait_after=True)
+        otro.locator("tr", has_text=codigo).locator("input[value='Aprobar']").click(no_wait_after=True)
+
+    resultados = sorted("ok" if "Devolución aprobada" in m.content() else "no" if "No se puede aprobar" in m.content() else "?"
+                        for m in (uno, otro))
+    assert resultados == ["no", "ok"]
+    assert esperar(lambda: sql(f"select estado from devolucion where id={dev}") == "REEMBOLSADA", 30)
+    pago = sql(f"select mp_pago_id from venta where id={venta}")
+    pedido = urllib.request.Request(f"{MP}/v1/payments/{pago}", headers={"Authorization": "Bearer TEST-e2e"})
+    with urllib.request.build_opener(urllib.request.ProxyHandler({})).open(pedido) as r:
+        assert str(json.load(r)["transaction_amount_refunded"]) in ("52830", "52830.0", "52830.00")

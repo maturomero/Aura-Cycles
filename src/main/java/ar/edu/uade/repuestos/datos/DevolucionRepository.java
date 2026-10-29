@@ -26,7 +26,7 @@ public class DevolucionRepository {
         return Optional.ofNullable(em.find(Devolucion.class, id));
     }
 
-    // Dos entregas del mismo evento a la vez: la segunda espera y ve el flag ya marcado
+    // Dos entregas del mismo evento o dos moderadores a la vez: el segundo espera y ve el cambio del primero
     public Optional<Devolucion> porIdBloqueado(Long id) {
         Devolucion d = em.find(Devolucion.class, id);
         if (d != null) {

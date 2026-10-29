@@ -28,6 +28,15 @@ public class ResenaRepository {
         return Optional.ofNullable(em.find(Resena.class, id));
     }
 
+    // Dos moderadores a la vez: el segundo espera y ve la resena ya resuelta
+    public Optional<Resena> porIdBloqueado(Long id) {
+        Resena r = em.find(Resena.class, id);
+        if (r != null) {
+            em.refresh(r, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+        }
+        return Optional.ofNullable(r);
+    }
+
     public List<Resena> aprobadasPorProducto(Long productoId) {
         return em.createNamedQuery("Resena.aprobadasPorProducto", Resena.class)
                  .setParameter("productoId", productoId)

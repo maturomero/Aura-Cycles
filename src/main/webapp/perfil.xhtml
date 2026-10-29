@@ -23,12 +23,12 @@
       <h:form>
         <div class="campo">
           <h:outputLabel for="nom" value="Nombre y apellido"/>
-          <h:inputText id="nom" value="#{perfilBean.nombre}"/>
+          <h:inputText id="nom" maxlength="120" value="#{perfilBean.nombre}"/>
         </div>
 
         <div class="campo">
           <h:outputLabel for="mail" value="Email"/>
-          <h:inputText id="mail" value="#{perfilBean.email}"/>
+          <h:inputText id="mail" maxlength="120" value="#{perfilBean.email}"/>
         </div>
 
         <div class="campo">

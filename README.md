@@ -273,13 +273,15 @@ lo hace `ServicioDeVentas` dentro de una transacción con bloqueo pesimista.
 | Mutación PIT | `mvn org.pitest:pitest-maven:mutationCoverage`, reporte en `target/pit-reports` | 60 % |
 | Análisis estático SpotBugs + FindSecBugs | `mvn compile spotbugs:check` | 0 hallazgos (los excluidos están justificados en `spotbugs-excluir.xml`) |
 | E2E (Playwright) | `docker compose up -d --build` y después `cd e2e && pytest` | |
-| DAST con ZAP | con la app levantada: `seguridad/zap.sh` | 0 High, y cada Medium justificado en `seguridad/zap-justificadas.tsv` |
+| DAST con ZAP (pasivo) | con la app levantada: `seguridad/zap.sh` | 0 High, y cada Medium justificado en `seguridad/zap-justificadas.tsv` |
+| DAST con ZAP (activo con sesión) | con la app levantada: `seguridad/zap-activo.sh` (unos 6 minutos por usuario) | lo mismo |
+| Código duplicado | `npx jscpd@4.0.5 src/main --min-tokens 50 --threshold 3` | 3 % como máximo |
 | Carga con k6 | con la app levantada: `carga/correr.sh` | 50 usuarios, 5 min, p95 < 500 ms y < 1 % de errores |
 | Secretos | `docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.30.1 git /repo` | nada encontrado en todo el historial |
 
 Los E2E dejan la IP de la máquina bloqueada 5 minutos (el último prueba fuerza bruta). Para correrlos de nuevo enseguida: `docker compose restart app`. Para arrancar con la base limpia: `docker compose down -v`.
 
-**CI (GitHub Actions).** `.github/workflows/ci.yml` corre en cada push a `main` y `entrega-testing`, en cada PR y en los tags `v*`. Son tres trabajos en paralelo (unos 10 minutos): pruebas + cobertura + mutación + SpotBugs; gitleaks + Trivy + E2E contra el compose; y ZAP sin sesión, como cliente y como moderador. Los reportes quedan como artefactos de cada corrida.
+**CI (GitHub Actions).** `.github/workflows/ci.yml` corre en cada push a `main` y `entrega-testing`, en cada PR y en los tags `v*`. Son cinco trabajos en paralelo (unos 10 minutos en total): pruebas + cobertura + mutación + SpotBugs + duplicación; gitleaks + Trivy + E2E contra el compose; ZAP pasivo sin sesión, como cliente y como moderador; y ZAP activo como cliente y como moderador (uno por trabajo). Los reportes quedan como artefactos de cada corrida.
 
 Dos workflows más, a mano desde la pestaña Actions ("Run workflow") o poniendo la marca en el mensaje de un commit:
 

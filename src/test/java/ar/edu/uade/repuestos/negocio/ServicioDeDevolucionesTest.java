@@ -117,6 +117,7 @@ class ServicioDeDevolucionesTest {
         servicio.seleccionarCompra(9L);
         assertThrows(ReglaNegocioException.class, () -> servicio.cargarMotivo(null, "x"));
         assertThrows(ReglaNegocioException.class, () -> servicio.cargarMotivo(MotivoDevolucion.DEFECTUOSO, "  "));
+        assertThrows(ReglaNegocioException.class, () -> servicio.cargarMotivo(MotivoDevolucion.NO_COMPATIBLE, "x".repeat(1001)));
         servicio.cargarMotivo(MotivoDevolucion.NO_COMPATIBLE, "");
         assertEquals(MotivoDevolucion.NO_COMPATIBLE, servicio.getMotivo());
         assertEquals("", servicio.getComentario());
