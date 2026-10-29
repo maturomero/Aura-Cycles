@@ -133,12 +133,12 @@ public class ServicioDeModeracion {
     }
 
     private Resena buscarResena(Long id) {
-        return resenaRepository.porId(id)
+        return resenaRepository.porIdBloqueado(id)
                 .orElseThrow(() -> new ReglaNegocioException("La resena no existe."));
     }
 
     private Devolucion buscarDevolucion(Long id) {
-        return devolucionRepository.porId(id)
+        return devolucionRepository.porIdBloqueado(id)
                 .orElseThrow(() -> new ReglaNegocioException("La solicitud no existe."));
     }
 

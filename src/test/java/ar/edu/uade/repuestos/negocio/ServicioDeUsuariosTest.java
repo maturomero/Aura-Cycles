@@ -159,6 +159,29 @@ class ServicioDeUsuariosTest {
     }
 
     @Test
+    void elNombreEsObligatorioYTieneElLargoDeLaColumna() {
+        when(repo.guardar(any())).thenAnswer(i -> i.getArgument(0));
+        assertEquals("Escribi tu nombre.",
+                assertThrows(ReglaNegocioException.class, () -> servicio.registrar("x@mail.com", "Clave1234", "  ")).getMessage());
+        assertThrows(ReglaNegocioException.class, () -> servicio.registrar("x@mail.com", "Clave1234", null));
+        assertThrows(ReglaNegocioException.class, () -> servicio.registrar("x@mail.com", "Clave1234", "a".repeat(121)));
+        assertEquals("a".repeat(120), servicio.registrar("x@mail.com", "Clave1234", " " + "a".repeat(120) + " ").getNombre());
+    }
+
+    @Test
+    void enElPerfilElNombreLargoTampocoVale() {
+        when(repo.porId(1L)).thenReturn(Optional.of(new Usuario("ana@mail.com", "h", "Ana", Rol.CLIENTE)));
+        assertThrows(ReglaNegocioException.class, () -> servicio.actualizarPerfil(1L, "ZAP %1!s%2!s".repeat(20), "ana@mail.com"));
+        verify(repo, never()).guardar(any());
+    }
+
+    @Test
+    void unEmailDeMasDe120NoVaAunqueTengaFormaValida() {
+        String email = "a".repeat(60) + "@" + "b".repeat(60) + ".com";
+        assertThrows(ReglaNegocioException.class, () -> servicio.registrar(email, "Clave1234", "X"));
+    }
+
+    @Test
     void usuarioInexistente() {
         when(repo.porId(9L)).thenReturn(Optional.empty());
         assertThrows(ReglaNegocioException.class, () -> servicio.actualizarPerfil(9L, "x", "x@mail.com"));

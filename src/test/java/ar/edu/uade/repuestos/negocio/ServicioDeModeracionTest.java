@@ -61,7 +61,7 @@ class ServicioDeModeracionTest {
     void preparar() {
         devolucion = Datos.devolucion(7L, Datos.venta(9L, Datos.ana(), 1, EstadoVenta.PAGADA), MotivoDevolucion.ARREPENTIMIENTO);
         devolucion.garantiaValidada("RMA-2026-00010");
-        when(devoluciones.porId(7L)).thenReturn(Optional.of(devolucion));
+        when(devoluciones.porIdBloqueado(7L)).thenReturn(Optional.of(devolucion));
         when(jms.createProducer()).thenReturn(productor);
         when(productor.setProperty(anyString(), anyString())).thenReturn(productor);
     }
@@ -118,8 +118,8 @@ class ServicioDeModeracionTest {
 
     @Test
     void devolucionOResenaInexistente() {
-        when(devoluciones.porId(99L)).thenReturn(Optional.empty());
-        when(resenas.porId(99L)).thenReturn(Optional.empty());
+        when(devoluciones.porIdBloqueado(99L)).thenReturn(Optional.empty());
+        when(resenas.porIdBloqueado(99L)).thenReturn(Optional.empty());
         assertEquals("La solicitud no existe.", assertThrows(ReglaNegocioException.class, () -> servicio.aprobarDevolucion(99L)).getMessage());
         assertEquals("La resena no existe.", assertThrows(ReglaNegocioException.class, () -> servicio.aprobarResena(99L)).getMessage());
     }
@@ -128,8 +128,8 @@ class ServicioDeModeracionTest {
     void aprobarYRechazarResenas() {
         Resena r = new Resena(Datos.ana(), Datos.cubierta(), 4, "t", "x");
         Resena otra = new Resena(Datos.ana(), Datos.cubierta(), 2, "t", "x");
-        when(resenas.porId(1L)).thenReturn(Optional.of(r));
-        when(resenas.porId(2L)).thenReturn(Optional.of(otra));
+        when(resenas.porIdBloqueado(1L)).thenReturn(Optional.of(r));
+        when(resenas.porIdBloqueado(2L)).thenReturn(Optional.of(otra));
 
         servicio.aprobarResena(1L);
         servicio.rechazarResena(2L, "Lenguaje ofensivo");
@@ -147,7 +147,7 @@ class ServicioDeModeracionTest {
     void unaResenaYaResueltaNoSeVuelveAModerar() {
         Resena r = new Resena(Datos.ana(), Datos.cubierta(), 4, "t", "x");
         r.aprobar();
-        when(resenas.porId(1L)).thenReturn(Optional.of(r));
+        when(resenas.porIdBloqueado(1L)).thenReturn(Optional.of(r));
         assertThrows(ReglaNegocioException.class, () -> servicio.rechazarResena(1L, "x"));
         assertEquals(EstadoResena.APROBADA, r.getEstado());
         verify(resenas, never()).guardar(any());

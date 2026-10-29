@@ -14,6 +14,9 @@ import java.util.List;
 
 @Stateless
 public class ServicioDeResenas {
+    // Mismo largo que las columnas: si no, MySQL corta con un 500
+    static final int LARGO_TITULO = 160;
+    static final int LARGO_TEXTO = 2000;
     @Inject
     private ResenaRepository resenaRepository;
 
@@ -33,6 +36,12 @@ public class ServicioDeResenas {
         }
         if (texto == null || texto.isBlank()) {
             throw new ReglaNegocioException("Escribi el texto de la resena.");
+        }
+        if (titulo != null && titulo.length() > LARGO_TITULO) {
+            throw new ReglaNegocioException("El titulo puede tener hasta " + LARGO_TITULO + " caracteres.");
+        }
+        if (texto.length() > LARGO_TEXTO) {
+            throw new ReglaNegocioException("La resena puede tener hasta " + LARGO_TEXTO + " caracteres.");
         }
         if (!ventaRepository.usuarioComproProducto(usuarioId, productoId)) {
             throw new ReglaNegocioException("Solo podes resenar repuestos que compraste.");

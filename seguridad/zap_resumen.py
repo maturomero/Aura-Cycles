@@ -28,7 +28,7 @@ for esc, riesgo, plugin, nombre, n in filas:
     print(f"| {esc} | {riesgo} | {plugin} | {nombre} | {n} | {justificadas.get(plugin, '')} |")
 if os.environ.get("GITHUB_ACTIONS"):
     c = Counter(f[1] for f in filas)
-    print(f"::notice title=ZAP::High {c['High']}, Medium {c['Medium']}, Low {c['Low']}, informativas {c['Info']}")
+    print(f"::notice title={os.environ.get('ZAP_TITULO', 'ZAP')}::High {c['High']}, Medium {c['Medium']}, Low {c['Low']}, informativas {c['Info']}")
 if problemas:
     print("\nSin resolver:\n" + "\n".join(problemas))
     sys.exit(1)

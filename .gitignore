@@ -9,5 +9,6 @@ target/
 *.local.properties
 __pycache__/
 zap-reportes/
+zap-activo/
 carga/resultados/
 e2e/capturas/

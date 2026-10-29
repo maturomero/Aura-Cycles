@@ -31,6 +31,7 @@ public class ServicioDeDevoluciones implements Serializable {
     private static final Logger LOG = Logger.getLogger(ServicioDeDevoluciones.class.getName());
 
     private static final int DIAS_PARA_DEVOLVER = 30;
+    static final int LARGO_COMENTARIO = 1000;
 
     @Inject
     private DevolucionRepository devolucionRepository;
@@ -101,6 +102,10 @@ public class ServicioDeDevoluciones implements Serializable {
                 && (comentario == null || comentario.isBlank())) {
             throw new ReglaNegocioException(
                 "Si el repuesto llego defectuoso, conta brevemente que le pasa.");
+        }
+
+        if (comentario != null && comentario.length() > LARGO_COMENTARIO) {
+            throw new ReglaNegocioException("El comentario puede tener hasta " + LARGO_COMENTARIO + " caracteres.");
         }
 
         this.motivo = motivo;
