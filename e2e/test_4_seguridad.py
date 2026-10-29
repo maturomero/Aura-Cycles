@@ -20,7 +20,8 @@ def _get(url):
         return e.code, e.headers, e.read().decode("utf-8", "replace")
 
 
-HEADERS = ["Content-Security-Policy", "Strict-Transport-Security", "X-Content-Type-Options", "X-Frame-Options"]
+HEADERS = ["Content-Security-Policy", "Strict-Transport-Security", "X-Content-Type-Options", "X-Frame-Options",
+           "Cross-Origin-Resource-Policy", "Cross-Origin-Embedder-Policy"]
 
 
 def test_headers_tambien_en_el_login_del_contenedor_y_en_los_errores():
