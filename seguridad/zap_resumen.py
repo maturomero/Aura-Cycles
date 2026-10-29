@@ -1,7 +1,9 @@
 """Junta los reportes JSON de ZAP. Falla si hay algun High o un Medium que no este justificado en zap-justificadas.tsv."""
 import json
+import os
 import pathlib
 import sys
+from collections import Counter
 
 RIESGO = {"3": "High", "2": "Medium", "1": "Low", "0": "Info"}
 carpeta = pathlib.Path(sys.argv[1])
@@ -24,6 +26,9 @@ print("| Escaneo | Riesgo | Regla | Alerta | Instancias | Justificacion |")
 print("|---|---|---|---|---|---|")
 for esc, riesgo, plugin, nombre, n in filas:
     print(f"| {esc} | {riesgo} | {plugin} | {nombre} | {n} | {justificadas.get(plugin, '')} |")
+if os.environ.get("GITHUB_ACTIONS"):
+    c = Counter(f[1] for f in filas)
+    print(f"::notice title=ZAP::High {c['High']}, Medium {c['Medium']}, Low {c['Low']}, informativas {c['Info']}")
 if problemas:
     print("\nSin resolver:\n" + "\n".join(problemas))
     sys.exit(1)

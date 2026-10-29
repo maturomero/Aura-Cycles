@@ -120,6 +120,17 @@ jobs:
         working-directory: e2e
         run: python -m pytest --junitxml=resultados-e2e.xml
 
+      - name: Resumen E2E
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          r = ET.parse('e2e/resultados-e2e.xml').getroot()
+          s = r if r.tag == 'testsuite' else r.find('testsuite')
+          fallas = int(s.get('failures')) + int(s.get('errors'))
+          print(f"::notice title=E2E::{s.get('tests')} tests, {fallas} con falla, {float(s.get('time')):.0f} s")
+          PY
+
       - name: Imagen de la app (Trivy, informativo)
         if: always()
         run: |
