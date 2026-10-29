@@ -281,7 +281,7 @@ Los E2E dejan la IP de la máquina bloqueada 5 minutos (el último prueba fuerza
 
 **CI (GitHub Actions).** `.github/workflows/ci.yml` corre en cada push a `main` y `entrega-testing`, en cada PR y en los tags `v*`. Son tres trabajos en paralelo (unos 10 minutos): pruebas + cobertura + mutación + SpotBugs; gitleaks + Trivy + E2E contra el compose; y ZAP sin sesión, como cliente y como moderador. Los reportes quedan como artefactos de cada corrida.
 
-Dos workflows más, a mano desde la pestaña Actions ("Run workflow") o empujando un tag:
+Dos workflows más, a mano desde la pestaña Actions ("Run workflow") o poniendo la marca en el mensaje de un commit:
 
-- `inestables.yml` (tag `inestables-N`): corre toda la suite 3 veces en paralelo para detectar tests inestables.
-- `carga.yml` (tag `carga-N`): la prueba de carga con k6.
+- `inestables.yml` (`[inestables]`): corre toda la suite 3 veces en paralelo para detectar tests inestables.
+- `carga.yml` (`[carga]`): la prueba de carga con k6.
