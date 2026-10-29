@@ -1,7 +1,8 @@
-# CI de Aura Cycles. Tres trabajos en paralelo para que entre en 15 minutos:
-#  pruebas: unitarios, integracion con Testcontainers, JaCoCo 80/70, PIT 60 % y SpotBugs + FindSecBugs
+# CI de Aura Cycles. Cinco trabajos en paralelo para que entre en 15 minutos:
+#  pruebas: unitarios, integracion con Testcontainers, JaCoCo 80/70, PIT 60 %, SpotBugs + FindSecBugs y jscpd
 #  e2e: docker compose + Playwright, gitleaks y Trivy
-#  zap: escaneo DAST con ZAP sin sesion, como cliente y como moderador
+#  zap: escaneo DAST pasivo sin sesion, como cliente y como moderador
+#  zap-activo (x2): escaneo activo logueado como cliente y como moderador
 name: CI
 
 on:
