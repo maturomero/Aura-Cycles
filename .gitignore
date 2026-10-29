@@ -7,3 +7,7 @@ target/
 .env
 *.local.cli
 *.local.properties
+__pycache__/
+zap-reportes/
+carga/resultados/
+e2e/capturas/
