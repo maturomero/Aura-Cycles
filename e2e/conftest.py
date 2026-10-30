@@ -130,5 +130,6 @@ def aprobar(page, codigo):
     page.goto(f"{APP}/moderacion.xhtml")
     page.click("input[value^='Devoluciones pendientes']")
     page.wait_for_load_state()
-    page.locator("tr", has_text=codigo).locator("input[value='Aprobar']").click()
-    page.wait_for_load_state()
+    # Esperar la respuesta del POST: con el broker recien levantado la aprobacion tarda unos segundos
+    with page.expect_navigation(timeout=60_000):
+        page.locator("tr", has_text=codigo).locator("input[value='Aprobar']").click()
