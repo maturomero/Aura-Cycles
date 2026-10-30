@@ -2,7 +2,7 @@
 import json
 import urllib.request
 
-from conftest import APP, MP, aprobar, comprar, modo_soap, pedir_devolucion, sql, esperar, ultima_venta
+from conftest import APP, MP, aprobar, comprar, modo_soap, pedir_devolucion, programados, sql, esperar, ultima_venta
 
 CARLOS = 2
 
@@ -38,14 +38,17 @@ def test_un_consumible_no_tiene_garantia(abrir):
     assert sql(f"select count(*) from devolucion where venta_id={venta}") == "0"
 
 
-def test_con_el_proveedor_caido_queda_validandose(abrir):
+def test_con_el_proveedor_caido_queda_validandose_y_va_a_la_cola(abrir):
     carlos = abrir("carlos@mail.com")
     venta = _compra_pagada(carlos, 7)
+    en_cola = programados("cola.validaciones")
     modo_soap("error")
     codigo = pedir_devolucion(carlos, venta, "NO_COMPATIBLE", "")
     html = carlos.content()
     assert "Validando la garant" in html and "ORA-" not in html
     assert sql(f"select estado from devolucion where id={int(codigo[4:])}") == "PENDIENTE_VALIDACION"
+    # El reintento queda en la cola punto a punto con 2 minutos de espera
+    assert programados("cola.validaciones") == en_cola + 1
 
 
 def test_no_se_puede_devolver_una_compra_ajena(abrir):

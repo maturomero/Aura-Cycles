@@ -15,17 +15,22 @@ final class EventoDevolucion {
     private EventoDevolucion() {
     }
 
+    // El topico y la cola mandan lo mismo: un MapMessage con el id de la devolucion
+    static long idDe(Message mensaje) {
+        try {
+            return ((MapMessage) mensaje).getLong("idDevolucion");
+        } catch (JMSException e) {
+            throw new IllegalStateException("No se pudo leer el id de la devolucion del mensaje", e);
+        }
+    }
+
     // Si la devolucion no existe se descarta el mensaje, asi no queda reintentando para siempre
     static Optional<Devolucion> devolucionDe(Message mensaje, DevolucionRepository repositorio) {
-        try {
-            long id = ((MapMessage) mensaje).getLong("idDevolucion");
-            Optional<Devolucion> devolucion = repositorio.porId(id);
-            if (devolucion.isEmpty()) {
-                LOG.warning(() -> "[TOPICO] llego la devolucion " + id + " pero no existe, se descarta");
-            }
-            return devolucion;
-        } catch (JMSException e) {
-            throw new IllegalStateException("No se pudo leer el mensaje del topico", e);
+        long id = idDe(mensaje);
+        Optional<Devolucion> devolucion = repositorio.porId(id);
+        if (devolucion.isEmpty()) {
+            LOG.warning(() -> "[TOPICO] llego la devolucion " + id + " pero no existe, se descarta");
         }
+        return devolucion;
     }
 }

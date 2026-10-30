@@ -30,6 +30,17 @@ def sql(consulta):
     return r.stdout.strip()
 
 
+def programados(cola):
+    # Mensajes con espera que tiene la cola en el broker (columna SCHEDULED COUNT de artemis queue stat)
+    r = compose("exec", "-T", "artemis", "/var/lib/artemis-instance/bin/artemis", "queue", "stat",
+                "--url", "tcp://localhost:61616", "--queueName", cola, "--maxColumnSize", "-1")
+    for linea in r.stdout.splitlines():
+        celdas = [c.strip() for c in linea.strip().strip("|").split("|")]
+        if celdas and celdas[0].endswith(cola):
+            return int(celdas[7])
+    return 0
+
+
 def modo_mp(modo):
     _sin_proxy.open(f"{MP}/__modo?valor={modo}").read()
 
