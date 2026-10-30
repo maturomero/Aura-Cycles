@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="jakarta.faces.html"
       xmlns:f="jakarta.faces.core"
       xmlns:ui="jakarta.faces.facelets">
@@ -7,6 +7,7 @@
 <h:head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="description" content="Aura Cycles: repuestos de bicicleta con rese&#241;as y devoluciones"/>
   <title>Ingresar &#183; Repuestos de Bicicleta</title>
   <h:outputStylesheet library="css" name="app.css"/>
 </h:head>
@@ -18,8 +19,8 @@
       <div class="login-marca">
         <div class="sidebar-logo">RB</div>
         <div>
-          <div style="font:600 14px 'IBM Plex Sans',sans-serif">Repuestos de Bicicleta</div>
-          <div class="sidebar-sub" style="color:var(--text-faint)">Rese&#241;as y devoluciones</div>
+          <div class="marca-login">Repuestos de Bicicleta</div>
+          <div class="sidebar-sub texto-tenue">Rese&#241;as y devoluciones</div>
         </div>
       </div>
 
@@ -34,7 +35,7 @@
 
           <div class="campo">
             <h:outputLabel for="email" value="Email"/>
-            <h:inputText id="email" value="#{loginBean.email}"
+            <h:inputText id="email" maxlength="120" value="#{loginBean.email}"
                          autocomplete="username"/>
           </div>
 
@@ -47,9 +48,9 @@
           <div class="form-acciones">
             <h:commandButton value="Ingresar" action="#{loginBean.ingresar}"
                              styleClass="btn btn-primario"/>
-            <h:commandLink value="Crear una cuenta"
-                           action="#{loginBean.alternarRegistro}"
-                           styleClass="campo-ayuda"/>
+            <h:commandButton value="Crear una cuenta"
+                             action="#{loginBean.alternarRegistro}"
+                             styleClass="btn-enlace campo-ayuda"/>
           </div>
         </h:form>
       </ui:fragment>
@@ -60,12 +61,12 @@
 
           <div class="campo">
             <h:outputLabel for="nom" value="Nombre y apellido"/>
-            <h:inputText id="nom" value="#{loginBean.nombreNuevo}"/>
+            <h:inputText id="nom" maxlength="120" value="#{loginBean.nombreNuevo}"/>
           </div>
 
           <div class="campo">
             <h:outputLabel for="mailN" value="Email"/>
-            <h:inputText id="mailN" value="#{loginBean.emailNuevo}"/>
+            <h:inputText id="mailN" maxlength="120" value="#{loginBean.emailNuevo}"/>
           </div>
 
           <div class="campo">
@@ -78,9 +79,9 @@
           <div class="form-acciones">
             <h:commandButton value="Crear cuenta" action="#{loginBean.registrarse}"
                              styleClass="btn btn-primario"/>
-            <h:commandLink value="Ya tengo cuenta"
-                           action="#{loginBean.alternarRegistro}"
-                           styleClass="campo-ayuda"/>
+            <h:commandButton value="Ya tengo cuenta"
+                             action="#{loginBean.alternarRegistro}"
+                             styleClass="btn-enlace campo-ayuda"/>
           </div>
         </h:form>
       </ui:fragment>

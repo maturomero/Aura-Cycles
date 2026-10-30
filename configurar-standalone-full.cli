@@ -1,0 +1,35 @@
+# Configura el perfil standalone-full (el que trae mensajeria) igual que el standalone que ya usabamos.
+# La clave de MySQL no va en este archivo: sale de db.local.properties, que no se sube (esta en .gitignore).
+#   1. Copiar db.local.properties.example como db.local.properties y poner la clave de tu MySQL.
+#   2. Con WildFly levantado en standalone-full:
+#      jboss-cli.sh --connect --file=configurar-standalone-full.cli --properties=db.local.properties --resolve-parameter-values
+# Sin --resolve-parameter-values la CLI no reemplaza ${db.password} y falla.
+
+/subsystem=datasources/jdbc-driver=mysql:add(driver-name=mysql,driver-module-name=com.mysql,driver-xa-datasource-class-name=com.mysql.cj.jdbc.MysqlXADataSource)
+
+data-source add --name=RepuestosDS --jndi-name=java:/RepuestosDS --driver-name=mysql --connection-url=jdbc:mysql://localhost:3306/repuestos_bici?serverTimezone=America/Argentina/Buenos_Aires --user-name=${db.user} --password=${db.password} --use-ccm=true --min-pool-size=5 --max-pool-size=20
+
+/subsystem=elytron/jdbc-realm=repuestos-realm:add(principal-query=[{sql="SELECT password_hash, rol FROM usuario WHERE email = ?",data-source=RepuestosDS,modular-crypt-mapper={password-index=1},attribute-mapping=[{index=2,to=Roles}]}])
+
+/subsystem=elytron/security-domain=repuestos-domain:add(default-realm=repuestos-realm,permission-mapper=default-permission-mapper,realms=[{realm=repuestos-realm}])
+
+/subsystem=undertow/application-security-domain=repuestos-domain:add(security-domain=repuestos-domain)
+
+/subsystem=ejb3/application-security-domain=repuestos-domain:add(security-domain=repuestos-domain)
+
+# Si Mercado Pago no responde al reembolsar, el mensaje vuelve cada 10 s, hasta 10 veces, y despues va a la DLQ.
+# max-redelivery-delay hace falta: si queda en 0, Artemis reintenta todo de golpe sin esperar.
+/subsystem=messaging-activemq/server=default/address-setting=#:write-attribute(name=redelivery-delay,value=10000)
+/subsystem=messaging-activemq/server=default/address-setting=#:write-attribute(name=max-redelivery-delay,value=60000)
+/subsystem=messaging-activemq/server=default/address-setting=#:write-attribute(name=max-delivery-attempts,value=10)
+
+# Sin la pagina de bienvenida de WildFly (ZAP la marcaba): todo lo que no es la app redirige a la app
+if (outcome == success) of /subsystem=undertow/server=default-server/host=default-host/location=\/:read-resource
+    /subsystem=undertow/server=default-server/host=default-host/location=\/:remove
+end-if
+if (outcome != success) of /subsystem=undertow/configuration=filter/expression-filter=raiz-a-la-app:read-resource
+    /subsystem=undertow/configuration=filter/expression-filter=raiz-a-la-app:add(expression="not path-prefix('/repuestos') -> redirect('/repuestos/')")
+    /subsystem=undertow/server=default-server/host=default-host/filter-ref=raiz-a-la-app:add
+end-if
+
+reload

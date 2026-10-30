@@ -23,19 +23,19 @@
       <h:form>
         <div class="campo">
           <h:outputLabel for="nom" value="Nombre y apellido"/>
-          <h:inputText id="nom" value="#{perfilBean.nombre}"/>
+          <h:inputText id="nom" maxlength="120" value="#{perfilBean.nombre}"/>
         </div>
 
         <div class="campo">
           <h:outputLabel for="mail" value="Email"/>
-          <h:inputText id="mail" value="#{perfilBean.email}"/>
+          <h:inputText id="mail" maxlength="120" value="#{perfilBean.email}"/>
         </div>
 
         <div class="campo">
           <h:outputLabel value="Rol"/>
           <div>
             <span class="badge badge-neutro">#{sesion.usuario.rol}</span>
-            <span class="campo-ayuda" style="margin-left:8px">
+            <span class="campo-ayuda ml-8">
               El rol lo asigna la administraci&#243;n, no se edita desde ac&#225;.
             </span>
           </div>

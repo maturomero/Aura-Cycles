@@ -73,7 +73,7 @@
                         <strong>#{r.titulo}</strong><br/>#{r.texto}
                       </td>
                       <td data-etiqueta="Acciones">
-                        <div style="display:flex;gap:6px;flex-wrap:wrap">
+                        <div class="acciones-fila">
                           <h:commandButton value="Aprobar"
                                            action="#{moderacionBean.aprobarResena(r.id)}"
                                            styleClass="btn btn-ok btn-chico"/>
@@ -117,13 +117,21 @@
                 <tbody>
                   <ui:repeat value="#{moderacionBean.devolucionesPendientes}" var="d">
                     <tr>
-                      <td data-etiqueta="C&#243;digo"><span class="codigo">#{d.codigo}</span></td>
+                      <td data-etiqueta="C&#243;digo">
+                        <span class="codigo">#{d.codigo}</span>
+                        <ui:fragment rendered="#{not empty d.rma}">
+                          <div class="celda-tenue texto-115">#{d.rma}</div>
+                        </ui:fragment>
+                        <ui:fragment rendered="#{d.sinValidar}">
+                          <div><span class="badge badge-pendiente" title="El proveedor no respondi&#243;: revisarla con el proveedor">Sin validar con el proveedor</span></div>
+                        </ui:fragment>
+                      </td>
                       <td data-etiqueta="Orden" class="celda-tenue">#{d.venta.numeroOrden}</td>
                       <td data-etiqueta="Cliente" class="celda-tenue">#{d.venta.usuario.nombre}</td>
                       <td data-etiqueta="Repuesto" class="celda-titulo">#{d.venta.producto.nombre}</td>
                       <td data-etiqueta="Motivo">
                         <span class="badge badge-neutro">#{d.motivo.etiqueta}</span>
-                        <div class="celda-tenue" style="margin-top:5px">#{d.comentario}</div>
+                        <div class="celda-tenue mt-5">#{d.comentario}</div>
                       </td>
                       <td data-etiqueta="Importe">
                         <h:outputText value="#{d.venta.importe}">
@@ -131,7 +139,7 @@
                         </h:outputText>
                       </td>
                       <td data-etiqueta="Acciones">
-                        <div style="display:flex;gap:6px;flex-wrap:wrap">
+                        <div class="acciones-fila">
                           <h:commandButton value="Aprobar"
                                            action="#{moderacionBean.aprobarDevolucion(d.id)}"
                                            styleClass="btn btn-ok btn-chico"/>

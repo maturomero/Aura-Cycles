@@ -2,6 +2,9 @@ package ar.edu.uade.repuestos.presentacion;
 
 import ar.edu.uade.repuestos.modelo.Producto;
 import ar.edu.uade.repuestos.modelo.Resena;
+import ar.edu.uade.repuestos.modelo.ResumenResenas;
+import ar.edu.uade.repuestos.modelo.Venta;
+import ar.edu.uade.repuestos.negocio.ServicioDeCobros;
 import ar.edu.uade.repuestos.negocio.ServicioDeProductos;
 import ar.edu.uade.repuestos.negocio.ServicioDeResenas;
 import ar.edu.uade.repuestos.negocio.ServicioDeVentas;
@@ -12,6 +15,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 @Named("productosBean")
 @ViewScoped
@@ -28,6 +32,9 @@ public class ProductosBean implements Serializable {
     private ServicioDeVentas servicioDeVentas;
 
     @Inject
+    private ServicioDeCobros servicioDeCobros;
+
+    @Inject
     private SesionBean sesion;
 
     private String busqueda;
@@ -37,10 +44,12 @@ public class ProductosBean implements Serializable {
     private Producto seleccionado;
     private List<Resena> resenas;
     private int cantidad = 1;
+    private Map<Long, ResumenResenas> resumen = Map.of();
 
     @PostConstruct
     public void cargar() {
         this.productos = servicioDeProductos.listar();
+        this.resumen = servicioDeProductos.resumenResenas();
     }
 
     public void cargarDetalle() {
@@ -59,24 +68,27 @@ public class ProductosBean implements Serializable {
         this.productos = servicioDeProductos.buscar(busqueda);
     }
 
+    // Reserva el stock y manda a Mercado Pago. Si MP no responde, la compra queda reservada para pagar despues
     public String comprar(Long id) {
         try {
-            servicioDeVentas.comprar(sesion.getUsuarioId(), id, cantidad);
-            Mensajes.ok("Compra registrada. La ves en Mis compras.");
-            cargar();
-            return null;
+            Venta venta = servicioDeVentas.comprar(sesion.getUsuarioId(), id, cantidad);
+            IrAPagar.ejecutar(servicioDeCobros, venta.getId(), sesion.getUsuarioId(), venta.getNumeroOrden());
         } catch (ReglaNegocioException e) {
             Mensajes.error(e.getMessage());
-            return null;
         }
+        cargar();
+        if (seleccionado != null) {
+            cargarDetalle();
+        }
+        return null;
     }
 
     public double promedio(Long id) {
-        return servicioDeProductos.promedioPuntaje(id);
+        return resumen.getOrDefault(id, ResumenResenas.SIN_RESENAS).promedio();
     }
 
     public int cantidadResenas(Long id) {
-        return servicioDeProductos.cantidadResenas(id);
+        return (int) resumen.getOrDefault(id, ResumenResenas.SIN_RESENAS).cantidad();
     }
 
     public String estrellas(int puntaje) {

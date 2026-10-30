@@ -1,45 +1,37 @@
 package ar.edu.uade.repuestos.util;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.util.Base64;
+import org.mindrot.jbcrypt.BCrypt;
 
-// Formato guardado: base64(salt):base64(hash). En produccion iria BCrypt.
+// SEC-02: bcrypt con costo 12 (unas 250 ms por intento). WildFly valida el mismo hash con el modular-crypt-mapper
 public final class PasswordHash {
-    private static final SecureRandom RANDOM = new SecureRandom();
-    private static final int SALT_BYTES = 16;
+
+    public static final int COSTO = 12;
+    public static final int LARGO_MAXIMO = 64;  // bcrypt ignora lo que pase de 72 bytes
+
+    // Hash de una clave que nadie tiene: se compara igual cuando el email no existe, asi tarda lo mismo
+    private static final String HASH_FALSO = BCrypt.hashpw("no-existe-este-usuario", BCrypt.gensalt(COSTO));
 
     private PasswordHash() {
     }
 
     public static String hashear(String password) {
-        byte[] salt = new byte[SALT_BYTES];
-        RANDOM.nextBytes(salt);
-        byte[] hash = digest(password, salt);
-        return Base64.getEncoder().encodeToString(salt) + ":"
-             + Base64.getEncoder().encodeToString(hash);
+        return BCrypt.hashpw(password, BCrypt.gensalt(COSTO));
     }
 
     public static boolean verificar(String password, String guardado) {
-        if (guardado == null || !guardado.contains(":")) {
+        if (password == null || guardado == null || !guardado.startsWith("$2a$")) {
             return false;
         }
-        String[] partes = guardado.split(":", 2);
-        byte[] salt = Base64.getDecoder().decode(partes[0]);
-        byte[] esperado = Base64.getDecoder().decode(partes[1]);
-        byte[] calculado = digest(password, salt);
-        return MessageDigest.isEqual(esperado, calculado);
+        try {
+            return BCrypt.checkpw(password, guardado);
+        } catch (RuntimeException e) {
+            // jBCrypt tira StringIndexOutOfBounds con un hash cortado: es un "no", no un error 500
+            return false;
+        }
     }
 
-    private static byte[] digest(String password, byte[] salt) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update(salt);
-            return md.digest(password.getBytes(StandardCharsets.UTF_8));
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 no disponible", e);
-        }
+    // Para que "el email no existe" y "la clave esta mal" tarden lo mismo (SEC-01)
+    public static void gastarTiempo(String password) {
+        BCrypt.checkpw(password == null ? "" : password, HASH_FALSO);
     }
 }

@@ -19,8 +19,8 @@
     <ui:fragment rendered="#{not devolucionBean.hayBorrador}">
       <div class="vacio">
         <strong>No pudimos abrir la solicitud</strong>
-        Puede que el plazo haya vencido o que ya exista una devoluci&#243;n para esa compra.
-        <div style="margin-top:14px">
+        Puede que el plazo haya vencido, que la compra no est&#233; pagada o que ya exista una devoluci&#243;n para esa compra.
+        <div class="mt-14">
           <h:link outcome="compras" value="Volver a mis compras"
                   styleClass="btn btn-secundario btn-chico"/>
         </div>
@@ -91,7 +91,7 @@
             </span>
           </div>
 
-          <div class="campo-ayuda" style="background:var(--accent-soft);padding:11px 13px;border-radius:7px">
+          <div class="campo-ayuda aviso-suave">
             Si te arrepentiste de la compra se retiene el 10&#37; por costo de env&#237;o.
             En los dem&#225;s casos se reintegra el importe completo.
           </div>

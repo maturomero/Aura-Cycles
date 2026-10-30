@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="jakarta.faces.html"
       xmlns:f="jakarta.faces.core"
       xmlns:ui="jakarta.faces.facelets">
@@ -7,13 +7,14 @@
 <h:head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="description" content="Aura Cycles: repuestos de bicicleta con rese&#241;as y devoluciones"/>
   <title>#{empty titulo ? 'Resenas y Devoluciones' : titulo} &#183; Repuestos de Bicicleta</title>
   <h:outputStylesheet library="css" name="app.css"/>
 </h:head>
 
 <h:body styleClass="#{sesion.claseTema}">
 
-  <input type="checkbox" id="menu" style="display:none"/>
+  <input type="checkbox" id="menu" class="oculto"/>
 
   <div class="layout">
 
@@ -79,14 +80,14 @@
           </h:form>
 
           <div class="usuario-chip">
-            <div class="avatar">#{sesion.nombre.substring(0,1)}</div>
+            <div class="avatar">#{empty sesion.nombre ? '' : sesion.nombre.substring(0,1)}</div>
             <span class="nombre">#{sesion.nombre}</span>
           </div>
 
           <h:form>
-            <h:commandLink value="Cerrar sesi&#243;n"
-                           action="#{loginBean.salir}"
-                           styleClass="btn btn-secundario btn-chico"/>
+            <h:commandButton value="Cerrar sesi&#243;n"
+                             action="#{loginBean.salir}"
+                             styleClass="btn btn-secundario btn-chico"/>
           </h:form>
         </div>
       </header>

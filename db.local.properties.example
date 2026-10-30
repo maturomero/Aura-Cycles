@@ -1,0 +1,3 @@
+# Copiar como db.local.properties (no se sube al repo) y completar con los datos de tu MySQL
+db.user=root
+db.password=CAMBIAR

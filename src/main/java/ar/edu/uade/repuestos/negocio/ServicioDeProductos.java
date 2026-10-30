@@ -3,10 +3,12 @@ package ar.edu.uade.repuestos.negocio;
 import ar.edu.uade.repuestos.datos.ProductoRepository;
 import ar.edu.uade.repuestos.datos.ResenaRepository;
 import ar.edu.uade.repuestos.modelo.Producto;
+import ar.edu.uade.repuestos.modelo.ResumenResenas;
 import ar.edu.uade.repuestos.util.ReglaNegocioException;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 import java.util.List;
+import java.util.Map;
 
 @Stateless
 public class ServicioDeProductos {
@@ -34,6 +36,10 @@ public class ServicioDeProductos {
     }
 
     public int cantidadResenas(Long productoId) {
-        return resenaRepository.aprobadasPorProducto(productoId).size();
+        return (int) resenaRepository.cantidadAprobadas(productoId);
+    }
+
+    public Map<Long, ResumenResenas> resumenResenas() {
+        return resenaRepository.resumenAprobadas();
     }
 }

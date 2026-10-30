@@ -1,0 +1,264 @@
+# CI de Aura Cycles. Cinco trabajos en paralelo para que entre en 15 minutos:
+#  pruebas: unitarios, integracion con Testcontainers, JaCoCo 80/70, PIT 60 %, SpotBugs + FindSecBugs y jscpd
+#  e2e: docker compose + Playwright, gitleaks y Trivy
+#  zap: escaneo DAST pasivo sin sesion, como cliente y como moderador
+#  zap-activo (x2): escaneo activo logueado como cliente y como moderador
+name: CI
+
+on:
+  push:
+    branches: [main, entrega-testing]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  COMPOSE_PROJECT_NAME: aura
+  COMPOSE_PROJECT: aura
+
+jobs:
+  pruebas:
+    name: Unitarios, integracion, cobertura, mutacion y SAST
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Unitarios + integracion (Testcontainers con MySQL y Artemis) + JaCoCo 80/70
+        run: mvn -B -ntp verify
+
+      - name: Mutacion con PIT (minimo 60 %)
+        run: mvn -B -ntp org.pitest:pitest-maven:mutationCoverage
+
+      - name: Analisis estatico (SpotBugs + FindSecBugs)
+        run: mvn -B -ntp spotbugs:check
+
+      - name: Codigo duplicado (jscpd, maximo 3 %)
+        run: |
+          npx -y jscpd@4.0.5 src/main --min-tokens 50 --threshold 3 --reporters console,json --output target/jscpd --silent
+          python3 -c "import json; t=json.load(open('target/jscpd/jscpd-report.json'))['statistics']['total']; print(f\"::notice title=Duplicacion::{t['percentage']}% de lineas duplicadas ({t['duplicatedLines']} de {t['lines']})\")"
+
+      - name: Resumen
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import csv, glob, re, xml.etree.ElementTree as ET
+          t = f = 0
+          for x in glob.glob('target/*-reports/TEST-*.xml'):
+              r = ET.parse(x).getroot(); t += int(r.get('tests')); f += int(r.get('failures')) + int(r.get('errors'))
+          print(f"::notice title=Tests::{t} tests, {f} con falla")
+          try:
+              filas = list(csv.DictReader(open('target/site/jacoco/jacoco.csv')))
+              for paquete in ('negocio', 'modelo'):
+                  fs = [r for r in filas if paquete in r['PACKAGE'].split('.')]
+                  lin = sum(int(r['LINE_COVERED']) for r in fs) / max(1, sum(int(r['LINE_COVERED']) + int(r['LINE_MISSED']) for r in fs))
+                  ram = sum(int(r['BRANCH_COVERED']) for r in fs) / max(1, sum(int(r['BRANCH_COVERED']) + int(r['BRANCH_MISSED']) for r in fs))
+                  print(f"::notice title=Cobertura {paquete}::lineas {lin:.0%}, ramas {ram:.0%}")
+              pit = list(csv.reader(open('target/pit-reports/mutations.csv')))
+              print(f"::notice title=Mutacion::{sum(r[5] in ('KILLED', 'TIMED_OUT') for r in pit)}/{len(pit)} mutantes muertos")
+          except FileNotFoundError as e:
+              print(f"falta {e.filename}")
+          PY
+
+      - name: Reportes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes-pruebas
+          path: |
+            target/site/jacoco/
+            target/pit-reports/
+            target/surefire-reports/
+            target/failsafe-reports/
+            target/spotbugsXml.xml
+            target/jscpd/
+          if-no-files-found: ignore
+
+  e2e:
+    name: E2E con docker compose, secretos y dependencias
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Secretos en todo el historial (gitleaks)
+        run: docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.30.1 git /repo --redact --verbose
+
+      - name: Dependencias de la app (Trivy, corta con HIGH o CRITICAL)
+        run: docker run --rm -v "$PWD:/src" ghcr.io/aquasecurity/trivy:0.57.1 fs --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 /src/pom.xml
+
+      - name: Levantar todo con un comando
+        run: |
+          # Maven Central a veces devuelve 502: un reintento antes de dar el build por fallado
+          docker compose build || { sleep 20; docker compose build; }
+          docker compose up -d
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: e2e/requirements.txt
+      - name: Playwright
+        run: |
+          pip install -r e2e/requirements.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Esperar a que la app responda
+        run: |
+          for i in $(seq 1 120); do
+            curl -sk -o /dev/null -w '%{http_code}' https://localhost:8443/repuestos/login.xhtml | grep -q 200 && exit 0
+            sleep 2
+          done
+          docker compose logs app | tail -200
+          exit 1
+
+      - name: E2E (Playwright)
+        working-directory: e2e
+        run: python -m pytest --junitxml=resultados-e2e.xml
+
+      - name: Resumen E2E
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          import os, sys
+          if not os.path.exists('e2e/resultados-e2e.xml'):
+              print("los E2E no llegaron a correr"); sys.exit(0)
+          r = ET.parse('e2e/resultados-e2e.xml').getroot()
+          s = r if r.tag == 'testsuite' else r.find('testsuite')
+          fallas = int(s.get('failures')) + int(s.get('errors'))
+          print(f"::notice title=E2E::{s.get('tests')} tests, {fallas} con falla, {float(s.get('time')):.0f} s")
+          PY
+
+      - name: Imagen de la app (Trivy, informativo)
+        if: always()
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock ghcr.io/aquasecurity/trivy:0.57.1 \
+            image --scanners vuln --severity HIGH,CRITICAL --format table aura-app > trivy-imagen.txt || true
+          echo "::notice title=Imagen::$(grep -E '^Total' trivy-imagen.txt | tr '\n' ' ')"
+
+      - name: Logs de los contenedores
+        if: always()
+        run: docker compose logs --no-color > compose.log
+
+      - name: Reportes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes-e2e
+          path: |
+            e2e/resultados-e2e.xml
+            trivy-imagen.txt
+            compose.log
+          if-no-files-found: ignore
+
+  zap:
+    name: DAST con ZAP (sin sesion, cliente y moderador)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Levantar todo con un comando
+        run: |
+          # Maven Central a veces devuelve 502: un reintento antes de dar el build por fallado
+          docker compose build || { sleep 20; docker compose build; }
+          docker compose up -d
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: e2e/requirements.txt
+      - name: Playwright (para loguearse antes del escaneo)
+        run: |
+          pip install -r e2e/requirements.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Esperar a que la app responda
+        run: |
+          for i in $(seq 1 120); do
+            curl -sk -o /dev/null -w '%{http_code}' https://localhost:8443/repuestos/login.xhtml | grep -q 200 && exit 0
+            sleep 2
+          done
+          exit 1
+
+      - name: ZAP (corta con algun High o un Medium sin justificar)
+        shell: bash
+        run: |
+          mkdir -p zap-reportes
+          seguridad/zap.sh zap-reportes | tee zap-reportes/resumen.md
+
+      - name: Reportes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes-zap
+          path: zap-reportes/
+          if-no-files-found: ignore
+
+  zap-activo:
+    name: DAST activo con sesion (${{ matrix.usuario }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        usuario: [ana@mail.com, mod@mail.com]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Levantar todo con un comando
+        run: |
+          # Maven Central a veces devuelve 502: un reintento antes de dar el build por fallado
+          docker compose build || { sleep 20; docker compose build; }
+          docker compose up -d
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: e2e/requirements.txt
+      - name: Playwright (recorre la app a traves de ZAP)
+        run: |
+          pip install -r e2e/requirements.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Esperar a que la app responda
+        run: |
+          for i in $(seq 1 120); do
+            curl -sk -o /dev/null -w '%{http_code}' https://localhost:8443/repuestos/login.xhtml | grep -q 200 && exit 0
+            sleep 2
+          done
+          exit 1
+
+      - name: ZAP activo (corta con algun High o un Medium sin justificar)
+        shell: bash
+        env:
+          ZAP_USUARIOS: ${{ matrix.usuario }}
+          ZAP_TITULO: ZAP activo ${{ matrix.usuario }}
+        run: |
+          mkdir -p zap-activo
+          seguridad/zap-activo.sh zap-activo | tee zap-activo/resumen.md
+
+      - name: Reportes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes-zap-activo-${{ strategy.job-index }}
+          path: zap-activo/
+          if-no-files-found: ignore

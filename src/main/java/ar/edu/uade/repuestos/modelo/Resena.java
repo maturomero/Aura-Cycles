@@ -18,7 +18,15 @@ import java.util.Objects;
     @NamedQuery(name = "Resena.promedioProducto",
                 query = "SELECT AVG(r.puntaje) FROM Resena r "
                       + "WHERE r.producto.id = :productoId AND r.estado = "
-                      + "ar.edu.uade.repuestos.modelo.EstadoResena.APROBADA")
+                      + "ar.edu.uade.repuestos.modelo.EstadoResena.APROBADA"),
+    @NamedQuery(name = "Resena.cantidadProducto",
+                query = "SELECT COUNT(r) FROM Resena r "
+                      + "WHERE r.producto.id = :productoId AND r.estado = "
+                      + "ar.edu.uade.repuestos.modelo.EstadoResena.APROBADA"),
+    @NamedQuery(name = "Resena.resumenPorProducto",
+                query = "SELECT r.producto.id, AVG(r.puntaje), COUNT(r) FROM Resena r "
+                      + "WHERE r.estado = ar.edu.uade.repuestos.modelo.EstadoResena.APROBADA "
+                      + "GROUP BY r.producto.id")
 })
 public class Resena implements Serializable {
     private static final long serialVersionUID = 1L;

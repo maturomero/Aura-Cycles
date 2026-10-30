@@ -1,0 +1,30 @@
+# Configuracion de WildFly para docker compose. Corre al construir la imagen (sin servidor levantado).
+# Las claves no estan aca: WildFly las lee de las variables de entorno del contenedor al arrancar.
+embed-server --server-config=standalone-full.xml --std-out=discard
+
+module add --name=com.mysql --resources=/tmp/mysql-connector-j.jar --dependencies=java.sql
+/subsystem=datasources/jdbc-driver=mysql:add(driver-name=mysql,driver-module-name=com.mysql,driver-xa-datasource-class-name=com.mysql.cj.jdbc.MysqlXADataSource)
+data-source add --name=RepuestosDS --jndi-name=java:/RepuestosDS --driver-name=mysql --connection-url="jdbc:mysql://${env.DB_HOST:mysql}:3306/repuestos_bici?serverTimezone=America/Argentina/Buenos_Aires" --user-name=${env.DB_USER:aura} --password=${env.DB_PASSWORD} --use-ccm=true --min-pool-size=2 --max-pool-size=20 --validate-on-match=true --check-valid-connection-sql="SELECT 1" --background-validation=false
+
+/subsystem=elytron/jdbc-realm=repuestos-realm:add(principal-query=[{sql="SELECT password_hash, rol FROM usuario WHERE email = ?",data-source=RepuestosDS,modular-crypt-mapper={password-index=1},attribute-mapping=[{index=2,to=Roles}]}])
+/subsystem=elytron/security-domain=repuestos-domain:add(default-realm=repuestos-realm,permission-mapper=default-permission-mapper,realms=[{realm=repuestos-realm}])
+/subsystem=undertow/application-security-domain=repuestos-domain:add(security-domain=repuestos-domain)
+/subsystem=ejb3/application-security-domain=repuestos-domain:add(security-domain=repuestos-domain)
+
+# Broker Artemis en su propio contenedor, asi se puede apagar y prender en la demo.
+/socket-binding-group=standard-sockets/remote-destination-outbound-socket-binding=artemis:add(host=${env.ARTEMIS_HOST:artemis},port=61616)
+# connect-timeout corto: con el broker apagado, Netty esperaria 60 s por conexion
+/subsystem=messaging-activemq/remote-connector=artemis:add(socket-binding=artemis,params={connect-timeout-millis=2000})
+# Para publicar: si el broker no esta, falla rapido y la aprobacion vuelve atras entera
+/subsystem=messaging-activemq/pooled-connection-factory=artemis-envio:add(connectors=[artemis],entries=[java:/RemoteJmsXA],enable-amq1-prefix=false,initial-connect-attempts=2,reconnect-attempts=2,retry-interval=1000,call-timeout=5000,transaction=xa)
+# Para los MDB: reintentan sin limite, asi se reconectan solos cuando vuelve el broker
+/subsystem=messaging-activemq/pooled-connection-factory=artemis-mdb:add(connectors=[artemis],entries=[java:/RemoteJmsXAMdb],enable-amq1-prefix=false,reconnect-attempts=-1,retry-interval=2000,transaction=xa)
+/subsystem=ee/service=default-bindings:write-attribute(name=jms-connection-factory,value=java:/RemoteJmsXA)
+/subsystem=ejb3:write-attribute(name=default-resource-adapter-name,value=artemis-mdb)
+
+# Sin la pagina de bienvenida de WildFly (ZAP la marcaba): todo lo que no es la app redirige a la app
+/subsystem=undertow/server=default-server/host=default-host/location=\/:remove
+/subsystem=undertow/configuration=filter/expression-filter=raiz-a-la-app:add(expression="not path-prefix('/repuestos') -> redirect('/repuestos/')")
+/subsystem=undertow/server=default-server/host=default-host/filter-ref=raiz-a-la-app:add
+
+stop-embedded-server

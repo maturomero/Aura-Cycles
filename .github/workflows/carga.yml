@@ -1,0 +1,55 @@
+# Prueba de carga con k6: 50 usuarios, 5 minutos, catalogo, detalle y mis compras. p95 < 500 ms y errores < 1 %.
+# Se dispara a mano desde Actions (Run workflow) o con [carga] en el mensaje de un commit
+name: Carga (k6)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, entrega-testing]
+
+permissions:
+  contents: read
+
+env:
+  COMPOSE_PROJECT_NAME: aura
+
+jobs:
+  k6:
+    name: k6 50 usuarios x 5 minutos
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[carga]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Levantar todo
+        run: |
+          # Maven Central a veces devuelve 502: un reintento antes de dar el build por fallado
+          docker compose build || { sleep 20; docker compose build; }
+          docker compose up -d
+      - name: Esperar a la app
+        run: |
+          for i in $(seq 1 120); do
+            curl -sk -o /dev/null -w '%{http_code}' https://localhost:8443/repuestos/login.xhtml | grep -q 200 && exit 0
+            sleep 2
+          done
+          exit 1
+      - name: k6
+        shell: bash
+        run: carga/correr.sh
+      - name: Resumen
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json
+          m = json.load(open('carga/resultados/resumen.json'))['metrics']
+          for e in ('catalogo', 'detalle', 'compras'):
+              d = m[f'http_req_duration{{endpoint:{e}}}']; f = m[f'http_req_failed{{endpoint:{e}}}']
+              print(f"::notice title=Carga {e}::p95 {d['p(95)']:.0f} ms, mediana {d['med']:.0f} ms, errores {f['value']:.2%}")
+          r = m['http_reqs']
+          print(f"::notice title=Carga total::{r['count']} pedidos, {r['rate']:.1f} por segundo")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: resultados-carga
+          path: carga/resultados/

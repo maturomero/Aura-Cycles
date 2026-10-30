@@ -9,7 +9,7 @@
 
   <context-param>
     <param-name>jakarta.faces.PROJECT_STAGE</param-name>
-    <param-value>Development</param-value>
+    <param-value>Production</param-value>
   </context-param>
 
   <context-param>
@@ -34,7 +34,40 @@
 
   <session-config>
     <session-timeout>30</session-timeout>
+    <!-- La cookie de sesion no la lee JavaScript y solo viaja por HTTPS. SameSite=Lax va en undertow-handlers.conf -->
+    <cookie-config>
+      <http-only>true</http-only>
+      <secure>true</secure>
+    </cookie-config>
+    <tracking-mode>COOKIE</tracking-mode>
   </session-config>
+
+  <!-- SEC-06: nunca un stack trace al cliente -->
+  <mime-mapping>
+    <extension>woff2</extension>
+    <mime-type>font/woff2</mime-type>
+  </mime-mapping>
+
+  <error-page>
+    <exception-type>jakarta.faces.application.ViewExpiredException</exception-type>
+    <location>/error.xhtml</location>
+  </error-page>
+  <error-page>
+    <exception-type>java.lang.Throwable</exception-type>
+    <location>/error.xhtml</location>
+  </error-page>
+  <error-page>
+    <error-code>403</error-code>
+    <location>/error.xhtml</location>
+  </error-page>
+  <error-page>
+    <error-code>404</error-code>
+    <location>/error.xhtml</location>
+  </error-page>
+  <error-page>
+    <error-code>500</error-code>
+    <location>/error.xhtml</location>
+  </error-page>
 
   <!-- Autorizacion por rol aplicada por el contenedor, antes de ejecutar la pagina. -->
   <security-constraint>
@@ -57,11 +90,23 @@
       <url-pattern>/devolucion-ok.xhtml</url-pattern>
       <url-pattern>/resena.xhtml</url-pattern>
       <url-pattern>/perfil.xhtml</url-pattern>
+      <url-pattern>/pago.xhtml</url-pattern>
     </web-resource-collection>
     <auth-constraint>
       <role-name>CLIENTE</role-name>
       <role-name>MODERADOR</role-name>
     </auth-constraint>
+  </security-constraint>
+
+  <!-- Todo viaja cifrado: lo que llegue por http se redirige a https (8443) -->
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>Todo el sitio</web-resource-name>
+      <url-pattern>/*</url-pattern>
+    </web-resource-collection>
+    <user-data-constraint>
+      <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+    </user-data-constraint>
   </security-constraint>
 
   <login-config>

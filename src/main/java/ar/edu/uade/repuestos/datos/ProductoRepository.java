@@ -5,6 +5,7 @@ import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 @Stateless
@@ -33,13 +34,17 @@ public class ProductoRepository {
             return todos();
         }
         return em.createNamedQuery("Producto.buscar", Producto.class)
-                 .setParameter("texto", "%" + texto.toLowerCase() + "%")
+                 .setParameter("texto", "%" + texto.toLowerCase(Locale.ROOT) + "%")
                  .getResultList();
     }
 
     // Bloqueo pesimista: dos compras del ultimo repuesto no pueden dejar stock negativo.
     public Optional<Producto> porIdBloqueado(Long id) {
-        return Optional.ofNullable(
-            em.find(Producto.class, id, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE));
+        Producto producto = em.find(Producto.class, id);
+        if (producto != null) {
+            // refresh y no find con lock: si el producto ya estaba cargado (por la venta), find no relee el stock
+            em.refresh(producto, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+        }
+        return Optional.ofNullable(producto);
     }
 }

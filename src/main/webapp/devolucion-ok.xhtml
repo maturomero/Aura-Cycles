@@ -9,6 +9,7 @@
 
   <f:metadata>
     <f:viewParam name="codigo" value="#{confirmacionBean.codigo}"/>
+    <f:viewParam name="validando" value="#{confirmacionBean.validando}"/>
   </f:metadata>
 
   <ui:define name="titulo">Solicitud enviada</ui:define>
@@ -19,21 +20,31 @@
 
       <div class="confirmacion-icono">&#10003;</div>
 
-      <h2 style="margin:0 0 7px;font:600 20px 'IBM Plex Sans',sans-serif">
+      <h2 class="titulo-estado">
         Solicitud enviada
       </h2>
 
-      <p style="margin:0;color:var(--text-muted);font-size:13.5px">
+      <p class="texto-estado">
         Guardamos tu solicitud. Un moderador la revisa y te avisamos por email.
       </p>
 
       <div class="confirmacion-codigo">#{confirmacionBean.codigo}</div>
 
-      <p style="margin:0 0 20px">
-        <span class="badge badge-pendiente">Pendiente de revisi&#243;n</span>
-      </p>
+      <ui:fragment rendered="#{not confirmacionBean.validando}">
+        <p class="mb-20">
+          <span class="badge badge-pendiente">Pendiente de revisi&#243;n</span>
+        </p>
+      </ui:fragment>
+      <ui:fragment rendered="#{confirmacionBean.validando}">
+        <p class="mb-8">
+          <span class="badge badge-neutro">Validando la garant&#237;a con el proveedor</span>
+        </p>
+        <p class="texto-chico-mb">
+          El proveedor no respondi&#243; ahora. Lo reintentamos solos en unos minutos; no hace falta que hagas nada.
+        </p>
+      </ui:fragment>
 
-      <div style="display:flex;gap:9px;justify-content:center;flex-wrap:wrap">
+      <div class="acciones-centro">
         <h:link outcome="compras" value="Volver a mis compras"
                 styleClass="btn btn-primario"/>
         <h:link outcome="productos" value="Seguir comprando"
