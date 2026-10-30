@@ -13,6 +13,7 @@ import ar.edu.uade.repuestos.modelo.Devolucion;
 import ar.edu.uade.repuestos.negocio.ServicioDeNotificaciones;
 import ar.edu.uade.repuestos.negocio.ServicioDeReembolsos;
 import ar.edu.uade.repuestos.negocio.ServicioDeVentas;
+import ar.edu.uade.repuestos.negocio.ValidadorDeGarantias;
 import jakarta.jms.Connection;
 import jakarta.jms.JMSContext;
 import jakarta.jms.MapMessage;
@@ -190,6 +191,56 @@ class MensajeriaIT {
         Message denuevo = c.receive(5000);
         assertEquals(66L, ((MapMessage) denuevo).getLong("idDevolucion"));
         t.commit();
+    }
+
+    // Igual que ValidadorDeGarantias.encolar(): el id en el cuerpo y una espera antes de entregarlo
+    private void encolar(long id, long esperaMs) {
+        try (JMSContext ctx = fabrica.createContext()) {
+            ctx.createProducer().setDeliveryDelay(esperaMs).send(ctx.createQueue("cola.validaciones"),
+                    Map.<String, Object>of("idDevolucion", id));
+        }
+    }
+
+    // La cola no entrega el reintento antes de tiempo: en la app la espera es de 2 minutos, aca 2 segundos
+    @Test
+    void laColaDeValidacionesEntregaRecienDespuesDeLaEspera() throws Exception {
+        Session s = conexion.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        MessageConsumer c = s.createConsumer(s.createQueue("cola.validaciones"));
+        encolar(77, 2000);
+
+        assertNull(c.receive(1000), "antes de la espera no llega");
+        assertEquals(77L, ((MapMessage) c.receive(5000)).getLong("idDevolucion"));
+    }
+
+    // Punto a punto: con dos consumidores escuchando, cada mensaje lo procesa uno solo
+    @Test
+    void cadaValidacionLaProcesaUnSoloConsumidor() throws Exception {
+        Session s = conexion.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        Queue cola = s.createQueue("cola.validaciones");
+        MessageConsumer uno = s.createConsumer(cola);
+        MessageConsumer otro = s.createConsumer(cola);
+        encolar(88, 0);
+
+        Message primero = uno.receive(3000);
+        Message segundo = otro.receive(primero == null ? 3000 : 1000);
+        assertEquals(1, (primero == null ? 0 : 1) + (segundo == null ? 0 : 1));
+    }
+
+    // El MDB de la cola lee el mensaje real y le pide al validador que reintente esa devolucion
+    @Test
+    void validacionesMdbConUnMensajeRealDeLaCola() throws Exception {
+        Session s = conexion.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        MessageConsumer c = s.createConsumer(s.createQueue("cola.validaciones"));
+        encolar(99, 0);
+        Message m = c.receive(5000);
+
+        ValidadorDeGarantias validador = mock(ValidadorDeGarantias.class);
+        ValidacionesMDB mdb = new ValidacionesMDB();
+        inyectar(mdb, "validador", validador);
+
+        mdb.onMessage(m);
+
+        verify(validador).reintentar(99L);
     }
 
     private static void inyectar(Object destino, String campo, Object valor) throws Exception {

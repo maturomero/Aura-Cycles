@@ -2,7 +2,7 @@ package ar.edu.uade.repuestos.integracion;
 
 import jakarta.ejb.ApplicationException;
 
-// Timeout, Fault tecnico, respuesta rota o XML peligroso. La devolucion queda PENDIENTE_VALIDACION y la reintenta el timer
+// Timeout, Fault tecnico, respuesta rota o XML peligroso. La devolucion queda PENDIENTE_VALIDACION y se reintenta por cola.validaciones
 @ApplicationException(rollback = true)
 public class ProveedorNoDisponibleException extends RuntimeException {
 

@@ -5,6 +5,7 @@ import ar.edu.uade.repuestos.modelo.EstadoDevolucion;
 import ar.edu.uade.repuestos.modelo.MotivoDevolucion;
 import ar.edu.uade.repuestos.negocio.ServicioDeDevoluciones;
 import ar.edu.uade.repuestos.util.ReglaNegocioException;
+import jakarta.ejb.EJBException;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -44,6 +45,10 @@ public class DevolucionBean implements Serializable {
                     + "&validando=" + (confirmada.getEstado() == EstadoDevolucion.PENDIENTE_VALIDACION);
         } catch (ReglaNegocioException e) {
             Mensajes.error(e.getMessage());
+            return null;
+        } catch (EJBException e) {
+            // Si falla al confirmar la transaccion (la base o la cola), aviso y no la pagina de error
+            Mensajes.error("No se pudo completar la operación. No se cambió nada, probá de nuevo en un rato.");
             return null;
         }
     }

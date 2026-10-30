@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -19,6 +20,7 @@ import ar.edu.uade.repuestos.modelo.EstadoDevolucion;
 import ar.edu.uade.repuestos.modelo.EstadoVenta;
 import ar.edu.uade.repuestos.modelo.MotivoDevolucion;
 import ar.edu.uade.repuestos.modelo.Venta;
+import ar.edu.uade.repuestos.util.MensajeriaNoDisponibleException;
 import ar.edu.uade.repuestos.util.ReglaNegocioException;
 import jakarta.ejb.SessionContext;
 import java.security.Principal;
@@ -134,11 +136,12 @@ class ServicioDeDevolucionesTest {
         assertEquals(EstadoDevolucion.PENDIENTE, d.getEstado());
         assertEquals("RMA-2026-00042", d.getRma());
         verify(notificaciones).devolucionRecibida(d);
+        verify(garantias, never()).encolar(any());
     }
 
-    // Proveedor caido: no se pierde la solicitud, queda esperando la validacion
+    // Proveedor caido: no se pierde la solicitud, queda esperando y va a la cola de validaciones
     @Test
-    void conElProveedorCaidoQuedaPendienteDeValidacion() {
+    void conElProveedorCaidoQuedaPendienteDeValidacionYVaALaCola() {
         servicio.seleccionarCompra(9L);
         servicio.cargarMotivo(MotivoDevolucion.NO_COMPATIBLE, "");
         when(garantias.consultar(any(), any())).thenThrow(new ProveedorNoDisponibleException("timeout"));
@@ -148,7 +151,20 @@ class ServicioDeDevolucionesTest {
         assertEquals(EstadoDevolucion.PENDIENTE_VALIDACION, d.getEstado());
         assertNull(d.getRma());
         verify(devoluciones).guardar(d);
+        verify(garantias).encolar(d);
         verify(notificaciones).devolucionRecibida(d);
+    }
+
+    // Proveedor y broker caidos: no se crea nada y el cliente ve el aviso de la mensajeria
+    @Test
+    void conElProveedorYElBrokerCaidosNoQuedaNadaAMedias() {
+        servicio.seleccionarCompra(9L);
+        servicio.cargarMotivo(MotivoDevolucion.NO_COMPATIBLE, "");
+        when(garantias.consultar(any(), any())).thenThrow(new ProveedorNoDisponibleException("timeout"));
+        doThrow(new MensajeriaNoDisponibleException(new RuntimeException("AMQ219007"))).when(garantias).encolar(any());
+
+        assertThrows(MensajeriaNoDisponibleException.class, () -> servicio.confirmar());
+        verify(notificaciones, never()).devolucionRecibida(any());
     }
 
     @Test

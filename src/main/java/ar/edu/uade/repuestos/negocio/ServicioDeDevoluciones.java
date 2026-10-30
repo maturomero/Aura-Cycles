@@ -129,6 +129,9 @@ public class ServicioDeDevoluciones implements Serializable {
         }
 
         Devolucion devolucion = devolucionRepository.guardar(nueva);
+        if (devolucion.getEstado() == EstadoDevolucion.PENDIENTE_VALIDACION) {
+            validadorDeGarantias.encolar(devolucion);
+        }
         servicioDeNotificaciones.devolucionRecibida(devolucion);
 
         LOG.info(() -> "Devolucion " + devolucion.getCodigo() + " registrada (" + devolucion.getEstado() + ").");
