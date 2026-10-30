@@ -22,7 +22,8 @@ def test_broker_apagado_no_deja_nada_a_medias_y_se_recupera_solo(abrir):
         compose("start", "artemis")
 
     def aprobada():
-        aprobar(mod, codigo)
+        if sql(f"select estado from devolucion where id={dev}") == "PENDIENTE":
+            aprobar(mod, codigo)
         return sql(f"select estado from devolucion where id={dev}") != "PENDIENTE"
 
     assert esperar(aprobada, 60, 5)
