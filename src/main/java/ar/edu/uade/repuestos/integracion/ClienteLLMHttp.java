@@ -14,7 +14,7 @@ import java.time.Duration;
 @Dependent
 public class ClienteLLMHttp implements ClienteLLM {
 
-    static final Duration TIMEOUT = Duration.ofSeconds(3);
+    static final Duration TIMEOUT = Duration.ofSeconds(5);
 
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(TIMEOUT).build();
 
