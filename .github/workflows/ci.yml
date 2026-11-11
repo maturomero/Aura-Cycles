@@ -1,6 +1,6 @@
 # CI de Aura Cycles. Cinco trabajos en paralelo para que entre en 15 minutos:
-#  pruebas: unitarios, integracion con Testcontainers, JaCoCo 80/70, PIT 60 %, SpotBugs + FindSecBugs y jscpd
-#  e2e: docker compose + Playwright, gitleaks y Trivy
+#  pruebas: unitarios, integracion con Testcontainers, JaCoCo 80/70, PIT 60 %, SpotBugs + FindSecBugs, jscpd y SonarCloud si esta el token
+#  e2e: docker compose + Playwright (pantallas y API REST), gitleaks y Trivy
 #  zap: escaneo DAST pasivo sin sesion, como cliente y como moderador
 #  zap-activo (x2): escaneo activo logueado como cliente y como moderador
 name: CI
@@ -30,6 +30,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Sonar necesita el historial para saber que codigo es nuevo
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -44,6 +46,13 @@ jobs:
 
       - name: Analisis estatico (SpotBugs + FindSecBugs)
         run: mvn -B -ntp spotbugs:check
+
+      # Solo corre si el repo tiene el secreto SONAR_TOKEN (proyecto creado en sonarcloud.io)
+      - name: SonarCloud (Quality Gate)
+        if: env.SONAR_TOKEN != ''
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: mvn -B -ntp org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar -Dsonar.qualitygate.wait=true
 
       - name: Codigo duplicado (jscpd, maximo 3 %)
         run: |

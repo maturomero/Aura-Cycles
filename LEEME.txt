@@ -1,4 +1,4 @@
-Aura Cycles - como correrlo desde Eclipse (Entrega 4 + Clase 15)
+Aura Cycles - como correrlo desde Eclipse (2da entrega del TPO: API REST con JWT e IA en el panel)
 
 Todo se hace desde Eclipse, sin terminal. Con Docker hay un atajo de un solo comando (README, arriba de todo),
 pero el dia a dia es Eclipse.
@@ -19,11 +19,24 @@ Una sola vez
    Hace tres cosas: el realm valida las claves bcrypt, los reintentos del broker (cada 10 s, 10 veces)
    y saca la pagina de bienvenida de WildFly (la raiz pasa a redirigir a la app).
 
+Una sola vez para la 2da entrega (API REST e IA)
+1. Traer la rama (Team > Pull), F5 y Maven > Update Project: baja la libreria del JWT.
+2. Correr de nuevo sql/schema.sql en MySQL Workbench: agrega la tabla pedido_idempotente (la usa el POST de la API).
+   Ojo que borra y vuelve a crear la base con los datos de prueba.
+3. Para ver la sugerencia de la IA en el panel: vista Servers > doble clic en WildFly > Open launch configuration >
+   Arguments > VM arguments, agregar:
+     -DIA_MODERACION=true -DIA_URL=http://localhost:8091 -DIA_API_KEY=simulado
+   y levantar MockLLM.java igual que los otros dos simuladores (paso de abajo). Sin esto la app anda igual y el boton
+   de la IA responde "IA sin respuesta".
+4. La API no necesita tocar WildFly. Queda en https://localhost:8443/repuestos/api/v1 y el JWT se firma con una clave
+   que la app genera al arrancar (o con -DJWT_SECRET=una-clave-de-32-caracteres-o-mas).
+
 Cada vez que se trabaja
-1. Levantar los dos sistemas externos simulados. En src/test/java > ar.edu.uade.repuestos.integracion,
+1. Levantar los sistemas externos simulados. En src/test/java > ar.edu.uade.repuestos.integracion,
    clic derecho > Run As > Java Application sobre:
      MockMercadoPago.java     (Mercado Pago, puerto 8089)
      MockProveedorSoap.java   (proveedor mayorista SOAP, puerto 8090)
+     MockLLM.java             (modelo de IA simulado, puerto 8091)
    Cada uno queda en su consola (se paran con el cuadradito rojo).
 2. Levantar WildFly y desplegar como siempre.
 3. La tienda queda en https://localhost:8443/repuestos (http://localhost:8080 redirige).
@@ -32,7 +45,8 @@ Cada vez que se trabaja
    todos con Clave1234.
 
 Tests desde Eclipse
-- Unitarios: clic derecho en src/test/java > Run As > JUnit Test (unos 260, menos de un minuto).
+- Unitarios: clic derecho en src/test/java > Run As > JUnit Test (385, menos de un minuto; uno espera 5 s a proposito
+  para probar el timeout de la IA).
 - Las clases que terminan en IT (RepositoriosIT, MensajeriaIT) usan Testcontainers y necesitan Docker
   abierto. Sin Docker, Eclipse las saltea solas. Con Maven: clic derecho en el proyecto > Run As >
   Maven build... > Goals: verify (corre todo, mas cobertura JaCoCo).
@@ -53,6 +67,13 @@ Que probar
 - SEC-05: como ana@mail.com abrir /repuestos/devolucion.xhtml?ventaId=3 (es de Carlos): sale
   "No pudimos abrir la solicitud" y no se ve nada.
 - 5 claves malas seguidas: la sexta vez, aunque sea la buena, "Demasiados intentos" por 5 minutos.
+
+La API REST (2da entrega)
+- Con la app levantada, desde una terminal en la carpeta del proyecto (en Windows, Git Bash):  ./demo/api.sh
+  Recorre login con JWT, 401 y 403, Idempotency-Key, ETag y el 409 del State, y dice si cada paso dio el codigo esperado.
+- El contrato esta en docs/api/openapi.yaml y las decisiones en docs/adr/ADR-008-api-rest-jwt.md.
+- Como moderador, en Resenas pendientes: "Pedir sugerencia a la IA". Con http://localhost:8091/__modo en "lento" o
+  "error" sale "IA sin respuesta" y se modera como siempre.
 
 Mercado Pago real (sandbox)
 Crear la aplicacion Checkout Pro en mercadopago.com.ar/developers y copiar el Access Token de prueba.

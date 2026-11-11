@@ -17,23 +17,32 @@ La primera vez tarda unos minutos (baja las imágenes y compila con Maven adentr
 | Qué | Dónde |
 |---|---|
 | La tienda | https://localhost:8443/repuestos (http://localhost:8080 redirige) |
+| La API REST | https://localhost:8443/repuestos/api/v1 (contrato en `docs/api/openapi.yaml`) |
 | Mercado Pago simulado (modos para la demo) | http://localhost:8089/__modo |
 | Proveedor SOAP simulado (WSDL y modos) | http://localhost:8090/proveedor?wsdl · http://localhost:8090/__modo |
+| Modelo de IA simulado (modos para la demo) | http://localhost:8091/__modo |
 | Consola del broker Artemis (colas y tópicos) | http://localhost:8161 |
 
 El certificado es autofirmado (lo genera WildFly), así que la primera vez el navegador avisa: "Avanzado" > "Continuar a localhost".
 
 Usuarios de prueba, todos con la clave `Clave1234`: `ana@mail.com`, `carlos@mail.com`, `lucia@mail.com`, `javier@mail.com` (clientes) y `mod@mail.com` (moderador).
 
-Qué levanta: WildFly 37 con la app, MySQL 8.4 con `sql/schema.sql`, el broker Artemis aparte (así se puede apagar en la demo) y los dos sistemas externos simulados. Si cambiaste código: `docker compose up --build` de nuevo. Para empezar de cero: `docker compose down -v`.
+Con todo levantado, el recorrido de la API (JWT, roles, Idempotency-Key, ETag y el 409 del State) se corre con un segundo comando:
+
+```bash
+./demo/api.sh
+```
+
+Qué levanta: WildFly 37 con la app, MySQL 8.4 con `sql/schema.sql`, el broker Artemis aparte (así se puede apagar en la demo) y los tres sistemas externos simulados (Mercado Pago, el proveedor y el modelo de IA). Si cambiaste código: `docker compose up --build` de nuevo. Para empezar de cero: `docker compose down -v`.
 
 Arquitectura en capas sobre Jakarta EE 10:
 
 | Capa | Tecnología | Paquete |
 |---|---|---|
 | Presentación | JSF (Jakarta Faces 4.0) + CDI | `presentacion/` + `webapp/*.xhtml` |
+| API REST | JAX-RS con JWT (ADR-008) | `api/` |
 | Negocio | EJB (Jakarta Enterprise Beans) | `negocio/` |
-| Integración | Cliente REST de Mercado Pago y cliente SOAP del proveedor | `integracion/` |
+| Integración | Cliente REST de Mercado Pago, cliente SOAP del proveedor y gateway de IA | `integracion/` |
 | Mensajería | Consumidores del tópico y de la cola (MDB) | `mensajeria/` |
 | Datos | JPA / Hibernate + MySQL | `datos/` + `modelo/` |
 
@@ -51,7 +60,8 @@ Para leer o editar el código no hace falta WildFly ni MySQL. Para verlo andando
 | `negocio/` | Los servicios EJB: `ServicioDeModeracion` (fachada del panel), `ServicioDeDevoluciones` (stateful), `ServicioDeCobros`, `ValidadorDeGarantias` y el resto |
 | `negocio/reembolso/` | Las políticas de reembolso (Strategy) |
 | `modelo/` | Entidades y estados; `EstadoDevolucion` es el State |
-| `integracion/` | `ClienteMercadoPago` (REST) y `ClienteProveedor` (SOAP) |
+| `api/` | La API REST: `DevolucionesRecurso`, `ResenasRecurso`, `AuthRecurso`, el filtro del JWT (`SeguridadDeLaApi`) y los errores en Problem Details (`ErroresDeLaApi`) |
+| `integracion/` | `ClienteMercadoPago` (REST), `ClienteProveedor` (SOAP) y `AIGateway` (IA) |
 | `mensajeria/` | `StockMDB`, `ReembolsosMDB` y `NotificacionesMDB` (tópico) y `ValidacionesMDB` (cola) |
 | `src/main/resources/wsdl/` | El WSDL del proveedor |
 | `src/test/java/.../integracion/Mock*.java` | Los simuladores de Mercado Pago y del proveedor |
@@ -99,6 +109,9 @@ Con `docker compose up`. El orden recorre las cuatro integraciones.
 3. **Mis compras** → **Solicitar devolución** en la orden pagada → elegí el motivo → **Enviar solicitud**. La tienda le pide la garantía al proveedor por SOAP y la devolución queda *Pendiente de revisión* con el RMA.
 4. Cerrá sesión y entrá como `mod@mail.com` → **Panel** → **Devoluciones pendientes** → **Aprobar**. Se publica en el tópico y en la consola de la app aparecen los tres consumidores: el stock vuelve a subir, el reembolso sale por Mercado Pago y se genera el aviso al cliente. La devolución termina *Reembolsada*.
 
+5. En **Reseñas pendientes**, **Pedir sugerencia a la IA**: aparece qué sugiere el asistente, por qué y con cuánta confianza. Aprobar o rechazar lo sigue decidiendo el moderador.
+6. En otra terminal, `./demo/api.sh`: el mismo flujo de la devolución pero por la API REST, con cada código de respuesta.
+
 Fallas para mostrar en vivo:
 
 | Qué | Cómo | Qué se ve |
@@ -106,6 +119,7 @@ Fallas para mostrar en vivo:
 | Proveedor caído | http://localhost:8090/__modo?valor=error y pedir una devolución | "Validando la garantía con el proveedor". El pedido queda en `cola.validaciones` (consola de Artemis) y a los 2 minutos se reintenta; con el proveedor en `normal` pasa al moderador con RMA. A los 5 intentos sin respuesta pasa igual, marcado "Sin validar con el proveedor" |
 | Mercado Pago caído al comprar | http://localhost:8089/__modo?valor=lento (o `error`) y comprar | "Mercado Pago no responde. Te reservamos ORD-… por 30 minutos": se paga después desde Mis compras |
 | Mercado Pago caído al reembolsar | modo `error` y aprobar una devolución | Queda *Aprobada* y el broker reintenta cada 10 s. Con Mercado Pago en `normal` termina *Reembolsada*; al décimo intento el mensaje va a la DLQ |
+| IA caída, lenta o contestando cualquier cosa | http://localhost:8091/__modo?valor=error (o `lento`, `roto`) y pedir una sugerencia | "IA sin respuesta". Con `lento` tarda 5 s y corta. El moderador aprueba o rechaza como siempre |
 | Broker apagado | `docker compose stop artemis` y aprobar | "No pudimos procesarla ahora: la mensajería no responde…" y no cambia nada. Se vuelve con `docker compose start artemis` |
 
 Los modos se vuelven a `normal` con `?valor=normal`.
@@ -203,6 +217,41 @@ sequenceDiagram
     Note over R,MP: Si MP falla hay rollback y el broker reentrega cada 10 s. Al décimo intento va a la DLQ.
 ```
 
+### 4.4 Devolución por la API REST (JWT, Idempotency-Key, ETag y el 409 del State)
+
+```mermaid
+sequenceDiagram
+    actor Cl as Cliente de la API
+    participant F as SeguridadDeLaApi (filtro JWT)
+    participant R as DevolucionesRecurso
+    participant S as ServicioDeSolicitudes
+    participant D as ServicioDeDevoluciones (borrador)
+    participant M as ServicioDeModeracion
+    Cl->>R: POST /auth/login
+    R-->>Cl: JWT (15 min, con email y rol)
+    Cl->>F: POST /devoluciones + Bearer + Idempotency-Key
+    F->>F: firma, vencimiento y rol (401 / 403)
+    F->>R: pasa con la sesión del token
+    R->>S: solicitar(email del token, clave, compra, motivo)
+    alt la clave ya se usó
+        S-->>R: la misma devolución (o 409 si el contenido es otro)
+    else clave nueva
+        S->>D: seleccionar compra, cargar motivo, confirmar
+        S->>S: guarda la clave en la misma transacción
+    end
+    R-->>Cl: 201 con Location y ETag (202 si el proveedor no contestó)
+    Cl->>R: PATCH /devoluciones/{id} + If-Match (moderador)
+    R->>R: 428 sin If-Match, 412 si el ETag quedó viejo
+    R->>M: aprobar o rechazar (por PuenteDeModeracion)
+    alt el State permite la transición
+        M-->>R: resuelta, se publica en el tópico
+        R-->>Cl: 200 con el ETag nuevo
+    else no la permite
+        M-->>R: TransicionInvalidaException
+        R-->>Cl: 409 en Problem Details
+    end
+```
+
 ---
 
 ## 5. Cómo se mapea contra el checklist del TP
@@ -212,11 +261,16 @@ sequenceDiagram
 | Mínimo 6 componentes de negocio | 10 EJB en `negocio/` |
 | 1 stateful + 1 stateless justificados | `ServicioDeDevoluciones` es `@Stateful` (el borrador de la solicitud vive entre los tres pasos); el resto `@Stateless` |
 | Arquitectura en capas explícita | `presentacion/` → `negocio/` → `datos/`, con `integracion/` y `mensajeria/` aparte |
-| Patrones de diseño | DAO/Repository (`datos/`), Facade (`ServicioDeModeracion`), Strategy (`negocio/reembolso/`), State (`EstadoDevolucion`). Ver `docs/adr` |
+| Patrones de diseño | DAO/Repository (`datos/`), Facade (`ServicioDeModeracion`, `AIGateway`), Strategy (`negocio/reembolso/`), State (`EstadoDevolucion`), Adapter (`ClienteLLM`). Ver `docs/adr` |
+| State con 409 ante una transición inválida | `TransicionInvalidaException` sale como 409 en Problem Details por la API (`api/ErroresDeLaApi`) |
+| Autenticación con JWT y control por rol | `api/TokensJwt` y `api/SeguridadDeLaApi` (ADR-008). Las pantallas siguen con la sesión del contenedor |
+| Idempotency-Key y ETag en la API REST | `POST /devoluciones` (tabla `pedido_idempotente`) y `GET`/`PATCH /devoluciones/{id}` |
+| IA a través de su gateway | `AIGateway` desde el panel de moderación, con timeout de 5 s y fallback (ADR-007) |
 | Seguridad declarativa | `@RolesAllowed("MODERADOR")` en los 6 métodos de `ServicioDeModeracion`, `@RolesAllowed` en los cobros y `security-constraint` en `web.xml` |
 | Transacciones declarativas | Aprobar guarda el estado y publica en el tópico en la misma transacción: si el broker falla, no se aprueba nada. Pedir una devolución guarda y encola juntos. La compra descuenta stock con bloqueo pesimista |
 | Integración SOAP con WSDL | Proveedor mayorista, `validarGarantia` con Fault (`integracion/ClienteProveedor`, ADR-006) |
 | Integración REST con sistema externo | Mercado Pago, cobro y reembolso (`integracion/ClienteMercadoPago`, ADR-005) |
+| API REST propia | `/api/v1`: login, devoluciones y reseñas (`api/`, ADR-008, `docs/api/openapi.yaml`) |
 | Mensajería pub/sub | `topico.devoluciones` con tres suscriptores durables |
 | Mensajería punto a punto | `cola.validaciones` con `ValidacionesMDB` como único consumidor |
 | Diagramas de secuencia | Sección 4 |
@@ -248,7 +302,51 @@ con respuestas rotas, para mostrar la resiliencia en vivo.
 
 ---
 
-## 7. Las preguntas que te van a hacer
+## 7. La API REST y la IA
+
+**API.** Todo menos el login pide `Authorization: Bearer <token>`. El contrato completo está en `docs/api/openapi.yaml`.
+
+| Método y ruta | Rol | Qué hace |
+|---|---|---|
+| `POST /auth/login` | cualquiera | Devuelve el JWT (15 minutos). 5 fallos seguidos: 429 |
+| `POST /devoluciones` | CLIENTE | Pide la devolución de una compra propia. Exige `Idempotency-Key`. 201, o 202 si el proveedor no contestó |
+| `GET /devoluciones` | CLIENTE o MODERADOR | El cliente ve las suyas; el moderador, la cola. Filtro `?estado=` |
+| `GET /devoluciones/{id}` | dueño o MODERADOR | Con `ETag`. `If-None-Match` vigente: 304. Ajena: 404 |
+| `PATCH /devoluciones/{id}` | MODERADOR | `{"estado":"APROBADA"}` o `RECHAZADA`. Exige `If-Match` (428, 412). Transición inválida: 409 |
+| `GET /productos/{id}/resenas` | CLIENTE o MODERADOR | Las reseñas publicadas |
+| `POST /productos/{id}/resenas` | CLIENTE | Escribe una reseña, queda pendiente de moderación |
+
+A mano, con curl (el `-k` es por el certificado autofirmado):
+
+```bash
+TOKEN=$(curl -sk https://localhost:8443/repuestos/api/v1/auth/login -H 'Content-Type: application/json' \
+  -d '{"email":"ana@mail.com","password":"Clave1234"}' | sed 's/.*"token":"\([^"]*\)".*/\1/')
+curl -sk https://localhost:8443/repuestos/api/v1/devoluciones -H "Authorization: Bearer $TOKEN"
+```
+
+| Variable | Para qué | Por defecto |
+|---|---|---|
+| `JWT_SECRET` | Clave con la que se firman los JWT (32 caracteres o más). **Nunca en el repo** | la app genera una al arrancar; los tokens dejan de valer al reiniciar |
+
+**IA.** En el panel de moderación, cada reseña pendiente tiene **Pedir sugerencia a la IA**. El pedido pasa por `AIGateway`: tapa emails y teléfonos, manda la reseña como dato y no como instrucción, valida la respuesta contra el contrato, corta a los 5 s y, si algo falla, devuelve "sin sugerencia". La IA nunca aprueba ni rechaza.
+
+En docker viene prendida contra un **modelo simulado** (`MockLLM`, clasifica por palabras clave) para que la demo no dependa de una clave ni de internet. Para usar el modelo real, en un archivo `.env` al lado del `docker-compose.yml` (no se sube):
+
+```
+IA_URL=https://api.anthropic.com
+IA_API_KEY=la-clave
+```
+
+| Variable | Para qué | Por defecto en docker |
+|---|---|---|
+| `IA_MODERACION` | Prende o apaga la sugerencia sin desplegar (plan de apagado) | `true` (fuera de docker, `false`) |
+| `IA_URL` | Dónde está el modelo | el simulado |
+| `IA_API_KEY` | Clave del proveedor. **Nunca en el repo** | `simulado` |
+| `IA_MODELO` | Qué modelo se usa | `claude-haiku-5-5` |
+
+---
+
+## 8. Las preguntas que te van a hacer
 
 **¿Por qué `ServicioDeDevoluciones` es stateful y el resto no?**
 Porque pedir una devolución es un asistente de tres pasos: elegís la compra,
@@ -277,6 +375,23 @@ duplicados: llama a `ServicioDeDevoluciones.seleccionarCompra()` y ese método
 decide. `ProductosBean.comprar()` tampoco chequea stock: lo hace
 `ServicioDeVentas` dentro de una transacción con bloqueo pesimista.
 
+**¿Por qué las pantallas usan sesión y la API usa JWT?**
+Las pantallas son JSF: el estado de la vista vive en el servidor y la sesión
+con cookie la maneja el contenedor, que además aplica `@RolesAllowed`. La API
+es para clientes que no son un navegador y no guarda nada entre pedidos: cada
+uno trae su token. Las dos entradas llegan a los mismos servicios (ADR-008).
+
+**¿Dónde sale el 409?**
+`Devolucion.aprobar()` le pide la transición al estado. Si el estado no la
+permite, `TransicionesDeDevolucion` tira `TransicionInvalidaException`. Por la
+pantalla eso es un mensaje; por la API, `ErroresDeLaApi` lo convierte en un 409
+con formato Problem Details.
+
+**¿Cómo se evita crear dos devoluciones si el cliente reintenta?**
+El POST exige `Idempotency-Key`. `ServicioDeSolicitudes` guarda la clave junto
+con la devolución, en la misma transacción. Si la clave ya está, devuelve la
+devolución que se creó la primera vez; si llega con otro contenido, 409.
+
 **¿Cómo se guardan las contraseñas?**
 `PasswordHash` guarda bcrypt con costo 12 en el formato estándar `$2a$12$...`
 (sal y costo van adentro del mismo texto). Elytron lo entiende con el
@@ -285,7 +400,7 @@ hash. bcrypt es lento a propósito: unas 250 ms por intento.
 
 ---
 
-## 8. Pruebas y CI (Clase 15)
+## 9. Pruebas y CI
 
 | Qué | Cómo se corre | Qué exige |
 |---|---|---|
@@ -294,7 +409,8 @@ hash. bcrypt es lento a propósito: unas 250 ms por intento.
 | Cobertura JaCoCo | `mvn verify`, reporte en `target/site/jacoco` | 80 % líneas y 70 % ramas en `negocio` y `modelo`, si no falla el build |
 | Mutación PIT | `mvn org.pitest:pitest-maven:mutationCoverage`, reporte en `target/pit-reports` | 60 % |
 | Análisis estático SpotBugs + FindSecBugs | `mvn compile spotbugs:check` | 0 hallazgos (los excluidos están justificados en `spotbugs-excluir.xml`) |
-| E2E (Playwright) | `docker compose up -d --build` y después `cd e2e && pytest` | |
+| E2E (Playwright, pantallas y API) | `docker compose up -d --build` y después `cd e2e && pytest` | |
+| Recorrido de la API para la demo | con la app levantada: `./demo/api.sh` | 17 pasos, cada uno con el código esperado |
 | DAST con ZAP (pasivo) | con la app levantada: `seguridad/zap.sh` | 0 High, y cada Medium justificado en `seguridad/zap-justificadas.tsv` |
 | DAST con ZAP (activo con sesión) | con la app levantada: `seguridad/zap-activo.sh` (unos 6 minutos por usuario) | lo mismo |
 | Código duplicado | `npx jscpd@4.0.5 src/main --min-tokens 50 --threshold 3` | 3 % como máximo |
@@ -303,7 +419,9 @@ hash. bcrypt es lento a propósito: unas 250 ms por intento.
 
 Los E2E dejan la IP de la máquina bloqueada 5 minutos (el último prueba fuerza bruta). Para correrlos de nuevo enseguida: `docker compose restart app`. Para arrancar con la base limpia: `docker compose down -v`.
 
-**CI (GitHub Actions).** `.github/workflows/ci.yml` corre en cada push a `main` y `entrega-testing`, en cada PR y en los tags `v*`. Son cinco trabajos en paralelo (unos 7 minutos en total): pruebas + cobertura + mutación + SpotBugs + duplicación; gitleaks + Trivy + E2E contra el compose; ZAP pasivo sin sesión, como cliente y como moderador; y ZAP activo como cliente y como moderador (uno por trabajo). Los reportes quedan como artefactos de cada corrida.
+La documentación de pruebas está en `docs/pruebas/` (plan y matriz de trazabilidad), el manual en `docs/manual-de-usuario.md`, lo que se muestra en cada entrega en `docs/entregas.md` y la declaración de uso de IA en `docs/declaracion-ia.md`.
+
+**CI (GitHub Actions).** `.github/workflows/ci.yml` corre en cada push a `main` y `entrega-testing`, en cada PR y en los tags `v*`. Si el repo tiene el secreto `SONAR_TOKEN`, el trabajo de pruebas también manda el análisis a SonarCloud. Son cinco trabajos en paralelo (unos 7 minutos en total): pruebas + cobertura + mutación + SpotBugs + duplicación; gitleaks + Trivy + E2E contra el compose; ZAP pasivo sin sesión, como cliente y como moderador; y ZAP activo como cliente y como moderador (uno por trabajo). Los reportes quedan como artefactos de cada corrida.
 
 Dos workflows más, a mano desde la pestaña Actions ("Run workflow") o poniendo la marca en el mensaje de un commit:
 
