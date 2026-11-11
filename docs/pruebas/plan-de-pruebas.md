@@ -28,7 +28,7 @@ Queda afuera de lo automatizado: Mercado Pago real y el envío real de emails (l
 
 | Qué | Umbral | Hoy |
 |---|---|---|
-| Tests | todos pasan | 391 unitarios, 20 de integración y 38 E2E pasan |
+| Tests | todos pasan | 391 unitarios, 20 de integración y 39 E2E pasan |
 | Cobertura de la capa de negocio (`negocio` y `modelo`) | 80 % de líneas y 70 % de ramas; si no, falla el build | negocio 97 % y 93 %; modelo 92 % y 97 % |
 | Cobertura de la API (`api`) | sin umbral propio | 94 % de líneas y 92 % de ramas |
 | Mutación | 60 % | 94 % (347 de 368) |
