@@ -70,15 +70,20 @@ def ingresar(p, proxy=None):
     navegador = p.chromium.launch(proxy={"server": ZAP, "bypass": "<-loopback>"} if proxy else None)
     ctx = navegador.new_context(ignore_https_errors=True)
     page = ctx.new_page()
-    page.goto(f"{APP}/login.xhtml")
-    page.fill("input[id$='email']", email)
-    page.fill("input[id$='pass']", os.environ.get("CLAVE", "Clave1234"))
-    # Se espera la navegacion del login y no solo "load": a veces el chequeo de abajo corria antes de la redireccion
-    with page.expect_navigation(timeout=60_000):
-        page.locator("input[value='Ingresar']").click()
-    if "login.xhtml" in page.url:
-        sys.exit("no pudo loguearse " + email)
-    return navegador, ctx, page
+    # En el CI el primer ingreso con la app recien levantada a veces vuelve al login: se reintenta y se muestra el aviso
+    aviso = ""
+    for intento in range(3):
+        page.goto(f"{APP}/login.xhtml")
+        page.fill("input[id$='email']", email)
+        page.fill("input[id$='pass']", os.environ.get("CLAVE", "Clave1234"))
+        with page.expect_navigation(timeout=60_000):
+            page.locator("input[value='Ingresar']").click()
+        if "login.xhtml" not in page.url:
+            return navegador, ctx, page
+        aviso = " ".join(page.locator(".mensajes").inner_text().split())
+        print(f"intento {intento + 1}: no entro ({aviso or 'sin aviso en la pagina'})", file=sys.stderr)
+        time.sleep(5)
+    sys.exit(f"no pudo loguearse {email}: {aviso}")
 
 
 def cookie(ctx):
