@@ -14,6 +14,15 @@ def test_despues_de_cinco_fallos_responde_429(abrir):
     assert "productos.xhtml" not in page.url
 
 
+# La API usa el mismo limitador: con la IP bloqueada, el login por REST responde 429 aunque la clave sea la buena
+def test_la_api_tambien_responde_429():
+    import test_7_api
+    st, h, cuerpo = test_7_api.pedir("POST", "/auth/login", cuerpo={"email": "lucia@mail.com", "password": "Clave1234"})
+    assert st == 429 and int(h["Retry-After"]) > 0
+    test_7_api.es_problema(h, cuerpo, 429, "demasiados-intentos")
+    assert "token" not in cuerpo
+
+
 # SEC-09: despues de toda la suite, el log del servidor no tiene emails completos, claves ni hashes
 def test_el_log_no_tiene_emails_claves_ni_hashes():
     log = compose("logs", "--no-color", "app")

@@ -1,0 +1,316 @@
+openapi: 3.0.3
+info:
+  title: Aura Cycles - API de devoluciones y reseñas
+  version: "1.0"
+  description: >
+    API REST del TP Integrador (Grupo 3). Todo menos el login pide un JWT en
+    Authorization: Bearer. Los errores salen en formato Problem Details (RFC 9457).
+servers:
+  - url: https://localhost:8443/repuestos/api/v1
+security:
+  - jwt: []
+paths:
+  /auth/login:
+    post:
+      summary: Ingresar y obtener un JWT
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, example: ana@mail.com }
+                password: { type: string, example: Clave1234 }
+      responses:
+        "200":
+          description: Token que vale 15 minutos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string }
+                  tipo: { type: string, example: Bearer }
+                  expiraEn: { type: integer, example: 900 }
+                  rol: { type: string, enum: [CLIENTE, MODERADOR] }
+        "400": { $ref: "#/components/responses/Problema" }
+        "401": { $ref: "#/components/responses/Problema" }
+        "429":
+          description: Cinco fallos seguidos bloquean el email y la IP por 5 minutos
+          headers:
+            Retry-After: { schema: { type: integer } }
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problema" }
+  /devoluciones:
+    post:
+      summary: Pedir la devolución de una compra propia (rol CLIENTE)
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: Reintentar con la misma clave devuelve la misma devolución
+          schema: { type: string, pattern: "^[A-Za-z0-9._-]{8,80}$" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ventaId, motivo]
+              properties:
+                ventaId: { type: integer, example: 2 }
+                motivo:
+                  type: string
+                  enum: [MEDIDA_INCORRECTA, NO_COMPATIBLE, DEFECTUOSO, DISTINTO_AL_PUBLICADO, ARREPENTIMIENTO]
+                comentario: { type: string, maxLength: 1000 }
+      responses:
+        "201":
+          description: Creada, con la garantía validada por el proveedor
+          headers:
+            Location: { schema: { type: string } }
+            ETag: { schema: { type: string } }
+            Idempotent-Replayed: { description: Viene en true cuando es un reintento, schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Devolucion" }
+        "202":
+          description: El proveedor no contestó en 5 s. Queda PENDIENTE_VALIDACION y se reintenta sola
+          headers:
+            Retry-After: { schema: { type: integer, example: 120 } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Devolucion" }
+        "400": { $ref: "#/components/responses/Problema" }
+        "401": { $ref: "#/components/responses/Problema" }
+        "403": { $ref: "#/components/responses/Problema" }
+        "404": { $ref: "#/components/responses/Problema" }
+        "409":
+          description: La misma Idempotency-Key llegó con otro contenido
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problema" }
+        "422":
+          description: Una regla de negocio no se cumple (plazo vencido, compra sin pagar, ya tiene devolución, sin garantía)
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problema" }
+    get:
+      summary: Listar. El cliente ve las suyas; el moderador, la cola
+      parameters:
+        - name: estado
+          in: query
+          schema: { $ref: "#/components/schemas/Estado" }
+      responses:
+        "200":
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total: { type: integer }
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Devolucion" }
+        "400": { $ref: "#/components/responses/Problema" }
+        "401": { $ref: "#/components/responses/Problema" }
+  /devoluciones/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      summary: Ver una devolución (el dueño o un moderador)
+      parameters:
+        - name: If-None-Match
+          in: header
+          schema: { type: string }
+      responses:
+        "200":
+          description: La devolución
+          headers:
+            ETag: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Devolucion" }
+        "304": { description: No cambió desde el ETag enviado }
+        "401": { $ref: "#/components/responses/Problema" }
+        "404":
+          description: No existe, o es de otro cliente (se responde igual)
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problema" }
+              example:
+                type: urn:auracycles:problema:no-existe
+                title: No existe
+                status: 404
+                detail: La devolución no existe.
+                instance: /repuestos/api/v1/devoluciones/99
+    patch:
+      summary: Aprobar o rechazar (rol MODERADOR)
+      parameters:
+        - name: If-Match
+          in: header
+          required: true
+          description: El ETag que devolvió el GET
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [estado]
+              properties:
+                estado: { type: string, enum: [APROBADA, RECHAZADA] }
+      responses:
+        "200":
+          description: Resuelta. El stock, el reembolso y el aviso salen por el tópico
+          headers:
+            ETag: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Devolucion" }
+        "400": { $ref: "#/components/responses/Problema" }
+        "401": { $ref: "#/components/responses/Problema" }
+        "403": { $ref: "#/components/responses/Problema" }
+        "404": { $ref: "#/components/responses/Problema" }
+        "409":
+          description: El estado actual no admite ese cambio (patrón State)
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problema" }
+              example:
+                type: urn:auracycles:problema:transicion-invalida
+                title: Transición inválida
+                status: 409
+                detail: No se puede rechazar una devolución que está REEMBOLSADA.
+                instance: /repuestos/api/v1/devoluciones/7
+        "412":
+          description: El ETag quedó viejo, otro moderador la cambió antes
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problema" }
+        "428":
+          description: Falta If-Match
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problema" }
+        "503":
+          description: El broker no responde. No se cambió nada
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problema" }
+  /productos/{productoId}/resenas:
+    parameters:
+      - name: productoId
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      summary: Reseñas publicadas de un repuesto
+      responses:
+        "200":
+          description: Solo las que aprobó un moderador
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total: { type: integer }
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Resena" }
+        "401": { $ref: "#/components/responses/Problema" }
+        "404": { $ref: "#/components/responses/Problema" }
+    post:
+      summary: Escribir una reseña de un repuesto comprado (rol CLIENTE)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [puntaje, texto]
+              properties:
+                puntaje: { type: integer, minimum: 1, maximum: 5 }
+                titulo: { type: string, maxLength: 160 }
+                texto: { type: string, maxLength: 2000 }
+      responses:
+        "201":
+          description: Creada, queda PENDIENTE hasta que la revise un moderador
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Resena" }
+        "400": { $ref: "#/components/responses/Problema" }
+        "401": { $ref: "#/components/responses/Problema" }
+        "403": { $ref: "#/components/responses/Problema" }
+        "404": { $ref: "#/components/responses/Problema" }
+        "422": { $ref: "#/components/responses/Problema" }
+components:
+  securitySchemes:
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    Problema:
+      description: Error en formato Problem Details
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problema" }
+  schemas:
+    Estado:
+      type: string
+      enum: [PENDIENTE_VALIDACION, PENDIENTE, APROBADA, RECHAZADA, REEMBOLSADA]
+    Devolucion:
+      type: object
+      required: [id, codigo, estado, motivo, ventaId, orden, producto, importe, validadaConProveedor, fechaSolicitud, _links]
+      properties:
+        id: { type: integer }
+        codigo: { type: string, example: DEV-000007 }
+        estado: { $ref: "#/components/schemas/Estado" }
+        motivo: { type: string }
+        ventaId: { type: integer }
+        orden: { type: string, example: ORD-000002 }
+        producto: { type: string }
+        importe: { type: number }
+        validadaConProveedor: { type: boolean }
+        fechaSolicitud: { type: string }
+        comentario: { type: string, nullable: true }
+        rma: { type: string, nullable: true }
+        fechaResolucion: { type: string, nullable: true }
+        montoReembolso: { type: number, nullable: true }
+        _links:
+          type: object
+          properties:
+            self:
+              type: object
+              properties:
+                href: { type: string }
+    Resena:
+      type: object
+      required: [id, codigo, puntaje, titulo, texto, autor, fecha]
+      properties:
+        id: { type: integer }
+        codigo: { type: string, example: RES-000005 }
+        puntaje: { type: integer }
+        titulo: { type: string }
+        texto: { type: string }
+        autor: { type: string }
+        fecha: { type: string }
+        estado: { type: string, description: Solo viene al crearla }
+    Problema:
+      type: object
+      required: [type, title, status, detail, instance]
+      properties:
+        type: { type: string, example: "urn:auracycles:problema:transicion-invalida" }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }

@@ -7,6 +7,7 @@ import ar.edu.uade.repuestos.modelo.EstadoDevolucion;
 import ar.edu.uade.repuestos.modelo.EstadoVenta;
 import ar.edu.uade.repuestos.modelo.MotivoDevolucion;
 import ar.edu.uade.repuestos.modelo.Venta;
+import ar.edu.uade.repuestos.util.NoExisteException;
 import ar.edu.uade.repuestos.util.ReglaNegocioException;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -66,12 +67,18 @@ public class ServicioDeDevoluciones implements Serializable {
                 + Integer.toHexString(System.identityHashCode(this)) + ": el contenedor la descarta.");
     }
 
+    // SEC-05 (BOLA): el usuario sale del contenedor, no de la pantalla
     public void seleccionarCompra(Long ventaId) {
+        seleccionarCompraDe(contexto.getCallerPrincipal().getName(), ventaId);
+    }
+
+    // Para la API REST, que no tiene sesion del contenedor: el email sale del JWT ya validado
+    public void seleccionarCompraDe(String email, Long ventaId) {
         Venta venta = servicioDeVentas.porId(ventaId);
 
-        // SEC-05 (BOLA): el usuario sale del contenedor, no de la pantalla. Si no es suya, mismo error que si no existiera
-        if (!venta.esDe(contexto.getCallerPrincipal().getName())) {
-            throw new ReglaNegocioException("La compra no existe.");
+        // Si no es suya, mismo error que si no existiera
+        if (!venta.esDe(email)) {
+            throw new NoExisteException("La compra no existe.");
         }
 
         if (venta.getEstado() != EstadoVenta.PAGADA) {

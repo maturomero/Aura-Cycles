@@ -70,6 +70,19 @@ class ServicioDeDevolucionesTest {
         assertNull(servicio.getVentaSeleccionada());
     }
 
+    // La API REST pasa el email del JWT: misma regla, y da igual quien diga el contenedor que esta logueado
+    @Test
+    void conElEmailDelTokenValeLaMismaRegla() {
+        logueado("carlos@mail.com");
+        servicio.seleccionarCompraDe("ana@mail.com", 9L);
+        assertSame(venta, servicio.getVentaSeleccionada());
+
+        logueado("ana@mail.com");
+        assertEquals("La compra no existe.", assertThrows(ar.edu.uade.repuestos.util.NoExisteException.class,
+                () -> servicio.seleccionarCompraDe("carlos@mail.com", 9L)).getMessage());
+        assertThrows(ReglaNegocioException.class, () -> servicio.seleccionarCompraDe(null, 9L));
+    }
+
     @Test
     void laCompraPropiaSeAbre() {
         servicio.seleccionarCompra(9L);

@@ -8,6 +8,7 @@ import ar.edu.uade.repuestos.modelo.Devolucion;
 import ar.edu.uade.repuestos.modelo.Producto;
 import ar.edu.uade.repuestos.modelo.Usuario;
 import ar.edu.uade.repuestos.modelo.Venta;
+import ar.edu.uade.repuestos.util.NoExisteException;
 import ar.edu.uade.repuestos.util.ReglaNegocioException;
 import jakarta.ejb.Stateless;
 import jakarta.ejb.TransactionAttribute;
@@ -65,7 +66,7 @@ public class ServicioDeVentas {
 
     public Venta porId(Long ventaId) {
         return ventaRepository.porId(ventaId)
-                .orElseThrow(() -> new ReglaNegocioException("La compra no existe."));
+                .orElseThrow(() -> new NoExisteException("La compra no existe."));
     }
 
     // Lo llama StockMDB. Si el mismo evento llega dos veces, la segunda no hace nada

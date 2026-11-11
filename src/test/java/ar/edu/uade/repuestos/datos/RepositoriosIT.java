@@ -9,6 +9,7 @@ import ar.edu.uade.repuestos.modelo.Devolucion;
 import ar.edu.uade.repuestos.modelo.EstadoDevolucion;
 import ar.edu.uade.repuestos.modelo.EstadoVenta;
 import ar.edu.uade.repuestos.modelo.MotivoDevolucion;
+import ar.edu.uade.repuestos.modelo.PedidoIdempotente;
 import ar.edu.uade.repuestos.modelo.Producto;
 import ar.edu.uade.repuestos.modelo.Usuario;
 import ar.edu.uade.repuestos.modelo.Venta;
@@ -53,6 +54,7 @@ class RepositoriosIT {
     DevolucionRepository devoluciones;
     ResenaRepository resenas;
     UsuarioRepository usuarios;
+    PedidoIdempotenteRepository pedidos;
 
     @BeforeAll
     static void unidad() {
@@ -75,6 +77,7 @@ class RepositoriosIT {
         devoluciones = conEm(new DevolucionRepository());
         resenas = conEm(new ResenaRepository());
         usuarios = conEm(new UsuarioRepository());
+        pedidos = conEm(new PedidoIdempotenteRepository());
         em.getTransaction().begin();
     }
 
@@ -226,6 +229,26 @@ class RepositoriosIT {
         Venta v = new Venta(u, p, 1, p.getPrecio());
         v.setFecha(fecha);
         return ventas.guardar(v);
+    }
+
+    // Idempotency-Key: la clave se guarda por usuario y el indice unico frena una segunda fila igual
+    @Test
+    void laClaveDeIdempotenciaEsUnicaPorUsuario() {
+        Devolucion d = devoluciones.guardar(new Devolucion(ventas.porId(1L).orElseThrow(), MotivoDevolucion.ARREPENTIMIENTO, null));
+        pedidos.guardar(new PedidoIdempotente("ana@mail.com", "pedido-0001", "a".repeat(64), d.getId(), 201));
+
+        PedidoIdempotente guardado = pedidos.porClave("ana@mail.com", "pedido-0001").orElseThrow();
+        assertEquals(d.getId(), guardado.getDevolucionId());
+        assertEquals(201, guardado.getCodigoHttp());
+        assertTrue(guardado.esElMismoPedido("a".repeat(64)));
+        assertFalse(guardado.esElMismoPedido("b".repeat(64)));
+        assertTrue(pedidos.porClave("carlos@mail.com", "pedido-0001").isEmpty());
+        assertTrue(pedidos.porClave("ana@mail.com", "pedido-0002").isEmpty());
+
+        // La misma clave para otro usuario entra; repetida para el mismo, no
+        pedidos.guardar(new PedidoIdempotente("carlos@mail.com", "pedido-0001", "c".repeat(64), d.getId(), 201));
+        assertThrows(PersistenceException.class,
+                () -> pedidos.guardar(new PedidoIdempotente("ana@mail.com", "pedido-0001", "b".repeat(64), d.getId(), 201)));
     }
 
     private <T> T conEm(T repo) throws Exception {

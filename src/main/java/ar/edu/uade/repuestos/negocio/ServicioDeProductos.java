@@ -4,7 +4,7 @@ import ar.edu.uade.repuestos.datos.ProductoRepository;
 import ar.edu.uade.repuestos.datos.ResenaRepository;
 import ar.edu.uade.repuestos.modelo.Producto;
 import ar.edu.uade.repuestos.modelo.ResumenResenas;
-import ar.edu.uade.repuestos.util.ReglaNegocioException;
+import ar.edu.uade.repuestos.util.NoExisteException;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 import java.util.List;
@@ -28,7 +28,7 @@ public class ServicioDeProductos {
 
     public Producto porId(Long id) {
         return productoRepository.porId(id)
-                .orElseThrow(() -> new ReglaNegocioException("El repuesto no existe."));
+                .orElseThrow(() -> new NoExisteException("El repuesto no existe."));
     }
 
     public double promedioPuntaje(Long productoId) {

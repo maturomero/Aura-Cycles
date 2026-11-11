@@ -14,6 +14,7 @@
     <class>ar.edu.uade.repuestos.modelo.Venta</class>
     <class>ar.edu.uade.repuestos.modelo.Resena</class>
     <class>ar.edu.uade.repuestos.modelo.Devolucion</class>
+    <class>ar.edu.uade.repuestos.modelo.PedidoIdempotente</class>
 
     <properties>
       <!-- El esquema lo crea sql/schema.sql; Hibernate no lo genera. -->

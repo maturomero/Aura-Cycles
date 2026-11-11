@@ -18,6 +18,13 @@
     <failOnMissingWebXml>false</failOnMissingWebXml>
     <!-- Vacio por defecto: JaCoCo lo completa con su agente. Sin esto PIT falla si se corre solo -->
     <argLine></argLine>
+    <!-- SonarCloud: el token va en el secreto SONAR_TOKEN del repo, nunca aca -->
+    <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+    <sonar.organization>maturomero</sonar.organization>
+    <sonar.projectKey>maturomero_Aura-Cycles</sonar.projectKey>
+    <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+    <!-- Las pantallas JSF se prueban de punta a punta, no con unitarios -->
+    <sonar.coverage.exclusions>**/presentacion/**,**/modelo/Estado*.java,**/util/GeneradorHash.java</sonar.coverage.exclusions>
   </properties>
 
   <dependencies>
@@ -34,6 +41,26 @@
       <groupId>org.mindrot</groupId>
       <artifactId>jbcrypt</artifactId>
       <version>0.4</version>
+    </dependency>
+    <!-- JWT de la API REST: firma y validacion, sin escribir criptografia a mano -->
+    <dependency>
+      <groupId>com.nimbusds</groupId>
+      <artifactId>nimbus-jose-jwt</artifactId>
+      <version>10.9.1</version>
+    </dependency>
+    <!-- JAX-RS en los tests de la API (en WildFly lo pone el servidor) -->
+    <dependency>
+      <groupId>org.jboss.resteasy</groupId>
+      <artifactId>resteasy-core</artifactId>
+      <version>6.2.20.Final</version>
+      <scope>test</scope>
+      <!-- Trae un jandex viejo que pisa al de Hibernate en las pruebas de integracion -->
+      <exclusions>
+        <exclusion>
+          <groupId>org.jboss</groupId>
+          <artifactId>jandex</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <!-- JSON-P en los tests (en WildFly lo pone el servidor) -->
     <dependency>

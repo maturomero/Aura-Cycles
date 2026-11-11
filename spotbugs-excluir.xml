@@ -16,6 +16,8 @@
       <Package name="ar.edu.uade.repuestos.modelo"/>
       <Package name="ar.edu.uade.repuestos.presentacion"/>
       <Class name="ar.edu.uade.repuestos.negocio.ServicioDeDevoluciones"/>
+      <!-- El resultado de la API lleva la entidad Devolucion tal cual, igual que la devuelven los repositorios -->
+      <Class name="ar.edu.uade.repuestos.negocio.ServicioDeSolicitudes$Solicitud"/>
     </Or>
   </Match>
   <!-- IMPROPER_UNICODE: mitigado. Los emails se validan solo ASCII antes de guardarse (ServicioDeUsuarios.emailValido),
