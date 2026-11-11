@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<!-- Dibujo del repuesto segun la categoria. Se usa con ui:include y el parametro "categoria" -->
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="jakarta.faces.facelets">
+
+  <span class="parte">
+    <ui:fragment rendered="#{categoria eq 'Cubiertas'}">
+      <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <circle cx="24" cy="24" r="19" stroke-width="5" stroke-dasharray="3.2 2.77"/>
+        <circle cx="24" cy="24" r="14.5"/>
+        <circle cx="24" cy="24" r="2"/>
+        <path d="M24 9.5v12.5M24 26v12.5M9.5 24h12.5M26 24h12.5"/>
+      </svg>
+    </ui:fragment>
+    <ui:fragment rendered="#{categoria eq 'Transmision'}">
+      <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <circle cx="24" cy="24" r="17.5" stroke-width="4" stroke-dasharray="2.6 2.4"/>
+        <circle cx="24" cy="24" r="13"/>
+        <circle cx="24" cy="24" r="4"/>
+        <path d="M24 11v9M35.3 17.5l-7.8 4.5M35.3 30.5l-7.8-4.5M24 37v-9M12.7 30.5l7.8-4.5M12.7 17.5l7.8 4.5"/>
+      </svg>
+    </ui:fragment>
+    <ui:fragment rendered="#{categoria eq 'Frenos'}">
+      <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <circle cx="24" cy="24" r="19"/>
+        <circle cx="24" cy="24" r="7"/>
+        <circle cx="24" cy="24" r="13" stroke-width="3" stroke-dasharray="1.2 5.6" stroke-linecap="round"/>
+        <path d="M35 5.5l6 3.5-3 6.5"/>
+      </svg>
+    </ui:fragment>
+    <ui:fragment rendered="#{categoria eq 'Ruedas'}">
+      <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <circle cx="24" cy="24" r="19"/>
+        <circle cx="24" cy="24" r="3.5"/>
+        <path d="M24 5v15.5M24 27.5V43M5 24h15.5M27.5 24H43M10.6 10.6l11 11M26.4 26.4l11 11M37.4 10.6l-11 11M21.6 26.4l-11 11"/>
+      </svg>
+    </ui:fragment>
+    <ui:fragment rendered="#{categoria eq 'Contacto'}">
+      <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <path d="M5 19c7-3.5 20-4 30-2.5 4 .6 8 2.2 8 4.500 0 2.200-5 3.200-11 3.200-8 0-13 3.300-19 3.300-5 0-9.500-4-8-8.500z"/>
+        <path d="M17 27l3 5h9l3-7.500M24.500 32v10"/>
+      </svg>
+    </ui:fragment>
+    <ui:fragment rendered="#{categoria ne 'Cubiertas' and categoria ne 'Transmision' and categoria ne 'Frenos' and categoria ne 'Ruedas' and categoria ne 'Contacto'}">
+      <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <circle cx="24" cy="24" r="17"/>
+        <circle cx="24" cy="24" r="5"/>
+      </svg>
+    </ui:fragment>
+  </span>
+
+</ui:composition>

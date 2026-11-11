@@ -1,6 +1,6 @@
 /* =========================================================================
    Sistema de Resenas y Devoluciones - Repuestos de Bicicleta
-   Tokens tomados tal cual del prototipo de diseno.
+   Colores y tipografia del prototipo de diseno (Figma).
    ========================================================================= */
 
 /* Fuentes servidas por la app (antes venian de Google Fonts y la CSP las bloqueaba). Licencia OFL en resources/fonts */
@@ -12,12 +12,6 @@
   src: url("#{resource['fonts:ibm-plex-sans-latin-600-normal.woff2']}") format('woff2'); }
 @font-face { font-family: 'IBM Plex Sans'; font-weight: 700; font-style: normal; font-display: swap;
   src: url("#{resource['fonts:ibm-plex-sans-latin-700-normal.woff2']}") format('woff2'); }
-@font-face { font-family: 'IBM Plex Mono'; font-weight: 400; font-style: normal; font-display: swap;
-  src: url("#{resource['fonts:ibm-plex-mono-latin-400-normal.woff2']}") format('woff2'); }
-@font-face { font-family: 'IBM Plex Mono'; font-weight: 500; font-style: normal; font-display: swap;
-  src: url("#{resource['fonts:ibm-plex-mono-latin-500-normal.woff2']}") format('woff2'); }
-@font-face { font-family: 'IBM Plex Mono'; font-weight: 600; font-style: normal; font-display: swap;
-  src: url("#{resource['fonts:ibm-plex-mono-latin-600-normal.woff2']}") format('woff2'); }
 
 /* ---------- TEMA CLARO ---------- */
 .tema-claro {
@@ -63,7 +57,9 @@
   --danger: #A33232;
   --danger-soft: #FBE9E9;
 
-  --shadow: 0 1px 3px rgba(22, 58, 95, .07);
+  --shadow: 0 1px 2px rgba(22, 58, 95, .06);
+  --shadow-alto: 0 10px 30px -12px rgba(22, 58, 95, .28);
+  --trazo: #C3D3E0;
 }
 
 /* ---------- TEMA OSCURO ---------- */
@@ -109,7 +105,9 @@
   --danger: #EE8B8B;
   --danger-soft: #341C1C;
 
-  --shadow: 0 1px 3px rgba(0, 0, 0, .4);
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4);
+  --shadow-alto: 0 12px 32px -12px rgba(0, 0, 0, .7);
+  --trazo: #2F4759;
 }
 
 /* ---------- BASE ---------- */
@@ -121,13 +119,18 @@ body {
   color: var(--text);
   font: 400 14px/1.55 'IBM Plex Sans', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
 }
 
 a { color: var(--link); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
+/* Los codigos (ORD-000012, DEV-000004) van en la misma letra, en una sola linea */
 code, .mono, .codigo {
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--text);
 }
 
 :focus-visible {
@@ -135,10 +138,12 @@ code, .mono, .codigo {
   outline-offset: 2px;
 }
 
+svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
 /* ---------- LAYOUT ---------- */
 .layout {
   display: grid;
-  grid-template-columns: 248px 1fr;
+  grid-template-columns: 244px minmax(0, 1fr);
   min-height: 100vh;
 }
 .backdrop { display: none; }
@@ -149,7 +154,7 @@ code, .mono, .codigo {
   border-right: 1px solid var(--sidebar-line);
   display: flex;
   flex-direction: column;
-  padding: 22px 0;
+  padding: 18px 0;
   position: sticky;
   top: 0;
   height: 100vh;
@@ -158,52 +163,53 @@ code, .mono, .codigo {
 .sidebar-marca {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 20px 20px;
+  gap: 11px;
+  padding: 2px 18px 18px;
   border-bottom: 1px solid var(--sidebar-line);
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .sidebar-logo {
-  width: 32px; height: 32px;
-  border-radius: 7px;
+  width: 36px; height: 36px;
+  border-radius: 50%;
   background: var(--brand-bg);
   color: #fff;
   display: grid; place-items: center;
-  font: 600 13px 'IBM Plex Mono', monospace;
   flex-shrink: 0;
 }
 
+.marca { width: 26px; height: 26px; stroke-width: 1.5; }
+
 .sidebar-nombre {
-  font: 600 13px/1.25 'IBM Plex Sans', sans-serif;
+  font: 600 15px/1.2 'IBM Plex Sans', sans-serif;
+  letter-spacing: -.01em;
   color: var(--sidebar-title);
 }
 
 .sidebar-sub {
-  font: 400 10.5px/1.2 'IBM Plex Mono', monospace;
+  font: 400 12px/1.3 'IBM Plex Sans', sans-serif;
   color: var(--sidebar-muted);
-  letter-spacing: .04em;
+  margin-top: 1px;
 }
 
-.nav { display: flex; flex-direction: column; gap: 2px; padding: 0 12px; }
+.nav { display: flex; flex-direction: column; gap: 2px; padding: 0 10px; }
 
 .nav-titulo {
-  font: 500 10px/1 'IBM Plex Mono', monospace;
-  letter-spacing: .1em;
-  text-transform: uppercase;
+  font: 500 12px/1 'IBM Plex Sans', sans-serif;
   color: var(--sidebar-muted);
-  padding: 16px 8px 7px;
+  padding: 16px 10px 8px;
 }
 
 .nav a {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  border-radius: 7px;
+  gap: 11px;
+  padding: 9px 10px;
+  border-radius: 8px;
   color: var(--nav-color);
-  font: 500 13px/1.3 'IBM Plex Sans', sans-serif;
+  font: 500 13.5px/1.3 'IBM Plex Sans', sans-serif;
   text-decoration: none;
+  position: relative;
 }
 
 .nav a:hover { background: var(--nav-hover-bg); text-decoration: none; }
@@ -213,12 +219,7 @@ code, .mono, .codigo {
   color: var(--nav-active-color);
 }
 
-.nav-dot {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: var(--nav-dot);
-  flex-shrink: 0;
-}
+.nav-icono { width: 18px; height: 18px; flex-shrink: 0; opacity: .9; }
 
 .nav-badge {
   margin-left: auto;
@@ -226,15 +227,15 @@ code, .mono, .codigo {
   color: #0A131B;
   border-radius: 9px;
   padding: 1px 7px;
-  font: 600 10.5px 'IBM Plex Mono', monospace;
+  font: 600 11px 'IBM Plex Sans', sans-serif;
 }
 
 /* ---------- BARRA SUPERIOR ---------- */
 .topbar {
   background: var(--topbar-bg);
   border-bottom: 1px solid var(--line);
-  padding: 0 26px;
-  height: 60px;
+  padding: 0 28px;
+  height: 58px;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -244,8 +245,8 @@ code, .mono, .codigo {
 }
 
 .topbar-titulo {
-  font: 600 15px/1.2 'IBM Plex Sans', sans-serif;
-  color: var(--text);
+  font: 500 14px/1.2 'IBM Plex Sans', sans-serif;
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -253,58 +254,63 @@ code, .mono, .codigo {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .usuario-chip {
   display: flex; align-items: center; gap: 8px;
-  font: 500 12.5px 'IBM Plex Sans', sans-serif;
-  color: var(--text-muted);
+  font: 500 13px 'IBM Plex Sans', sans-serif;
+  color: var(--text);
+  padding: 0 4px 0 6px;
 }
 
 .avatar {
   width: 28px; height: 28px;
   border-radius: 50%;
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--accent);
+  color: #fff;
   display: grid; place-items: center;
-  font: 600 11px 'IBM Plex Mono', monospace;
+  font: 600 12px 'IBM Plex Sans', sans-serif;
+  text-transform: uppercase;
 }
 
 .hamburguesa { display: none; }
 
 /* ---------- CONTENIDO ---------- */
-.contenido { padding: 26px; max-width: 1180px; }
+.contenido { padding: 30px 28px 48px; max-width: 1160px; }
 
-.pagina-encabezado { margin-bottom: 20px; }
+.pagina-encabezado { margin-bottom: 22px; }
 
 .pagina-encabezado h2 {
-  margin: 0 0 4px;
-  font: 600 21px/1.2 'IBM Plex Sans', sans-serif;
-  letter-spacing: -.015em;
+  margin: 0 0 5px;
+  font: 600 24px/1.2 'IBM Plex Sans', sans-serif;
+  letter-spacing: -.02em;
 }
 
 .pagina-encabezado p {
   margin: 0;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 14px;
+  max-width: 68ch;
 }
 
+.pagina-encabezado.con-parte { display: flex; align-items: center; gap: 16px; }
+.pagina-encabezado.con-parte .parte { width: 64px; height: 64px; padding: 10px; }
+
+/* "Paso 2 de 3": dice en que parte del tramite esta */
 .eyebrow {
-  font: 500 10px/1 'IBM Plex Mono', monospace;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--text-faint);
   display: block;
-  margin-bottom: 7px;
+  font: 500 13px/1.2 'IBM Plex Sans', sans-serif;
+  color: var(--accent);
+  margin-bottom: 6px;
 }
 
 /* ---------- TARJETAS ---------- */
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 18px;
+  border-radius: 12px;
+  padding: 22px;
   box-shadow: var(--shadow);
 }
 
@@ -312,67 +318,100 @@ code, .mono, .codigo {
 
 .card-titulo {
   margin: 0 0 14px;
-  font: 600 14px/1.2 'IBM Plex Sans', sans-serif;
-  padding-bottom: 11px;
-  border-bottom: 1px solid var(--line-soft);
+  font: 600 16px/1.25 'IBM Plex Sans', sans-serif;
+  letter-spacing: -.01em;
 }
 
 /* ---------- GRILLA DE PRODUCTOS ---------- */
 .grilla {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(256px, 1fr));
+  gap: 16px;
 }
 
 .producto-card {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 16px;
+  border-radius: 12px;
+  padding: 16px 16px 14px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   box-shadow: var(--shadow);
 }
 
+.producto-card:focus-within { border-color: var(--accent); }
+
+.producto-cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+/* El dibujo del repuesto: cubierta, plato, disco, maza o asiento segun la categoria */
+.parte {
+  display: grid;
+  place-items: center;
+  width: 60px; height: 60px;
+  padding: 9px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.parte svg { width: 100%; height: 100%; stroke-width: 1.5; }
+
 .producto-codigo {
-  font: 500 10.5px 'IBM Plex Mono', monospace;
-  color: var(--text-faint);
+  font: 500 12px/1 'IBM Plex Sans', sans-serif;
+  color: var(--text-muted);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 5px 9px;
 }
 
 .producto-nombre {
-  font: 600 14.5px/1.3 'IBM Plex Sans', sans-serif;
-  color: var(--text);
+  font: 600 15.5px/1.3 'IBM Plex Sans', sans-serif;
+  letter-spacing: -.01em;
 }
 
 .producto-nombre a { color: inherit; }
 
 .producto-precio {
-  font: 600 18px/1 'IBM Plex Sans', sans-serif;
-  color: var(--text);
-  margin-top: 2px;
+  font: 600 20px/1.2 'IBM Plex Sans', sans-serif;
+  letter-spacing: -.02em;
+  margin-top: 4px;
 }
 
 .producto-pie {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-top: auto;
-  padding-top: 10px;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 12px;
   border-top: 1px solid var(--line-soft);
 }
 
+/* Stock: un punto de color y el numero, como la etiqueta de una gondola */
+.stock { display: inline-flex; align-items: center; gap: 7px; font: 500 12.5px/1 'IBM Plex Sans', sans-serif; }
+.stock::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.stock-ok { color: var(--ok); }
+.stock-poco { color: var(--warn); }
+.stock-no { color: var(--danger); }
+
 /* ---------- ESTRELLAS ---------- */
-.estrellas { color: var(--star); font-size: 14px; letter-spacing: 1px; }
+.estrellas { color: var(--star); font-size: 14px; letter-spacing: 1.5px; }
+.estrellas .celda-tenue { letter-spacing: 0; }
 .estrellas-off { color: var(--star-off); }
 
 .estrellas-selector { display: flex; gap: 6px; }
 
 .estrellas-selector label {
-  cursor: pointer;
-  font-size: 24px;
+  font-size: 26px;
   color: var(--star-off);
+  cursor: pointer;
   line-height: 1;
 }
 
@@ -380,25 +419,29 @@ code, .mono, .codigo {
 .estrellas-selector input:checked + label,
 .estrellas-selector label.marcada { color: var(--star); }
 
-/* ---------- BADGES DE ESTADO ---------- */
+/* ---------- BADGES ---------- */
 .badge {
-  display: inline-block;
-  padding: 3px 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px 3px 8px;
   border-radius: 20px;
-  font: 500 11px/1.4 'IBM Plex Sans', sans-serif;
+  font: 500 12px/1.4 'IBM Plex Sans', sans-serif;
   white-space: nowrap;
 }
+
+.badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
 
 .badge-pendiente { background: var(--warn-soft); color: var(--warn); }
 .badge-aprobada  { background: var(--ok-soft);   color: var(--ok); }
 .badge-rechazada { background: var(--danger-soft); color: var(--danger); }
-.badge-neutro    { background: var(--surface-alt); color: var(--text-muted); }
+.badge-neutro    { background: var(--surface-alt); color: var(--text-muted); border: 1px solid var(--line); }
 
 /* ---------- TABLAS ---------- */
 .tabla-wrap {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
   box-shadow: var(--shadow);
 }
@@ -407,33 +450,33 @@ table.tabla { width: 100%; border-collapse: collapse; }
 
 table.tabla th {
   text-align: left;
-  padding: 11px 15px;
-  background: var(--surface-alt);
+  padding: 12px 16px;
   border-bottom: 1px solid var(--line);
-  font: 500 10.5px/1 'IBM Plex Mono', monospace;
-  letter-spacing: .07em;
-  text-transform: uppercase;
-  color: var(--text-faint);
+  font: 500 12.5px/1.2 'IBM Plex Sans', sans-serif;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 
 table.tabla td {
-  padding: 13px 15px;
+  padding: 14px 16px;
   border-bottom: 1px solid var(--line-soft);
   vertical-align: middle;
-  font-size: 13px;
+  font-size: 13.5px;
 }
 
 table.tabla tr:last-child td { border-bottom: none; }
+table.tabla tbody tr:hover td { background: var(--surface-alt); }
 
 .celda-titulo { font-weight: 600; color: var(--text); }
-.celda-tenue { color: var(--text-muted); font-size: 12.5px; }
+.celda-tenue { color: var(--text-muted); font-size: 13px; }
+.celda-tenue strong { color: var(--text); font-weight: 600; }
 
 /* ---------- FORMULARIOS ---------- */
-.campo { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+.campo { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
 
 .campo label {
-  font: 500 12px/1.2 'IBM Plex Sans', sans-serif;
-  color: var(--text-muted);
+  font: 500 13px/1.2 'IBM Plex Sans', sans-serif;
+  color: var(--text);
 }
 
 .campo input[type=text],
@@ -443,15 +486,19 @@ table.tabla tr:last-child td { border-bottom: none; }
 .campo select,
 .campo textarea {
   width: 100%;
-  padding: 9px 11px;
+  padding: 9px 12px;
+  min-height: 38px;
   border: 1px solid var(--input-line);
-  border-radius: 7px;
+  border-radius: 8px;
   background: var(--input-bg);
   color: var(--text);
-  font: 400 13.5px/1.4 'IBM Plex Sans', sans-serif;
+  font: 400 14px/1.4 'IBM Plex Sans', sans-serif;
+  box-shadow: inset 0 1px 1px rgba(22, 58, 95, .03);
 }
 
-.campo textarea { min-height: 96px; resize: vertical; }
+.campo textarea { min-height: 104px; resize: vertical; }
+
+.campo input::placeholder, .campo textarea::placeholder { color: var(--text-faint); }
 
 .campo input:focus, .campo select:focus, .campo textarea:focus {
   outline: none;
@@ -459,117 +506,153 @@ table.tabla tr:last-child td { border-bottom: none; }
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-.campo-ayuda { font-size: 11.5px; color: var(--text-faint); }
+.campo-ayuda { font-size: 12.5px; color: var(--text-faint); }
 
 .form-acciones {
   display: flex;
-  gap: 9px;
+  gap: 10px;
   align-items: center;
-  margin-top: 18px;
-  padding-top: 15px;
+  margin-top: 20px;
+  padding-top: 16px;
   border-top: 1px solid var(--line-soft);
 }
 
-.buscador { display: flex; gap: 8px; margin-bottom: 18px; }
-.buscador input { flex: 1; max-width: 380px; }
+.buscador {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  max-width: 520px;
+}
+
+/* La lupa va dibujada adentro del campo */
+.campo-buscar input[type=text] {
+  padding-left: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2362717E' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='M16 16l4.500 4.500'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 11px 50%;
+  background-size: 16px 16px;
+}
 
 /* ---------- BOTONES ---------- */
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 7px;
-  padding: 9px 15px;
-  border-radius: 7px;
+  min-height: 38px;
+  padding: 8px 16px;
+  border-radius: 8px;
   border: 1px solid transparent;
-  font: 500 13px/1 'IBM Plex Sans', sans-serif;
+  font: 500 13.5px/1.2 'IBM Plex Sans', sans-serif;
   cursor: pointer;
   text-decoration: none;
+  white-space: nowrap;
+  transition: background-color .12s ease, border-color .12s ease;
 }
 
 .btn:hover { text-decoration: none; }
+.btn:active { transform: translateY(1px); }
 
-.btn-primario { background: var(--accent); color: #fff; }
+.btn-primario { background: var(--accent); color: #fff; box-shadow: 0 1px 2px rgba(22, 58, 95, .18); }
 .btn-primario:hover { background: var(--accent-hover); }
+.tema-oscuro .btn-primario:hover { color: #0D1822; }
 
 .btn-secundario {
   background: var(--surface);
   color: var(--text);
   border-color: var(--input-line);
 }
-.btn-secundario:hover { background: var(--surface-alt); }
+.btn-secundario:hover { background: var(--surface-alt); border-color: var(--text-faint); }
 
-.btn-ok { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
-.btn-peligro { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+.btn-ok { background: var(--ok-soft); color: var(--ok); }
+.btn-ok:hover { border-color: var(--ok); }
+.btn-peligro { background: var(--surface); color: var(--danger); border-color: var(--input-line); }
+.btn-peligro:hover { background: var(--danger-soft); border-color: var(--danger); }
 
-.btn-chico { padding: 6px 11px; font-size: 12px; }
+.btn-chico { min-height: 32px; padding: 5px 12px; font-size: 13px; }
 
 .btn-tema {
   background: none;
-  border: 1px solid var(--line);
+  border: 1px solid transparent;
   color: var(--text-muted);
-  border-radius: 7px;
-  padding: 6px 10px;
+  border-radius: 8px;
+  min-height: 32px;
+  padding: 5px 10px;
+  font: 500 13px 'IBM Plex Sans', sans-serif;
   cursor: pointer;
-  font: 500 12px 'IBM Plex Sans', sans-serif;
 }
+.btn-tema:hover { background: var(--surface-alt); color: var(--text); }
 
-.btn:disabled, .btn[disabled] { opacity: .45; cursor: not-allowed; }
+.btn:disabled, .btn[disabled] { opacity: .45; cursor: not-allowed; box-shadow: none; }
 
 /* ---------- SOLAPAS ---------- */
 .solapas {
-  display: flex;
-  gap: 3px;
-  border-bottom: 1px solid var(--line);
-  margin-bottom: 18px;
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  margin-bottom: 16px;
+  background: var(--line-soft);
+  border: 1px solid var(--line);
+  border-radius: 10px;
 }
 
 .solapa {
-  padding: 10px 15px;
-  border: none;
   background: none;
+  border: none;
+  border-radius: 7px;
+  padding: 7px 14px;
+  font: 500 13.5px/1.3 'IBM Plex Sans', sans-serif;
+  color: var(--text);
   cursor: pointer;
-  font: 500 13px 'IBM Plex Sans', sans-serif;
-  color: var(--text-muted);
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
 }
 
-.solapa.activa { color: var(--accent); border-bottom-color: var(--accent); }
+/* La que no esta activa va en el color del texto y no en gris: sobre este fondo el gris no llega a contraste AA */
+.solapa:hover { background: var(--line); }
+.solapa.activa { background: var(--surface); font-weight: 600; box-shadow: var(--shadow); }
+.solapa.activa:hover { background: var(--surface); }
 
 /* ---------- MENSAJES ---------- */
 .mensajes { margin-bottom: 16px; }
+.mensajes:empty { display: none; }
 
 .mensajes .msg,
 .mensajes ul { list-style: none; margin: 0; padding: 0; }
 
 .mensajes li,
 .mensajes .msg {
-  padding: 10px 14px;
+  padding: 11px 14px 11px 13px;
   border-radius: 8px;
-  font-size: 13px;
+  border: 1px solid var(--line);
+  border-left-width: 3px;
+  background: var(--surface);
+  font-size: 13.5px;
   margin-bottom: 8px;
-  border-left: 3px solid;
 }
 
-.mensajes .error, .mensajes li.error {
-  background: var(--danger-soft); color: var(--danger); border-color: var(--danger);
-}
-
-.mensajes .info, .mensajes li.info {
-  background: var(--ok-soft); color: var(--ok); border-color: var(--ok);
-}
+.mensajes .error, .mensajes li.error { border-left-color: var(--danger); color: var(--danger); background: var(--danger-soft); border-color: transparent; border-left-color: var(--danger); }
+.mensajes .info, .mensajes li.info { border-left-color: var(--ok); color: var(--ok); background: var(--ok-soft); border-color: transparent; border-left-color: var(--ok); }
 
 /* ---------- VACIO ---------- */
 .vacio {
   text-align: center;
-  padding: 48px 20px;
+  padding: 52px 20px;
   color: var(--text-muted);
   background: var(--surface);
-  border: 1px dashed var(--line);
-  border-radius: 10px;
+  border: 1px dashed var(--trazo);
+  border-radius: 12px;
 }
 
-.vacio strong { display: block; color: var(--text); margin-bottom: 5px; font-size: 14px; }
+/* Una rueda sin rayos arriba del texto: no hay nada todavia */
+.vacio::before {
+  content: "";
+  display: block;
+  width: 40px; height: 40px;
+  margin: 0 auto 14px;
+  border: 2px dashed var(--trazo);
+  border-radius: 50%;
+}
+
+.vacio strong { display: block; color: var(--text); margin-bottom: 4px; font-size: 15px; font-weight: 600; }
 
 /* ---------- LOGIN ---------- */
 .login-pantalla {
@@ -577,25 +660,40 @@ table.tabla tr:last-child td { border-bottom: none; }
   display: grid;
   place-items: center;
   padding: 22px;
-  background: var(--bg);
+  background-color: var(--bg);
+  /* Un plato de bicicleta grande asomando por la esquina */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400' fill='none' stroke='%23287696' stroke-opacity='.16'%3E%3Ccircle cx='200' cy='200' r='178' stroke-width='22' stroke-dasharray='14 13.960'/%3E%3Ccircle cx='200' cy='200' r='150' stroke-width='3'/%3E%3Ccircle cx='200' cy='200' r='38' stroke-width='3'/%3E%3Cpath stroke-width='14' stroke-linecap='round' d='M200 62v86M319.500 131l-74.500 43M319.500 269l-74.500-43M200 338v-86M80.500 269l74.500-43M80.500 131l74.500 43'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right -150px bottom -170px;
+  background-size: 560px 560px;
 }
 
 .login-card {
   width: 100%;
-  max-width: 384px;
+  max-width: 392px;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 30px;
-  box-shadow: var(--shadow);
+  border-radius: 14px;
+  padding: 30px 30px 26px;
+  box-shadow: var(--shadow-alto);
 }
 
 .login-marca {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 22px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--line-soft);
+  display: flex; align-items: center; gap: 11px;
+  margin-bottom: 26px;
 }
+
+.login-titulo {
+  margin: 0 0 6px;
+  font: 600 22px/1.2 'IBM Plex Sans', sans-serif;
+  letter-spacing: -.02em;
+}
+
+.login-bajada { margin: 0 0 22px; color: var(--text-muted); font-size: 14px; }
+
+.login-card .form-acciones { flex-direction: column; align-items: stretch; border-top: none; padding-top: 0; margin-top: 22px; gap: 14px; }
+.login-card .form-acciones .btn { width: 100%; min-height: 40px; }
+.login-card .form-acciones .btn-enlace { text-align: center; }
 
 /* ---------- CONFIRMACION ---------- */
 .confirmacion {
@@ -603,7 +701,7 @@ table.tabla tr:last-child td { border-bottom: none; }
   padding: 44px 26px;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 14px;
   box-shadow: var(--shadow);
 }
 
@@ -620,11 +718,12 @@ table.tabla tr:last-child td { border-bottom: none; }
 .confirmacion-codigo {
   display: inline-block;
   margin: 14px 0;
-  padding: 9px 16px;
+  padding: 9px 18px;
   background: var(--surface-alt);
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  font: 500 17px 'IBM Plex Mono', monospace;
+  border: 1px dashed var(--trazo);
+  border-radius: 8px;
+  font: 600 18px 'IBM Plex Sans', sans-serif;
+  letter-spacing: .02em;
   color: var(--text);
 }
 
@@ -632,8 +731,8 @@ table.tabla tr:last-child td { border-bottom: none; }
 .resumen {
   background: var(--surface-alt);
   border: 1px solid var(--line);
-  border-radius: 9px;
-  padding: 15px;
+  border-radius: 10px;
+  padding: 6px 16px;
   margin-bottom: 18px;
 }
 
@@ -641,12 +740,42 @@ table.tabla tr:last-child td { border-bottom: none; }
   display: flex;
   justify-content: space-between;
   gap: 14px;
-  padding: 5px 0;
-  font-size: 13px;
+  padding: 9px 0;
+  font-size: 13.5px;
+  border-bottom: 1px solid var(--line-soft);
 }
 
+.resumen-fila:last-child { border-bottom: none; }
 .resumen-fila dt { color: var(--text-muted); margin: 0; }
 .resumen-fila dd { margin: 0; font-weight: 500; text-align: right; }
+
+/* ---------- SUGERENCIA DE LA IA (panel de moderacion) ---------- */
+.ia {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.btn-ia {
+  background: none;
+  border: 1px dashed var(--trazo);
+  border-radius: 8px;
+  padding: 5px 11px;
+  font: 500 12.5px/1.3 'IBM Plex Sans', sans-serif;
+  color: var(--accent);
+  cursor: pointer;
+}
+.btn-ia:hover { border-style: solid; border-color: var(--accent); background: var(--accent-soft); }
+.tema-oscuro .btn-ia { color: var(--link); }
+
+.ia-texto { font-size: 12.5px; color: var(--text-muted); flex: 1 1 220px; }
+
+.badge-ia { border: 1px solid transparent; }
+.badge-ia-aprobar  { background: var(--ok-soft); color: var(--ok); }
+.badge-ia-revisar  { background: var(--warn-soft); color: var(--warn); }
+.badge-ia-rechazar { background: var(--danger-soft); color: var(--danger); }
 
 /* =========================================================================
    RESPONSIVE
@@ -655,17 +784,17 @@ table.tabla tr:last-child td { border-bottom: none; }
 /* --- TABLET: 640-1023 --- */
 @media (max-width: 1023px) {
   .layout { grid-template-columns: 68px minmax(0, 1fr); }
-  .sidebar { padding: 18px 0; }
-  .sidebar-marca { justify-content: center; padding: 0 0 16px; }
-  .sidebar-nombre, .sidebar-sub, .nav-titulo { display: none; }
+  .sidebar { padding: 16px 0; }
+  .sidebar-marca { justify-content: center; padding: 0 0 14px; }
+  .sidebar-marca > div:last-child, .nav-titulo { display: none; }
   /* el texto del menu se oculta a la vista pero no al lector de pantalla (axe: link-name) */
   .nav span.etiqueta { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .nav { padding: 0 10px; }
+  .nav { padding: 0 10px; gap: 4px; }
   .nav a { justify-content: center; padding: 11px 0; }
   .nav-badge { position: absolute; margin: 0; transform: translate(14px, -12px); }
-  .nav a { position: relative; }
   .grilla { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .contenido { padding: 20px; }
+  .contenido { padding: 22px 20px 40px; }
+  .topbar { padding: 0 20px; }
 }
 
 /* --- CELULAR: < 640 --- */
@@ -675,17 +804,18 @@ table.tabla tr:last-child td { border-bottom: none; }
   .sidebar {
     position: fixed;
     inset: 0 auto 0 0;
-    width: 246px;
+    width: 252px;
     z-index: 60;
     transform: translateX(-100%);
     transition: transform .2s ease;
-    padding: 20px 0;
+    padding: 18px 0;
   }
 
-  .sidebar-nombre, .sidebar-sub, .nav-titulo, .nav span.etiqueta { display: inline; }
-  .nav span.etiqueta { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
-  .sidebar-marca { justify-content: flex-start; padding: 0 20px 18px; }
-  .nav a { justify-content: flex-start; padding: 10px 12px; }
+  .sidebar-marca > div:last-child { display: block; }
+  .nav-titulo { display: block; }
+  .nav span.etiqueta { display: inline; position: static; width: auto; height: auto; overflow: visible; clip: auto; }
+  .sidebar-marca { justify-content: flex-start; padding: 2px 18px 18px; }
+  .nav a { justify-content: flex-start; padding: 10px 10px; }
   .nav-badge { position: static; transform: none; margin-left: auto; }
 
   #menu:checked ~ .layout .sidebar { transform: translateX(0); }
@@ -703,63 +833,76 @@ table.tabla tr:last-child td { border-bottom: none; }
   .hamburguesa {
     display: grid;
     place-items: center;
-    width: 34px; height: 34px;
+    width: 36px; height: 36px;
     border: 1px solid var(--line);
-    border-radius: 7px;
+    border-radius: 8px;
     cursor: pointer;
     color: var(--text);
-    font-size: 16px;
+    flex-shrink: 0;
   }
+  .hamburguesa svg { width: 18px; height: 18px; stroke-width: 2; }
 
   /* a 360 px el titulo se achica con puntos suspensivos en vez de empujar la pagina de costado */
   .topbar { padding: 0 12px; height: 56px; gap: 8px; }
   .topbar-titulo { font-size: 14px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .topbar-derecha { gap: 6px; flex-shrink: 0; }
+  .topbar-derecha { gap: 4px; flex-shrink: 0; }
   .topbar-derecha .usuario-chip { display: none; }
-  .solapas { flex-wrap: wrap; }
-  .topbar-derecha .btn-tema, .topbar-derecha .btn-chico { padding: 5px 8px; font-size: 11.5px; }
-  .contenido { padding: 16px; }
+  .solapas { display: flex; flex-wrap: wrap; }
+  .solapa { flex: 1 1 auto; }
+  .topbar-derecha .btn-tema, .topbar-derecha .btn-chico { padding: 5px 8px; font-size: 12px; min-height: 30px; }
+  .contenido { padding: 18px 16px 36px; }
+  .pagina-encabezado h2 { font-size: 21px; }
   .grilla { grid-template-columns: 1fr; }
+  .card { padding: 18px 16px; }
 
   /* Las tablas pasan a tarjetas apiladas */
-  .tabla-wrap { border: none; background: none; box-shadow: none; }
+  .tabla-wrap { border: none; background: none; box-shadow: none; overflow: visible; }
   table.tabla thead { display: none; }
   table.tabla, table.tabla tbody, table.tabla tr, table.tabla td { display: block; width: 100%; }
 
   table.tabla tr {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 13px;
-    margin-bottom: 11px;
+    border-radius: 12px;
+    padding: 13px 14px;
+    margin-bottom: 12px;
     box-shadow: var(--shadow);
   }
+
+  table.tabla tbody tr:hover td { background: none; }
 
   table.tabla td {
     border: none;
     padding: 5px 0;
     display: flex;
     justify-content: space-between;
-    gap: 12px;
-    align-items: center;
+    gap: 14px;
+    align-items: baseline;
+    text-align: right;
   }
 
   /* data-etiqueta se pone en cada <td> del XHTML */
   table.tabla td::before {
     content: attr(data-etiqueta);
-    font: 500 10.5px 'IBM Plex Mono', monospace;
-    letter-spacing: .06em;
-    text-transform: uppercase;
-    color: var(--text-faint);
+    font: 500 12.5px 'IBM Plex Sans', sans-serif;
+    color: var(--text-muted);
     flex-shrink: 0;
+    text-align: left;
+    letter-spacing: 0;
   }
 
-  table.tabla td:last-child { padding-top: 11px; margin-top: 6px; border-top: 1px solid var(--line-soft); }
+  /* El texto de la resena va debajo de su etiqueta, a todo el ancho */
+  table.tabla td.celda-larga { display: block; text-align: left; }
+  table.tabla td.celda-larga::before { display: block; margin-bottom: 4px; }
+
+  table.tabla td:last-child { padding-top: 11px; margin-top: 6px; border-top: 1px solid var(--line-soft); align-items: center; }
+  .ia-texto { flex-basis: 100%; }
 
   .form-acciones { flex-direction: column; align-items: stretch; }
   .form-acciones .btn { justify-content: center; }
-  .buscador { flex-direction: column; }
-  .buscador input { max-width: none; }
+  .buscador { max-width: none; }
+  .login-pantalla { background-size: 380px 380px; background-position: right -120px bottom -130px; }
+  .login-card { padding: 26px 22px 22px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -769,22 +912,22 @@ table.tabla tr:last-child td { border-bottom: none; }
 /* Boton con pinta de link: reemplaza h:commandLink, que mete JavaScript inline y choca con la CSP */
 .btn-enlace {
   background: none; border: none; padding: 0; cursor: pointer;
-  color: var(--accent); text-decoration: underline; font: inherit;
+  color: var(--link); text-decoration: underline; text-underline-offset: 3px; font: inherit;
 }
 
 /* Antes eran estilos en linea: se pasaron a clases para sacar 'unsafe-inline' de la CSP. !important para que ganen igual que antes */
-.titulo-estado { margin:0 0 7px !important; font:600 20px 'IBM Plex Sans',sans-serif !important; }
+.titulo-estado { margin:0 0 7px !important; letter-spacing:-.02em !important; font:600 22px 'IBM Plex Sans',sans-serif !important; }
 .titulo-error { margin:0 0 8px !important; font:600 20px 'IBM Plex Sans',sans-serif !important; }
 .texto-estado { margin:0 !important; color:var(--text-muted) !important; font-size:13.5px !important; }
 .mb-20 { margin:0 0 20px !important; }
 .acciones-centro { display:flex !important; gap:9px !important; justify-content:center !important; flex-wrap:wrap !important; }
 .texto-estado-mb { margin:0 0 20px !important; color:var(--text-muted) !important; font-size:13.5px !important; }
 .acciones-fila { display:flex !important; gap:6px !important; flex-wrap:wrap !important; }
-.aviso-suave { background:var(--accent-soft) !important; padding:11px 13px !important; border-radius:7px !important; }
+.aviso-suave { background:var(--accent-soft) !important; padding:12px 14px !important; border-radius:8px !important; }
 .resena-item { padding:13px 0 !important; border-bottom:1px solid var(--line-soft) !important; }
 .contenido-angosto { max-width:520px !important; margin:60px auto !important; }
 .resena-texto { margin:7px 0 0 !important; color:var(--text-muted) !important; font-size:13px !important; }
-.campo-buscar { margin:0 !important; flex:1 !important; max-width:380px !important; }
+.campo-buscar { margin:0 !important; flex:1 !important; }
 .mb-8 { margin:0 0 8px !important; }
 .texto-chico-mb { margin:0 0 20px !important; color:var(--text-muted) !important; font-size:13px !important; }
 .mt-5 { margin-top:5px !important; }
@@ -793,7 +936,7 @@ table.tabla tr:last-child td { border-bottom: none; }
 .ml-8 { margin-left:8px !important; }
 .ml-6 { margin-left:6px !important; }
 .mb-0 { margin-bottom:0 !important; }
-.marca-login { font:600 14px 'IBM Plex Sans',sans-serif !important; }
+.marca-login { font:600 17px 'IBM Plex Sans',sans-serif !important; letter-spacing:-.01em !important; }
 .texto-135 { font-size:13.5px !important; }
 .texto-115 { font-size:11.5px !important; }
 .oculto { display:none !important; }

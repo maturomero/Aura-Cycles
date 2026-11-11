@@ -25,11 +25,14 @@
 
     <ui:fragment rendered="#{not empty productosBean.seleccionado}">
 
-      <div class="pagina-encabezado">
-        <span class="eyebrow">
-          #{productosBean.seleccionado.codigo} &#183; #{productosBean.seleccionado.categoria}
-        </span>
-        <h2>#{productosBean.seleccionado.nombre}</h2>
+      <div class="pagina-encabezado con-parte">
+        <ui:include src="/WEB-INF/parte.xhtml">
+          <ui:param name="categoria" value="#{productosBean.seleccionado.categoria}"/>
+        </ui:include>
+        <div>
+          <h2>#{productosBean.seleccionado.nombre}</h2>
+          <p>#{productosBean.seleccionado.categoria}, c&#243;digo #{productosBean.seleccionado.codigo}</p>
+        </div>
       </div>
 
       <div class="card">

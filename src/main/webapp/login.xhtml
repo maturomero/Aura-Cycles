@@ -8,7 +8,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="description" content="Aura Cycles: repuestos de bicicleta con rese&#241;as y devoluciones"/>
-  <title>Ingresar &#183; Repuestos de Bicicleta</title>
+  <title>Ingresar | Aura Cycles</title>
   <h:outputStylesheet library="css" name="app.css"/>
 </h:head>
 
@@ -17,11 +17,14 @@
     <div class="login-card">
 
       <div class="login-marca">
-        <div class="sidebar-logo">RB</div>
-        <div>
-          <div class="marca-login">Repuestos de Bicicleta</div>
-          <div class="sidebar-sub texto-tenue">Rese&#241;as y devoluciones</div>
+        <div class="sidebar-logo">
+        <svg class="marca" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+          <circle cx="16" cy="16" r="12.5" stroke-width="3.4" stroke-dasharray="2.2 1.73"/>
+          <circle cx="16" cy="16" r="3"/>
+          <path d="M16 7.500v5.500M24.100 11.300l-4.800 2.800M24.100 20.700l-4.800-2.800M16 24.500V19M7.900 20.700l4.800-2.800M7.900 11.300l4.800 2.800"/>
+        </svg>
         </div>
+        <div class="marca-login">Aura Cycles</div>
       </div>
 
       <div class="mensajes">
@@ -31,7 +34,8 @@
 
       <ui:fragment rendered="#{not loginBean.mostrandoRegistro}">
         <h:form>
-          <span class="eyebrow">Ingresar al sistema</span>
+          <h1 class="login-titulo">Ingres&#225; a tu cuenta</h1>
+          <p class="login-bajada">Tus compras, rese&#241;as y devoluciones de repuestos, en un solo lugar.</p>
 
           <div class="campo">
             <h:outputLabel for="email" value="Email"/>
@@ -57,7 +61,8 @@
 
       <ui:fragment rendered="#{loginBean.mostrandoRegistro}">
         <h:form>
-          <span class="eyebrow">Crear una cuenta</span>
+          <h1 class="login-titulo">Cre&#225; tu cuenta</h1>
+          <p class="login-bajada">Con la cuenta pod&#233;s comprar, rese&#241;ar lo que compraste y pedir devoluciones.</p>
 
           <div class="campo">
             <h:outputLabel for="nom" value="Nombre y apellido"/>

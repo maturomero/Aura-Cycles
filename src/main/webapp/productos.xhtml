@@ -13,7 +13,6 @@
   <ui:define name="contenido">
 
     <div class="pagina-encabezado">
-      <span class="eyebrow">Cat&#225;logo</span>
       <h2>Repuestos</h2>
       <p>Busc&#225; por nombre o categor&#237;a. El stock se actualiza con cada compra.</p>
     </div>
@@ -40,7 +39,12 @@
       <ui:repeat value="#{productosBean.productos}" var="p">
         <div class="producto-card">
 
-          <span class="producto-codigo">#{p.codigo} &#183; #{p.categoria}</span>
+          <div class="producto-cabecera">
+            <ui:include src="/WEB-INF/parte.xhtml">
+              <ui:param name="categoria" value="#{p.categoria}"/>
+            </ui:include>
+            <span class="producto-codigo">#{p.categoria}</span>
+          </div>
 
           <div class="producto-nombre">
             <h:link outcome="producto" value="#{p.nombre}">
@@ -63,11 +67,14 @@
           </div>
 
           <div class="producto-pie">
-            <ui:fragment rendered="#{p.stock gt 0}">
-              <span class="badge badge-aprobada">#{p.stock} en stock</span>
+            <ui:fragment rendered="#{p.stock gt 5}">
+              <span class="stock stock-ok">#{p.stock} en stock</span>
+            </ui:fragment>
+            <ui:fragment rendered="#{p.stock gt 0 and p.stock le 5}">
+              <span class="stock stock-poco">Quedan #{p.stock}</span>
             </ui:fragment>
             <ui:fragment rendered="#{p.stock le 0}">
-              <span class="badge badge-rechazada">Sin stock</span>
+              <span class="stock stock-no">Sin stock</span>
             </ui:fragment>
 
             <h:form>
