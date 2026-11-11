@@ -20,7 +20,7 @@ La primera vez tarda unos minutos (baja las imágenes y compila con Maven adentr
 | La API REST | https://localhost:8443/repuestos/api/v1 (contrato en `docs/api/openapi.yaml`) |
 | Mercado Pago simulado (modos para la demo) | http://localhost:8089/__modo |
 | Proveedor SOAP simulado (WSDL y modos) | http://localhost:8090/proveedor?wsdl · http://localhost:8090/__modo |
-| Modelo de IA simulado (modos para la demo) | http://localhost:8091/__modo |
+| Modelo de IA simulado (modos para la demo) | http://localhost:8092/__modo |
 | Consola del broker Artemis (colas y tópicos) | http://localhost:8161 |
 
 El certificado es autofirmado (lo genera WildFly), así que la primera vez el navegador avisa: "Avanzado" > "Continuar a localhost".
@@ -119,7 +119,7 @@ Fallas para mostrar en vivo:
 | Proveedor caído | http://localhost:8090/__modo?valor=error y pedir una devolución | "Validando la garantía con el proveedor". El pedido queda en `cola.validaciones` (consola de Artemis) y a los 2 minutos se reintenta; con el proveedor en `normal` pasa al moderador con RMA. A los 5 intentos sin respuesta pasa igual, marcado "Sin validar con el proveedor" |
 | Mercado Pago caído al comprar | http://localhost:8089/__modo?valor=lento (o `error`) y comprar | "Mercado Pago no responde. Te reservamos ORD-… por 30 minutos": se paga después desde Mis compras |
 | Mercado Pago caído al reembolsar | modo `error` y aprobar una devolución | Queda *Aprobada* y el broker reintenta cada 10 s. Con Mercado Pago en `normal` termina *Reembolsada*; al décimo intento el mensaje va a la DLQ |
-| IA caída, lenta o contestando cualquier cosa | http://localhost:8091/__modo?valor=error (o `lento`, `roto`) y pedir una sugerencia | "IA sin respuesta". Con `lento` tarda 5 s y corta. El moderador aprueba o rechaza como siempre |
+| IA caída, lenta o contestando cualquier cosa | http://localhost:8092/__modo?valor=error (o `lento`, `roto`) y pedir una sugerencia | "IA sin respuesta". Con `lento` tarda 5 s y corta. El moderador aprueba o rechaza como siempre |
 | Broker apagado | `docker compose stop artemis` y aprobar | "No pudimos procesarla ahora: la mensajería no responde…" y no cambia nada. Se vuelve con `docker compose start artemis` |
 
 Los modos se vuelven a `normal` con `?valor=normal`.

@@ -13,8 +13,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Modelo de IA simulado: responde POST /v1/messages con el mismo formato que el proveedor real.
  * Clasifica por palabras clave, asi la demo no depende de una clave ni de internet. Solo usa el JDK:
- *   java src/test/java/ar/edu/uade/repuestos/integracion/MockLLM.java 8091
- * Para la prueba de resiliencia: http://localhost:8091/__modo?valor=lento | error | roto | normal
+ *   java src/test/java/ar/edu/uade/repuestos/integracion/MockLLM.java 8092
+ * Para la prueba de resiliencia: http://localhost:8092/__modo?valor=lento | error | roto | normal
  */
 public class MockLLM {
 
@@ -27,7 +27,7 @@ public class MockLLM {
     private volatile String modo = "normal";
 
     public static void main(String[] args) throws IOException {
-        int puerto = args.length > 0 ? Integer.parseInt(args[0]) : 8091;
+        int puerto = args.length > 0 ? Integer.parseInt(args[0]) : 8092;
         MockLLM mock = iniciar(puerto);
         System.out.println("Modelo de IA simulado en http://localhost:" + mock.puerto());
         System.out.println("Modos: http://localhost:" + mock.puerto() + "/__modo");
