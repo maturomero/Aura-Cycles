@@ -40,7 +40,7 @@ Condiciones eliminatorias:
 |---|---|
 | Build reproducible | Listo: `docker compose up --build` |
 | Tag `v1.0-final` en `main` antes de las 08:00 del 27/11 | **Falta**: primero hay que mergear el PR a `main` |
-| Pipeline de CI en verde | Se ve cuando corra en el PR |
+| Pipeline de CI en verde | En verde en el PR #2 al 11/11; hay que mirarlo de nuevo después del merge a `main` |
 | Jira al día | Al día al 11/11 |
 | Sin secretos en el historial | Listo: gitleaks sobre todo el historial no encuentra nada |
 | Demo en vivo | Guion en el README, sección 3, y `./demo/api.sh` |
