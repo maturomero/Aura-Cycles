@@ -66,7 +66,10 @@ services:
     build: .
     environment:
       DB_PASSWORD: ${DB_PASSWORD:-aura-local}
-      MP_BASE_URL: http://mercadopago-mock:8089
+      # Mercado Pago: por defecto el simulado. Para el real van las tres juntas en un .env (ver .env.example)
+      MP_ACCESS_TOKEN: ${MP_ACCESS_TOKEN:-}
+      MP_BASE_URL: ${MP_BASE_URL:-http://mercadopago-mock:8089}
+      AURA_URL: ${AURA_URL:-https://localhost:8443/repuestos}
       PROVEEDOR_URL: http://proveedor-mock:8090/proveedor
       # IA prendida contra el modelo simulado. Para el modelo real: IA_URL=https://api.anthropic.com e IA_API_KEY en un .env
       IA_MODERACION: ${IA_MODERACION:-true}
@@ -74,7 +77,6 @@ services:
       IA_API_KEY: ${IA_API_KEY:-simulado}
       # Clave de firma de los JWT de la API. Vacia: la app genera una al arrancar
       JWT_SECRET: ${JWT_SECRET:-}
-      AURA_URL: https://localhost:8443/repuestos
       TZ: America/Argentina/Buenos_Aires
     ports:
       - "8080:8080"

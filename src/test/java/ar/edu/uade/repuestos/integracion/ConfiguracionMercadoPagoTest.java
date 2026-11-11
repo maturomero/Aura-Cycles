@@ -42,4 +42,34 @@ class ConfiguracionMercadoPagoTest {
         System.setProperty("MP_BASE_URL", "http://localhost:9090");
         assertEquals("http://localhost:9090", ConfiguracionMercadoPago.desdeEntorno().urlBase());
     }
+
+    @Test
+    void sinTokenOConTodoBienNoHayAvisos() {
+        assertTrue(ConfiguracionMercadoPago.desdeEntorno().avisos().isEmpty());
+        System.setProperty("MP_ACCESS_TOKEN", "APP_USR-123");
+        System.setProperty("AURA_URL", "https://192.168.0.15:8443/repuestos");
+        assertTrue(ConfiguracionMercadoPago.desdeEntorno().avisos().isEmpty());
+    }
+
+    // En docker MP_BASE_URL viene apuntando al simulado: con el token solo, se seguiria usando el simulado sin que se note
+    @Test
+    void conTokenPeroApuntandoAlSimuladoAvisa() {
+        System.setProperty("MP_ACCESS_TOKEN", "APP_USR-123");
+        System.setProperty("MP_BASE_URL", "http://mercadopago-mock:8089");
+        ConfiguracionMercadoPago c = ConfiguracionMercadoPago.desdeEntorno();
+        assertTrue(c.esSimulado());
+        assertEquals(1, c.avisos().size());
+        assertTrue(c.avisos().get(0).contains("MP_BASE_URL=https://api.mercadopago.com"));
+        assertFalse(c.avisos().get(0).contains("APP_USR-123"), "el token no va al log");
+    }
+
+    // Mercado Pago no acepta localhost en las URLs de vuelta: el comprador veria un error despues de pagar
+    @Test
+    void conMercadoPagoRealYLaTiendaEnLocalhostAvisa() {
+        System.setProperty("MP_ACCESS_TOKEN", "APP_USR-123");
+        ConfiguracionMercadoPago c = ConfiguracionMercadoPago.desdeEntorno();
+        assertFalse(c.esSimulado());
+        assertEquals(1, c.avisos().size());
+        assertTrue(c.avisos().get(0).contains("localhost"));
+    }
 }

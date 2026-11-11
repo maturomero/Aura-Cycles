@@ -96,7 +96,7 @@ Sirve para depurar con breakpoints. Para la demo conviene docker: el broker va a
 6. **Servidor.** `Servers → New Server → JBoss Community → WildFly`, `Add and Remove` → agregá el proyecto → `Start`.
 7. Entrá a **https://localhost:8443/repuestos** (http redirige; el certificado es autofirmado).
 
-Para usar el sandbox real de Mercado Pago en vez del simulado: en los VM arguments del servidor, `-DMP_ACCESS_TOKEN=TEST-...` (sección 6).
+Para usar Mercado Pago real con las credenciales de prueba en vez del simulado, ver la sección 6.
 
 ---
 
@@ -287,18 +287,46 @@ estado real del pago; lo que dice la URL de vuelta no se cree. Si Mercado
 Pago no responde en 5 s, la compra queda reservada 30 minutos y se puede
 pagar desde Mis compras. Las decisiones están en `docs/adr/ADR-005`.
 
-Sin token, la app usa el Mercado Pago simulado (en docker ya viene levantado).
-Para el sandbox real se configura con VM arguments del servidor en Eclipse
-(`-DMP_ACCESS_TOKEN=...`) o con variables de entorno.
+Sin configurar nada, la app usa el Mercado Pago simulado (en docker ya viene
+levantado). Es el que se muestra en la demo y el que usan los tests. En
+`http://localhost:8089/__modo` se pone lento, con error 500 o con respuestas
+rotas, para mostrar la resiliencia en vivo.
+
+**Qué le pedimos a Mercado Pago**
+
+| Para qué | Llamada | Detalle |
+|---|---|---|
+| Mandar a pagar | `POST /checkout/preferences` | Un ítem en ARS, `external_reference` (UUID de la venta), `back_urls`, `binary_mode` y vencimiento a los 30 minutos |
+| Confirmar al volver | `GET /v1/payments/{id}` | El `payment_id` de la URL de vuelta, solo si es un número |
+| Buscar pagos de una orden | `GET /v1/payments/search?external_reference=` | Por si el cliente pagó y no volvió |
+| Reembolsar | `POST /v1/payments/{id}/refunds` | `amount` (total o el 90 %) y `X-Idempotency-Key` |
+
+**Probarlo contra Mercado Pago real, con las credenciales de prueba**
+
+1. En [mercadopago.com.ar/developers](https://www.mercadopago.com.ar/developers), *Tus integraciones*, crear una aplicación de tipo Checkout Pro. La cuenta vendedora de prueba se crea sola.
+2. En la aplicación, *Credenciales de prueba*: copiar el Access Token (empieza con `APP_USR-`).
+3. En *Cuentas de prueba*, crear una cuenta **compradora** de Argentina y anotar usuario y contraseña.
+4. Buscar la IP de la máquina (`ipconfig` o `ifconfig`). Mercado Pago no acepta `localhost` en las URLs de vuelta: con localhost el comprador ve un error después de pagar.
+5. Copiar `.env.example` a `.env` y completar las tres líneas de Mercado Pago:
+   ```
+   MP_ACCESS_TOKEN=APP_USR-...
+   MP_BASE_URL=https://api.mercadopago.com
+   AURA_URL=https://192.168.0.15:8443/repuestos
+   ```
+6. `docker compose up --build`. En el log de la app tiene que salir `[MP] usando Mercado Pago real`. Si falta algo, la línea siguiente dice qué.
+7. En una ventana de incógnito, entrar a la tienda **por la misma dirección de `AURA_URL`**, comprar, y en Mercado Pago iniciar sesión con la cuenta compradora de prueba. Si pide un código por mail, son los 6 dígitos que figuran en *Cuentas de prueba*.
+8. Pagar con una tarjeta de prueba: Mastercard `5031 7557 3453 0604`, código `123`, vencimiento `11/30`, DNI `12345678`. Con el titular `APRO` el pago se aprueba y con `OTHE` se rechaza.
+9. Aprobado, Mercado Pago vuelve sola a la tienda (puede tardar hasta 40 segundos) y la orden queda Pagada. Para el reembolso: pedir la devolución de esa compra y aprobarla como moderador.
+
+Desde Eclipse es lo mismo con VM arguments del servidor: `-DMP_ACCESS_TOKEN=APP_USR-... -DAURA_URL=https://192.168.0.15:8443/repuestos`.
+
+Todos los tests y la demo corren contra el simulado. La prueba contra Mercado Pago real es manual y está en `AUR-233`.
 
 | Variable | Para qué | Por defecto |
 |---|---|---|
-| `MP_ACCESS_TOKEN` | Access Token de prueba. **Nunca en el repo** | — (usa el simulado) |
-| `MP_BASE_URL` | API de Mercado Pago o el simulado | con token `https://api.mercadopago.com`, sin token `http://localhost:8089` |
-| `AURA_URL` | Dirección de la tienda para la vuelta | `http://localhost:8080/repuestos` |
-
-En `http://localhost:8089/__modo` el simulado se pone lento, con error 500 o
-con respuestas rotas, para mostrar la resiliencia en vivo.
+| `MP_ACCESS_TOKEN` | Access Token de las credenciales de prueba. **Nunca en el repo** | vacío (usa el simulado) |
+| `MP_BASE_URL` | API de Mercado Pago o el simulado | en docker, el simulado; fuera de docker, con token `https://api.mercadopago.com` y sin token `http://localhost:8089` |
+| `AURA_URL` | Dirección de la tienda, para la vuelta desde Mercado Pago | `https://localhost:8443/repuestos` |
 
 ---
 

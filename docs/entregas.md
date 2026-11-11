@@ -49,6 +49,7 @@ Condiciones eliminatorias:
 
 Lo que falta para los ejes:
 
+- **Mercado Pago real:** todo está probado contra el simulador. Falta una corrida a mano con las credenciales de prueba y sus capturas (`AUR-233`; pasos en el README, sección 6).
 - **Sonar:** el CI ya tiene el paso, pero necesita el proyecto creado en SonarCloud y el secreto `SONAR_TOKEN` en el repo.
 - **ZAP y carga con la API:** volver a correr `seguridad/zap.sh`, `seguridad/zap-activo.sh` y `carga/correr.sh` y sumar la API al escaneo.
 - **Testing de la IA:** correr el set de 20 casos contra el modelo real y guardar el resultado.

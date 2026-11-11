@@ -36,7 +36,8 @@ import java.util.logging.Logger;
 public class ClienteMercadoPago {
 
     private static final Logger LOG = Logger.getLogger(ClienteMercadoPago.class.getName());
-    private static final DateTimeFormatter FECHA_MP = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+    // Como el ejemplo de la documentacion (2017-02-01T12:00:00.000-04:00): el offset va escrito, tambien en UTC
+    private static final DateTimeFormatter FECHA_MP = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
 
     private static final AtomicBoolean AVISADO = new AtomicBoolean();
 
@@ -48,8 +49,9 @@ public class ClienteMercadoPago {
         // Una sola vez por arranque: en la consola de Eclipse se ve contra cual Mercado Pago estamos
         if (AVISADO.compareAndSet(false, true)) {
             LOG.info(() -> config.esSimulado()
-                    ? "[MP] usando el Mercado Pago SIMULADO en " + config.urlBase() + " (no hay MP_ACCESS_TOKEN)"
-                    : "[MP] usando Mercado Pago real: " + config.urlBase());
+                    ? "[MP] usando el Mercado Pago SIMULADO en " + config.urlBase()
+                    : "[MP] usando Mercado Pago real: " + config.urlBase() + ", la vuelta es a " + config.urlApp());
+            config.avisos().forEach(aviso -> LOG.warning(() -> "[MP] " + aviso));
         }
     }
 
@@ -84,6 +86,7 @@ public class ClienteMercadoPago {
                 .add("expires", true)
                 .add("expiration_date_from", FECHA_MP.format(desde))
                 .add("expiration_date_to", FECHA_MP.format(vence));
+        // Con localhost Mercado Pago rechaza auto_return; con la IP o un dominio vuelve solo cuando el pago se aprueba
         if (!config.urlAppEsLocal()) {
             cuerpo.add("auto_return", "approved");
         }

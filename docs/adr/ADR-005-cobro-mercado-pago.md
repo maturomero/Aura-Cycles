@@ -19,7 +19,7 @@ El cobro de la compra lo resuelve Mercado Pago (acordado con el profe en lugar d
 + Recargar la vuelta, volver con el pago de otra compra o tocar `status=approved` no cambia nada (bloqueo pesimista sobre la venta al confirmar).
 + Con Mercado Pago caído la tienda sigue andando y nada queda inconsistente.
 − El stock queda reservado hasta 35 minutos si el cliente abandona.
-− Mercado Pago no acepta `localhost` en las URLs de vuelta con `auto_return`: en la demo con sandbox hay que usar la IP de la máquina (`AURA_URL`) o el cliente vuelve con el botón "Volver al sitio".
+− Mercado Pago no acepta `localhost` en las URLs de vuelta: para probar con las credenciales de prueba hay que entrar a la tienda por la IP de la máquina y ponerla en `AURA_URL`. Si queda en localhost, la app lo avisa al arrancar.
 
 ## Descartadas
 - Página propia que valida la tarjeta: solo puede chequear formato (Luhn), no si la tarjeta tiene fondos, y obliga a recibir datos de tarjeta.

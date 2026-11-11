@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
@@ -49,6 +50,21 @@ class ClienteMercadoPagoTest {
         assertEquals("http://localhost:8080/repuestos/pago.xhtml?venta=7",
                 ((Map<?, ?>) enviada.get("back_urls")).get("success"));
         assertNull(enviada.get("auto_return"), "con localhost MP no acepta auto_return");
+    }
+
+    // El formato del ejemplo de la documentacion de Mercado Pago: milisegundos y el offset escrito, nunca "Z"
+    @Test
+    void lasFechasDeVencimientoLlevanElOffsetEscrito() {
+        OffsetDateTime enUtc = OffsetDateTime.of(2030, 1, 15, 12, 0, 0, 0, ZoneOffset.UTC);
+        PreferenciaMP utc = cliente.crearPreferencia(REFERENCIA, "CUB-29-210", "Cubierta MTB 29 x 2.10", 1, PRECIO,
+                "http://localhost:8080/repuestos/pago.xhtml?venta=7", enUtc, enUtc.plusMinutes(30));
+        assertEquals("2030-01-15T12:00:00.000+00:00", mock.preferencia(utc.id()).get("expiration_date_from"));
+        assertEquals("2030-01-15T12:30:00.000+00:00", mock.preferencia(utc.id()).get("expiration_date_to"));
+
+        OffsetDateTime enBuenosAires = enUtc.withOffsetSameInstant(ZoneOffset.ofHours(-3));
+        PreferenciaMP ba = cliente.crearPreferencia(REFERENCIA, "CUB-29-210", "Cubierta MTB 29 x 2.10", 1, PRECIO,
+                "http://localhost:8080/repuestos/pago.xhtml?venta=7", enBuenosAires, enBuenosAires.plusMinutes(30));
+        assertEquals("2030-01-15T09:00:00.000-03:00", mock.preferencia(ba.id()).get("expiration_date_from"));
     }
 
     @Test
