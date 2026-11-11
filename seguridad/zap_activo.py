@@ -70,9 +70,10 @@ def ingresar(p, proxy=None):
     navegador = p.chromium.launch(proxy={"server": ZAP, "bypass": "<-loopback>"} if proxy else None)
     ctx = navegador.new_context(ignore_https_errors=True)
     page = ctx.new_page()
-    # En el CI el primer ingreso con la app recien levantada a veces vuelve al login: se reintenta y se muestra el aviso
+    # La regla de XSS por DOM abre un navegador, cierra la sesion y prueba el formulario de ingreso: a los 5 fallos
+    # el limitador bloquea la IP 5 minutos (es lo que tiene que hacer). Se espera a que se libere, no se toca la app
     aviso = ""
-    for intento in range(3):
+    for intento in range(9):
         page.goto(f"{APP}/login.xhtml")
         page.fill("input[id$='email']", email)
         page.fill("input[id$='pass']", os.environ.get("CLAVE", "Clave1234"))
@@ -82,7 +83,7 @@ def ingresar(p, proxy=None):
             return navegador, ctx, page
         aviso = " ".join(page.locator(".mensajes").inner_text().split())
         print(f"intento {intento + 1}: no entro ({aviso or 'sin aviso en la pagina'})", file=sys.stderr)
-        time.sleep(5)
+        time.sleep(45 if "Demasiados intentos" in aviso else 5)
     sys.exit(f"no pudo loguearse {email}: {aviso}")
 
 
@@ -133,11 +134,14 @@ while int(api("ascan/view/status", scanId=escaneo)["status"]) < 100:
     if not viva(sesion):
         progreso = api("ascan/view/scanProgress", scanId=escaneo)["scanProgress"][1]["HostProcess"]
         cortes.append(next((r["Plugin"][0] for r in progreso if r["Plugin"][3] not in ("Complete", "Pending", "Skipped")), "?"))
+        # En pausa mientras se vuelve a ingresar: sin sesion ZAP solo escanearia la pantalla de login
+        api("ascan/action/pause", scanId=escaneo)
         with sync_playwright() as p:
             navegador, ctx, _ = ingresar(p)
             sesion = cookie(ctx)
             navegador.close()
         usar_sesion(sesion)
+        api("ascan/action/resume", scanId=escaneo)
 while int(api("pscan/view/recordsToScan")["recordsToScan"]) > 0:
     time.sleep(2)
 minutos = (time.time() - inicio) / 60

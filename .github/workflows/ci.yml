@@ -223,7 +223,8 @@ jobs:
   zap-activo:
     name: DAST activo con sesion (${{ matrix.usuario }})
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Con margen: si el escaneo dispara el bloqueo por fuerza bruta, espera hasta que se libere (5 minutos)
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:

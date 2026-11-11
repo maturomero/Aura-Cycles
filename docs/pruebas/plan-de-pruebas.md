@@ -8,7 +8,7 @@ Primera versión para el 3er checkpoint. La versión final se cierra con el docu
 
 Las 12 historias de usuario comprometidas en el diseño (HU-01 a HU-12, `AUR-113` a `AUR-124`) y lo que piden las entregas: el State con su 409, JWT y roles, las tres integraciones (SOAP, REST y mensajería), la resiliencia y la sugerencia de IA. El detalle de qué caso cubre qué historia está en [trazabilidad.md](trazabilidad.md).
 
-Queda afuera: Mercado Pago real (se prueba contra el simulador del compose; el sandbox se probó a mano) y el envío real de emails (las notificaciones salen por log).
+Queda afuera de lo automatizado: Mercado Pago real y el envío real de emails (las notificaciones salen por log). El cobro y el reembolso se prueban contra el simulador del compose; la corrida contra Mercado Pago con las credenciales de prueba es manual y está pendiente (`AUR-233`).
 
 ## 2. Niveles y herramientas
 
@@ -60,4 +60,5 @@ Se cargan en Jira como tipo Error con la etiqueta `defecto`, con pasos para repr
 | Los E2E dependen de tiempos (broker, redirecciones) y pueden fallar de vez en cuando | Workflow `inestables.yml`: corre la suite 3 veces en paralelo |
 | El último E2E bloquea la IP 5 minutos | Va último (`test_9`); para repetir, `docker compose restart app` |
 | La IA real cuesta por llamada y no es determinística | Los tests usan el modelo simulado; el set de 20 casos contra el modelo real se corre a mano antes de la final |
+| El escaneo activo de ZAP cierra la sesión y prueba el login hasta disparar el bloqueo por fuerza bruta | El escaneo se pone en pausa, espera a que el bloqueo se libere y sigue. La app no se toca |
 | Maven Central a veces responde 502 en el CI | Un reintento del build antes de darlo por fallado |
