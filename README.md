@@ -316,11 +316,11 @@ rotas, para mostrar la resiliencia en vivo.
 6. `docker compose up --build`. En el log de la app tiene que salir `[MP] usando Mercado Pago real`. Si falta algo, la línea siguiente dice qué.
 7. En una ventana de incógnito, entrar a la tienda **por la misma dirección de `AURA_URL`**, comprar, y en Mercado Pago iniciar sesión con la cuenta compradora de prueba. Si pide un código por mail, son los 6 dígitos que figuran en *Cuentas de prueba*.
 8. Pagar con una tarjeta de prueba: Mastercard `5031 7557 3453 0604`, código `123`, vencimiento `11/30`, DNI `12345678`. Con el titular `APRO` el pago se aprueba y con `OTHE` se rechaza.
-9. Aprobado, Mercado Pago vuelve sola a la tienda (puede tardar hasta 40 segundos) y la orden queda Pagada. Para el reembolso: pedir la devolución de esa compra y aprobarla como moderador.
+9. Aprobado, Mercado Pago vuelve sola a la tienda (puede tardar hasta 40 segundos) y la orden queda Pagada. El reembolso no se puede ver contra el real: con las credenciales de prueba Mercado Pago lo rechaza (401), la devolución queda aprobada sin reembolsar y el mensaje termina en la DLQ.
 
 Desde Eclipse es lo mismo con VM arguments del servidor: `-DMP_ACCESS_TOKEN=APP_USR-... -DAURA_URL=https://192.168.0.15:8443/repuestos`.
 
-Todos los tests y la demo corren contra el simulado. La prueba contra Mercado Pago real es manual y está en `AUR-233`.
+Todos los tests y la demo corren contra el simulado. Lo que dio la prueba contra Mercado Pago real está en `docs/pruebas/mercado-pago-real.md`.
 
 | Variable | Para qué | Por defecto |
 |---|---|---|

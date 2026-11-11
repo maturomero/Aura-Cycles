@@ -11,7 +11,7 @@ Grupo 3 · exponemos 13/11 a las 09:00, 20/11 a las 10:00 y la final el 27/11 a 
 | El State devuelve 409 ante una transición inválida | `TransicionInvalidaException` → `ErroresDeLaApi` | `./demo/api.sh`, último paso: rechazar una devolución REEMBOLSADA |
 | JWT y control de acceso por rol | `api/TokensJwt`, `api/SeguridadDeLaApi`, ADR-008 | `./demo/api.sh`, pasos 1 y 4: 401 sin token o con la firma cambiada, 403 si el cliente quiere aprobar |
 | Mensajería en al menos un proceso | `topico.devoluciones` con tres suscriptores y `cola.validaciones` | Aprobar una devolución y ver en el log los tres consumidores; consola de Artemis en http://localhost:8161 |
-| Primeros tests unitarios | 389 unitarios y 20 de integración | `mvn verify` |
+| Primeros tests unitarios | 390 unitarios y 20 de integración | `mvn verify` |
 | Jira al día | Proyecto AUR | El tablero |
 | Feedback del diseño incorporado | **Falta**: anotar acá cada observación de la devolución del diseño y dónde se corrigió | |
 
@@ -49,7 +49,7 @@ Condiciones eliminatorias:
 
 Lo que falta para los ejes:
 
-- **Mercado Pago real:** todo está probado contra el simulador. Falta una corrida a mano con las credenciales de prueba y sus capturas (`AUR-233`; pasos en el README, sección 6).
+- **Mercado Pago real:** el cobro ya se probó contra el real con las credenciales de prueba (`docs/pruebas/mercado-pago-real.md`). El reembolso lo rechaza el ambiente de prueba y sigue probado solo contra el simulador. Falta la corrida con la tienda levantada y sus capturas (`AUR-233`; pasos en el README, sección 6).
 - **Sonar:** el CI ya tiene el paso, pero necesita el proyecto creado en SonarCloud y el secreto `SONAR_TOKEN` en el repo.
 - **ZAP y carga con la API:** volver a correr `seguridad/zap.sh`, `seguridad/zap-activo.sh` y `carga/correr.sh` y sumar la API al escaneo.
 - **Testing de la IA:** correr el set de 20 casos contra el modelo real y guardar el resultado.

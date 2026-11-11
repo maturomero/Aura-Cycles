@@ -188,7 +188,8 @@ public class ClienteMercadoPago {
             return null;
         }
         if (status < 200 || status >= 300) {
-            LOG.warning(() -> "[MP] " + operacion + ": HTTP " + status);
+            String dice = mensajeDeError(r.body());
+            LOG.warning(() -> "[MP] " + operacion + ": HTTP " + status + dice);
             String motivo = status == 401 || status == 403 ? "credenciales rechazadas" : "HTTP " + status;
             throw new MercadoPagoNoDisponibleException("Mercado Pago respondio con error (" + motivo + ")");
         }
@@ -196,6 +197,17 @@ public class ClienteMercadoPago {
     }
 
     // ---------- JSON ----------
+
+    // Lo que explica Mercado Pago del error, recortado y sin saltos de linea para que no ensucie el log
+    static String mensajeDeError(String cuerpo) {
+        try (JsonReader lector = Json.createReader(new StringReader(cuerpo))) {
+            String mensaje = lector.readObject().getString("message", "")
+                    .replaceAll("[^\\p{L}\\p{N} .,:_-]", " ").strip();
+            return mensaje.isEmpty() ? "" : " (" + mensaje.substring(0, Math.min(mensaje.length(), 120)) + ")";
+        } catch (RuntimeException e) {
+            return "";
+        }
+    }
 
     private static JsonValue leer(String cuerpo) {
         try (JsonReader lector = Json.createReader(new StringReader(cuerpo))) {

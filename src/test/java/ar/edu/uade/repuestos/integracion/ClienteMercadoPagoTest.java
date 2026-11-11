@@ -129,6 +129,18 @@ class ClienteMercadoPagoTest {
         assertTrue(e.getMessage().contains("credenciales"));
     }
 
+    // Asi contesto Mercado Pago real al reembolso con credenciales de prueba
+    @Test
+    void elMotivoQueDaMercadoPagoVaAlLogEnUnaSolaLinea() {
+        assertEquals(" (Unauthorized use of live credentials)", ClienteMercadoPago.mensajeDeError(
+                "{\"message\":\"Unauthorized use of live credentials\",\"error\":\"unauthorized\",\"status\":401}"));
+        assertEquals(" (linea uno  MP  falsa)", ClienteMercadoPago.mensajeDeError(
+                "{\"message\":\"linea uno\\n[MP] falsa\"}"));
+        assertEquals("", ClienteMercadoPago.mensajeDeError("<html>503</html>"));
+        assertEquals("", ClienteMercadoPago.mensajeDeError("{\"status\":500}"));
+        assertEquals(123, ClienteMercadoPago.mensajeDeError("{\"message\":\"" + "a".repeat(300) + "\"}").length());
+    }
+
     @Test
     void siMercadoPagoNoContestaCortaALos5Segundos() {
         ClienteMercadoPago real = new ClienteMercadoPago(new ConfiguracionMercadoPago(

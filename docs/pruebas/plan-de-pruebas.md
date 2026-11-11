@@ -8,7 +8,7 @@ Primera versión para el 3er checkpoint. La versión final se cierra con el docu
 
 Las 12 historias de usuario comprometidas en el diseño (HU-01 a HU-12, `AUR-113` a `AUR-124`) y lo que piden las entregas: el State con su 409, JWT y roles, las tres integraciones (SOAP, REST y mensajería), la resiliencia y la sugerencia de IA. El detalle de qué caso cubre qué historia está en [trazabilidad.md](trazabilidad.md).
 
-Queda afuera de lo automatizado: Mercado Pago real y el envío real de emails (las notificaciones salen por log). El cobro y el reembolso se prueban contra el simulador del compose; la corrida contra Mercado Pago con las credenciales de prueba es manual y está pendiente (`AUR-233`).
+Queda afuera de lo automatizado: Mercado Pago real y el envío real de emails (las notificaciones salen por log). El cobro y el reembolso se prueban contra el simulador del compose; aparte hay una corrida manual contra Mercado Pago real con las credenciales de prueba (`mercado-pago-real.md`, `AUR-233`): el cobro anduvo y el reembolso lo rechaza el ambiente de prueba.
 
 ## 2. Niveles y herramientas
 
@@ -28,7 +28,7 @@ Queda afuera de lo automatizado: Mercado Pago real y el envío real de emails (l
 
 | Qué | Umbral | Hoy |
 |---|---|---|
-| Tests | todos pasan | 389 unitarios, 20 de integración y 38 E2E pasan |
+| Tests | todos pasan | 390 unitarios, 20 de integración y 38 E2E pasan |
 | Cobertura de la capa de negocio (`negocio` y `modelo`) | 80 % de líneas y 70 % de ramas; si no, falla el build | negocio 97 % y 93 %; modelo 92 % y 97 % |
 | Cobertura de la API (`api`) | sin umbral propio | 94 % de líneas y 92 % de ramas |
 | Mutación | 60 % | 94 % (347 de 368) |
