@@ -62,7 +62,7 @@
         </dl>
 
         <div class="form-acciones">
-          <h:form>
+          <h:form rendered="#{not sesion.moderador}">
             <h:commandButton value="Comprar"
                              action="#{productosBean.comprar(productosBean.seleccionado.id)}"
                              disabled="#{productosBean.seleccionado.stock le 0}"

@@ -44,6 +44,10 @@ public class ServicioDeVentas {
 
         Usuario usuario = usuarioRepository.porId(usuarioId)
                 .orElseThrow(() -> new ReglaNegocioException("El usuario no existe."));
+        // El moderador revisa resenas y devoluciones: no es cliente
+        if (usuario.esModerador()) {
+            throw new ReglaNegocioException("Los moderadores no pueden comprar.");
+        }
 
         Producto producto = productoRepository.porIdBloqueado(productoId)
                 .orElseThrow(() -> new ReglaNegocioException("El repuesto no existe."));

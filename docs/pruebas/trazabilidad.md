@@ -10,7 +10,7 @@ Cada historia de usuario comprometida en el diseño, con sus casos de prueba y d
 | HU-02 (`AUR-114`) | Ingresar y salir | Must | CP-39, CP-40, CP-41, CP-47, CP-48, CP-50, CP-51, CP-59, CP-72, CP-73, CP-74 | `ServicioDeUsuariosTest`, `LimitadorDeIntentosTest`, `e2e/test_4_seguridad.py`, `e2e/test_9_fuerza_bruta.py` · API: `TokensJwtTest`, `SeguridadDeLaApiTest`, `AuthRecursoTest`, `e2e/test_7_api.py` | Pasa |
 | HU-03 (`AUR-115`) | Editar mi perfil y cambiar la contraseña | Should | CP-53, CP-54, CP-60, CP-61 | `ServicioDeUsuariosTest`, `e2e/test_6_cuenta_y_catalogo.py` | Pasa |
 | HU-04 (`AUR-116`) | Buscar repuestos y ver el detalle | Must | CP-46, CP-55, CP-56, CP-62 | `ServicioDeResenasYProductosTest`, `RepositoriosIT`, `e2e/test_6_cuenta_y_catalogo.py` | Pasa |
-| HU-05 (`AUR-117`) | Comprar un repuesto | Must | CP-01, CP-09, CP-10, CP-11, CP-12 | `ServicioDeVentasTest`, `VentaTest`, `RepositoriosIT`, `e2e/test_1_compra.py` | Pasa |
+| HU-05 (`AUR-117`) | Comprar un repuesto | Must | CP-01, CP-09, CP-10, CP-11, CP-12, CP-84 | `ServicioDeVentasTest`, `VentaTest`, `RepositoriosIT`, `e2e/test_1_compra.py`, `e2e/test_6_cuenta_y_catalogo.py` | Pasa |
 | HU-06 (`AUR-118`) | Pagar con Mercado Pago | Must | CP-02, CP-03, CP-04, CP-05, CP-06, CP-07, CP-08 | `ServicioDeCobrosTest`, `ServicioDeCobrosFlujoTest`, `ClienteMercadoPagoTest`, `e2e/test_1_compra.py` | Pasa |
 | HU-07 (`AUR-119`) | Ver mis compras y pagar una reserva | Should | CP-63, CP-64 | `ServicioDeCobrosTest`, `e2e/test_1_compra.py`, `e2e/test_6_cuenta_y_catalogo.py` | Pasa |
 | HU-08 (`AUR-120`) | Escribir una reseña | Should | CP-33, CP-34, CP-65, CP-81 | `ServicioDeResenasYProductosTest` · API: `ResenasRecursoTest`, `e2e/test_7_api.py` | Pasa |
@@ -19,12 +19,13 @@ Cada historia de usuario comprometida en el diseño, con sus casos de prueba y d
 | HU-11 (`AUR-123`) | Aprobar o rechazar devoluciones y reembolsar | Must | CP-13, CP-14, CP-15, CP-16, CP-17, CP-28, CP-29, CP-30, CP-31, CP-32, CP-52, CP-70, CP-71, CP-78, CP-79, CP-80 | `ServicioDeModeracionTest`, `ServicioDeReembolsosTest`, `PoliticasDeReembolsoTest`, `EstadoDevolucionTest`, `DevolucionTest`, `MensajeriaIT`, `e2e/test_2_devolucion.py`, `e2e/test_3_resiliencia.py` · API: `DevolucionesRecursoTest`, `ErroresDeLaApiTest`, `e2e/test_7_api.py` | Pasa |
 | HU-12 (`AUR-124`) | Usar la tienda en celular, tablet o computadora | Should | CP-49, CP-57 | `e2e/test_5_accesibilidad.py` (axe en 360, 768 y 1280 px) y Lighthouse a mano | Pasa |
 
-Son 12 historias y 83 casos de prueba. Ninguna historia queda sin casos y ningún caso queda sin historia.
+Son 12 historias y 84 casos de prueba. Ninguna historia queda sin casos y ningún caso queda sin historia.
 
 ## Casos agregados para la API REST y la IA
 
 | Caso | HU | Qué prueba |
 |---|---|---|
+| CP-84 | HU-05 | El moderador no compra: no ve Comprar ni Mis compras, y el servicio lo rechaza |
 | CP-72 | HU-02 | Login por la API devuelve un JWT; clave mala, 401 genérico |
 | CP-73 | HU-02 | JWT inválido (sin token, firma cambiada, payload adulterado, alg none, vencido): 401 |
 | CP-74 | HU-02 | Fuerza bruta contra el login de la API: 429 |

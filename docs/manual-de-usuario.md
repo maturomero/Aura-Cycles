@@ -62,7 +62,7 @@ Cuando el moderador la aprueba, el reembolso sale por Mercado Pago al mismo medi
 
 ## Moderador
 
-El moderador ve además **Panel** en el menú.
+El moderador ve además **Panel** en el menú. No es cliente: puede mirar el catálogo, pero no tiene el botón **Comprar** ni **Mis compras**.
 
 ### Revisar reseñas
 En **Reseñas pendientes** está la cola. En cada una:

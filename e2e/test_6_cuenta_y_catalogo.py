@@ -53,3 +53,13 @@ def test_un_repuesto_sin_resenas_aprobadas_lo_dice(abrir):
     page = abrir("ana@mail.com")
     page.goto(f"{APP}/producto.xhtml?productoId={sin}")
     assert "Todavía no hay reseñas publicadas" in page.content()
+
+
+def test_el_moderador_no_compra(abrir):
+    page = abrir("mod@mail.com")
+    page.goto(f"{APP}/productos.xhtml")
+    assert page.locator(".producto-card").count() > 0
+    assert page.locator("input[value='Comprar']").count() == 0
+    assert page.locator("nav >> text=Mis compras").count() == 0
+    page.goto(f"{APP}/producto.xhtml?productoId=1")
+    assert page.locator("input[value='Comprar']").count() == 0

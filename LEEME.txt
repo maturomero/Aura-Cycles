@@ -45,7 +45,7 @@ Cada vez que se trabaja
    todos con Clave1234.
 
 Tests desde Eclipse
-- Unitarios: clic derecho en src/test/java > Run As > JUnit Test (390, menos de un minuto; uno espera 5 s a proposito
+- Unitarios: clic derecho en src/test/java > Run As > JUnit Test (391, menos de un minuto; uno espera 5 s a proposito
   para probar el timeout de la IA).
 - Las clases que terminan en IT (RepositoriosIT, MensajeriaIT) usan Testcontainers y necesitan Docker
   abierto. Sin Docker, Eclipse las saltea solas. Con Maven: clic derecho en el proyecto > Run As >

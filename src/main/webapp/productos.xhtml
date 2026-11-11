@@ -77,7 +77,7 @@
               <span class="stock stock-no">Sin stock</span>
             </ui:fragment>
 
-            <h:form>
+            <h:form rendered="#{not sesion.moderador}">
               <h:commandButton value="Comprar"
                                action="#{productosBean.comprar(p.id)}"
                                disabled="#{p.stock le 0}"

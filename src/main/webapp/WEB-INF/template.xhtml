@@ -49,7 +49,7 @@
           <span class="etiqueta">Productos</span>
         </h:link>
 
-        <h:link outcome="compras"
+        <h:link outcome="compras" rendered="#{not sesion.moderador}"
                 styleClass="#{seccion eq 'compras' ? 'activo' : ''}">
           <svg class="nav-icono" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="M6 3.500h12v17l-3-2-3 2-3-2-3 2z"/>

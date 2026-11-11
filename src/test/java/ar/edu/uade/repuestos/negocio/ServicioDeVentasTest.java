@@ -19,6 +19,8 @@ import ar.edu.uade.repuestos.modelo.Devolucion;
 import ar.edu.uade.repuestos.modelo.EstadoVenta;
 import ar.edu.uade.repuestos.modelo.MotivoDevolucion;
 import ar.edu.uade.repuestos.modelo.Producto;
+import ar.edu.uade.repuestos.modelo.Rol;
+import ar.edu.uade.repuestos.modelo.Usuario;
 import ar.edu.uade.repuestos.modelo.Venta;
 import ar.edu.uade.repuestos.util.ReglaNegocioException;
 import java.math.BigDecimal;
@@ -61,6 +63,18 @@ class ServicioDeVentasTest {
         assertEquals(0, new BigDecimal("140400.00").compareTo(v.getImporte()));
         assertEquals(EstadoVenta.PENDIENTE_PAGO, v.getEstado());
         verify(productos).guardar(cubierta);
+    }
+
+    @Test
+    void elModeradorNoPuedeComprar() {
+        Usuario moderadora = new Usuario("mod@mail.com", "hash", "Marina Avalos", Rol.MODERADOR);
+        when(usuarios.porId(5L)).thenReturn(Optional.of(moderadora));
+
+        var e = assertThrows(ReglaNegocioException.class, () -> servicio.comprar(5L, 1L, 1));
+
+        assertTrue(e.getMessage().contains("moderadores"));
+        assertEquals(14, cubierta.getStock());
+        verify(ventas, never()).guardar(any());
     }
 
     // Borde: se puede comprar exactamente lo que queda
