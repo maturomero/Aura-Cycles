@@ -50,7 +50,7 @@ def es_problema(headers, cuerpo, status, clave):
 
 def _compra_pagada(page, usuario_id, producto_id):
     comprar(page, producto_id)
-    page.click("text=Pagar (aprobado)")
+    page.click("#pagar")
     page.wait_for_load_state()
     return int(ultima_venta(usuario_id)[0])
 

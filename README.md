@@ -105,7 +105,7 @@ Para usar Mercado Pago real con las credenciales de prueba en vez del simulado, 
 Con `docker compose up`. El orden recorre las cuatro integraciones.
 
 1. Entrá como `ana@mail.com` → **Productos** → abrí un repuesto → **Comprar**. Se crea la orden en *Pendiente de pago*, el stock baja una unidad y vas al checkout de Mercado Pago (el simulado).
-2. **Pagar (aprobado)**. Volvés a la tienda con "Pago acreditado" y la orden *Pagada*. Con **Pagar (rechazado)** en otra compra, la orden queda *Pago rechazado* y la unidad vuelve al stock.
+2. **Pagar**. La tarjeta de prueba ya viene cargada: con el titular `APRO` volvés a la tienda con "Pago acreditado" y la orden *Pagada*. Si en otra compra cambiás el titular a `OTHE`, la orden queda *Pago rechazado* y la unidad vuelve al stock. Es la misma regla que usa Mercado Pago en su ambiente de prueba.
 3. **Mis compras** → **Solicitar devolución** en la orden pagada → elegí el motivo → **Enviar solicitud**. La tienda le pide la garantía al proveedor por SOAP y la devolución queda *Pendiente de revisión* con el RMA.
 4. Cerrá sesión y entrá como `mod@mail.com` → **Panel** → **Devoluciones pendientes** → **Aprobar**. Se publica en el tópico y en la consola de la app aparecen los tres consumidores: el stock vuelve a subir, el reembolso sale por Mercado Pago y se genera el aviso al cliente. La devolución termina *Reembolsada*.
 

@@ -9,7 +9,7 @@ CARLOS = 2
 
 def _compra_pagada(page, producto_id):
     comprar(page, producto_id)
-    page.click("text=Pagar (aprobado)")
+    page.click("#pagar")
     page.wait_for_load_state()
     return ultima_venta(CARLOS)[0]
 

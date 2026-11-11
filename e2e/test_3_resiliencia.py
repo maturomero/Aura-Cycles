@@ -17,7 +17,7 @@ def _aprobar(page, codigo):
 def test_broker_apagado_no_deja_nada_a_medias_y_se_recupera_solo(abrir):
     javier = abrir("javier@mail.com")
     comprar(javier, 8)  # sillin: tiene garantia (camaras y pastillas no)
-    javier.click("text=Pagar (aprobado)")
+    javier.click("#pagar")
     javier.wait_for_load_state()
     codigo = pedir_devolucion(javier, ultima_venta(JAVIER)[0], "MEDIDA_INCORRECTA", "")
     dev = int(codigo[4:])

@@ -55,8 +55,8 @@ Tests desde Eclipse
 - Los E2E, ZAP y la carga con k6 corren contra docker compose (README, seccion 9). En el CI corren solos.
 
 Que probar
-- Comprar: te manda al checkout simulado. "Pagar (aprobado)" vuelve con la orden pagada;
-  "Pagar (rechazado)" la deja rechazada y devuelve el stock.
+- Comprar: te manda al checkout simulado, con la tarjeta de prueba cargada. "Pagar" con el titular APRO
+  vuelve con la orden pagada; con el titular OTHE la deja rechazada y devuelve el stock.
 - http://localhost:8089/__modo en "lento" o "error" y comprar: a los 5 s sale el aviso y la compra queda
   reservada. Volver a "normal" y pagarla desde Mis compras.
 - Devolucion de una compra pagada (que no sea camara ni pastillas, esas son de desgaste): el proveedor

@@ -9,7 +9,7 @@ def test_compra_aprobada_queda_pagada_y_descuenta_stock(abrir):
     antes = stock(3)
     comprar(page, 3)
     assert page.url.startswith(MP + "/checkout")
-    page.click("text=Pagar (aprobado)")
+    page.click("#pagar")
     page.wait_for_load_state()
     assert "Pago acreditado" in page.content()
     _, estado, pago = ultima_venta(LUCIA)
@@ -23,7 +23,8 @@ def test_compra_rechazada_devuelve_el_stock(abrir):
     page = abrir("lucia@mail.com")
     antes = stock(3)
     comprar(page, 3)
-    page.click("text=Pagar (rechazado)")
+    page.fill("#titular", "OTHE")
+    page.click("#pagar")
     page.wait_for_load_state()
     assert "rechazado" in page.content()
     assert ultima_venta(LUCIA)[1] == "RECHAZADA"
@@ -41,7 +42,7 @@ def test_mercado_pago_caido_reserva_y_se_paga_despues(abrir):
     page.goto(f"{APP}/compras.xhtml")
     page.click("input[value='Pagar'] >> nth=0")
     page.wait_for_load_state()
-    page.click("text=Pagar (aprobado)")
+    page.click("#pagar")
     page.wait_for_load_state()
     assert ultima_venta(LUCIA)[1] == "PAGADA"
 
