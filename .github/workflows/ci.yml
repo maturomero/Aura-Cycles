@@ -124,7 +124,8 @@ jobs:
       - name: Playwright
         run: |
           pip install -r e2e/requirements.txt
-          python -m playwright install --with-deps chromium
+          # Lo unico que baja --with-deps en este runner son fuentes: si apt no llega a Ubuntu, se sigue sin ellas
+          python -m playwright install --with-deps chromium || python -m playwright install chromium
 
       - name: Esperar a que la app responda
         run: |
@@ -196,7 +197,8 @@ jobs:
       - name: Playwright (para loguearse antes del escaneo)
         run: |
           pip install -r e2e/requirements.txt
-          python -m playwright install --with-deps chromium
+          # Lo unico que baja --with-deps en este runner son fuentes: si apt no llega a Ubuntu, se sigue sin ellas
+          python -m playwright install --with-deps chromium || python -m playwright install chromium
 
       - name: Esperar a que la app responda
         run: |
@@ -246,7 +248,8 @@ jobs:
       - name: Playwright (recorre la app a traves de ZAP)
         run: |
           pip install -r e2e/requirements.txt
-          python -m playwright install --with-deps chromium
+          # Lo unico que baja --with-deps en este runner son fuentes: si apt no llega a Ubuntu, se sigue sin ellas
+          python -m playwright install --with-deps chromium || python -m playwright install chromium
 
       - name: Esperar a que la app responda
         run: |
