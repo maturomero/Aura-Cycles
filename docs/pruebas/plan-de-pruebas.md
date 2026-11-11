@@ -14,7 +14,7 @@ Queda afuera de lo automatizado: Mercado Pago real y el envío real de emails (l
 
 | Nivel | Qué cubre | Con qué | Cuántos | Cómo se corre |
 |---|---|---|---|---|
-| Unitario | Reglas de negocio, el State, las políticas de reembolso, los clientes de integración contra simuladores, la API REST con la capa de negocio mockeada | JUnit 5 y Mockito | 385 | `mvn test` |
+| Unitario | Reglas de negocio, el State, las políticas de reembolso, los clientes de integración contra simuladores, la API REST con la capa de negocio mockeada | JUnit 5 y Mockito | 389 | `mvn test` |
 | Integración | Repositorios contra MySQL real y mensajería contra Artemis real | Testcontainers | 20 | `mvn verify` (con Docker) |
 | Punta a punta | Los flujos completos por las pantallas y por la API, con todo levantado | Playwright y pytest | 38 | `docker compose up -d --build` y `cd e2e && pytest` |
 | Accesibilidad | WCAG 2 A y AA en 360, 768 y 1280 px | axe | 3 (6 pantallas cada uno) | dentro de los E2E |
@@ -28,7 +28,7 @@ Queda afuera de lo automatizado: Mercado Pago real y el envío real de emails (l
 
 | Qué | Umbral | Hoy |
 |---|---|---|
-| Tests | todos pasan | 385 unitarios, 20 de integración y 38 E2E pasan |
+| Tests | todos pasan | 389 unitarios, 20 de integración y 38 E2E pasan |
 | Cobertura de la capa de negocio (`negocio` y `modelo`) | 80 % de líneas y 70 % de ramas; si no, falla el build | negocio 97 % y 93 %; modelo 92 % y 97 % |
 | Cobertura de la API (`api`) | sin umbral propio | 94 % de líneas y 92 % de ramas |
 | Mutación | 60 % | 94 % (347 de 368) |

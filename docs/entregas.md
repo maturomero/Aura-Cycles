@@ -11,7 +11,7 @@ Grupo 3 · exponemos 13/11 a las 09:00, 20/11 a las 10:00 y la final el 27/11 a 
 | El State devuelve 409 ante una transición inválida | `TransicionInvalidaException` → `ErroresDeLaApi` | `./demo/api.sh`, último paso: rechazar una devolución REEMBOLSADA |
 | JWT y control de acceso por rol | `api/TokensJwt`, `api/SeguridadDeLaApi`, ADR-008 | `./demo/api.sh`, pasos 1 y 4: 401 sin token o con la firma cambiada, 403 si el cliente quiere aprobar |
 | Mensajería en al menos un proceso | `topico.devoluciones` con tres suscriptores y `cola.validaciones` | Aprobar una devolución y ver en el log los tres consumidores; consola de Artemis en http://localhost:8161 |
-| Primeros tests unitarios | 385 unitarios y 20 de integración | `mvn verify` |
+| Primeros tests unitarios | 389 unitarios y 20 de integración | `mvn verify` |
 | Jira al día | Proyecto AUR | El tablero |
 | Feedback del diseño incorporado | **Falta**: anotar acá cada observación de la devolución del diseño y dónde se corrigió | |
 
