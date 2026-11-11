@@ -22,7 +22,6 @@
     <ui:fragment rendered="#{sesion.moderador}">
 
       <div class="pagina-encabezado">
-        <span class="eyebrow">Colas pendientes</span>
         <h2>Panel de moderaci&#243;n</h2>
         <p>Resolv&#233; rese&#241;as y devoluciones. Aprobar una devoluci&#243;n emite el reembolso y repone el stock.</p>
       </div>
@@ -69,8 +68,26 @@
                       <td data-etiqueta="Puntaje" class="estrellas">
                         <h:outputText value="#{moderacionBean.estrellas(r.puntaje)}"/>
                       </td>
-                      <td data-etiqueta="Rese&#241;a" class="celda-tenue">
+                      <td data-etiqueta="Rese&#241;a" class="celda-tenue celda-larga">
+                        <div>
                         <strong>#{r.titulo}</strong><br/>#{r.texto}
+                        <div class="ia">
+                          <ui:fragment rendered="#{empty moderacionBean.sugerencia(r.id)}">
+                            <h:commandButton value="Pedir sugerencia a la IA"
+                                             action="#{moderacionBean.pedirSugerencia(r.id)}"
+                                             styleClass="btn-ia"/>
+                          </ui:fragment>
+                          <ui:fragment rendered="#{not empty moderacionBean.sugerencia(r.id) and moderacionBean.sugerencia(r.id).conIA()}">
+                            <span class="badge badge-ia badge-ia-#{moderacionBean.sugerencia(r.id).sugerencia().toLowerCase()}">La IA sugiere #{moderacionBean.sugerencia(r.id).sugerencia().toLowerCase()}</span>
+                            <span class="ia-texto">#{moderacionBean.sugerencia(r.id).explicacion()}
+                              Confianza #{moderacionBean.sugerencia(r.id).porcentaje()}%. Decid&#237;s vos.</span>
+                          </ui:fragment>
+                          <ui:fragment rendered="#{not empty moderacionBean.sugerencia(r.id) and not moderacionBean.sugerencia(r.id).conIA()}">
+                            <span class="badge badge-neutro">IA sin respuesta</span>
+                            <span class="ia-texto">El asistente no contest&#243;. Revisala como siempre.</span>
+                          </ui:fragment>
+                        </div>
+                        </div>
                       </td>
                       <td data-etiqueta="Acciones">
                         <div class="acciones-fila">

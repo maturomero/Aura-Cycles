@@ -1,6 +1,7 @@
 # Aura Cycles completo con un solo comando:  docker compose up --build
 # App en https://localhost:8443/repuestos (http://localhost:8080 redirige). Certificado autofirmado: el navegador avisa la primera vez
-# Mercado Pago simulado en http://localhost:8089/__modo  y proveedor SOAP simulado en http://localhost:8090/__modo
+# Mercado Pago simulado en http://localhost:8089/__modo, proveedor SOAP simulado en http://localhost:8090/__modo
+# y modelo de IA simulado en http://localhost:8091/__modo. La API REST queda en https://localhost:8443/repuestos/api/v1
 # DB_PASSWORD es la clave de la base local del contenedor (no se publica afuera de docker). Se puede cambiar con un .env
 
 services:
@@ -51,12 +52,27 @@ services:
     ports:
       - "8090:8090"
 
+  # Modelo de IA simulado: clasifica por palabras clave, para la demo sin clave ni internet
+  ia-mock:
+    image: eclipse-temurin:21-jdk
+    command: ["java", "/mock/MockLLM.java", "8091"]
+    volumes:
+      - ./src/test/java/ar/edu/uade/repuestos/integracion:/mock:ro
+    ports:
+      - "8091:8091"
+
   app:
     build: .
     environment:
       DB_PASSWORD: ${DB_PASSWORD:-aura-local}
       MP_BASE_URL: http://mercadopago-mock:8089
       PROVEEDOR_URL: http://proveedor-mock:8090/proveedor
+      # IA prendida contra el modelo simulado. Para el modelo real: IA_URL=https://api.anthropic.com e IA_API_KEY en un .env
+      IA_MODERACION: ${IA_MODERACION:-true}
+      IA_URL: ${IA_URL:-http://ia-mock:8091}
+      IA_API_KEY: ${IA_API_KEY:-simulado}
+      # Clave de firma de los JWT de la API. Vacia: la app genera una al arrancar
+      JWT_SECRET: ${JWT_SECRET:-}
       AURA_URL: https://localhost:8443/repuestos
       TZ: America/Argentina/Buenos_Aires
     ports:
@@ -70,4 +86,6 @@ services:
       mercadopago-mock:
         condition: service_started
       proveedor-mock:
+        condition: service_started
+      ia-mock:
         condition: service_started

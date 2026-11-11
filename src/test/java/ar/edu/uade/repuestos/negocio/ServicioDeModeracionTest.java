@@ -12,6 +12,8 @@ import static org.mockito.Mockito.when;
 
 import ar.edu.uade.repuestos.datos.DevolucionRepository;
 import ar.edu.uade.repuestos.datos.ResenaRepository;
+import ar.edu.uade.repuestos.integracion.AIGateway;
+import ar.edu.uade.repuestos.integracion.SugerenciaIA;
 import ar.edu.uade.repuestos.modelo.Devolucion;
 import ar.edu.uade.repuestos.modelo.EstadoDevolucion;
 import ar.edu.uade.repuestos.modelo.EstadoResena;
@@ -19,6 +21,7 @@ import ar.edu.uade.repuestos.modelo.EstadoVenta;
 import ar.edu.uade.repuestos.modelo.MotivoDevolucion;
 import ar.edu.uade.repuestos.modelo.Resena;
 import ar.edu.uade.repuestos.util.MensajeriaNoDisponibleException;
+import ar.edu.uade.repuestos.util.NoExisteException;
 import ar.edu.uade.repuestos.util.ReglaNegocioException;
 import ar.edu.uade.repuestos.util.TransicionInvalidaException;
 import jakarta.annotation.security.RolesAllowed;
@@ -50,6 +53,7 @@ class ServicioDeModeracionTest {
     @Mock DevolucionRepository devoluciones;
     @Mock ServicioDeReembolsos reembolsos;
     @Mock ServicioDeNotificaciones notificaciones;
+    @Mock AIGateway ia;
     @Mock JMSContext jms;
     @Mock JMSProducer productor;
     @Mock Topic topico;
@@ -160,5 +164,28 @@ class ServicioDeModeracionTest {
         when(devoluciones.porEstado(EstadoDevolucion.PENDIENTE)).thenReturn(List.of(devolucion));
         assertEquals(List.of(r), servicio.resenasPendientes());
         assertEquals(List.of(devolucion), servicio.devolucionesPendientes());
+    }
+
+    // La IA solo sugiere: pedir la sugerencia no cambia la resena ni avisa nada
+    @Test
+    void pedirLaSugerenciaDeLaIANoCambiaNada() {
+        Resena resena = org.mockito.Mockito.mock(Resena.class);
+        SugerenciaIA sugerencia = new SugerenciaIA("RECHAZAR", "OFENSIVA", "Tiene insultos.", 0.93);
+        when(resenas.porId(4L)).thenReturn(Optional.of(resena));
+        when(ia.sugerir(resena)).thenReturn(sugerencia);
+
+        assertEquals(sugerencia, servicio.sugerirParaResena(4L));
+
+        verify(resena, never()).aprobar();
+        verify(resena, never()).rechazar(any());
+        verify(resenas, never()).guardar(any());
+        verify(notificaciones, never()).resenaResuelta(any());
+    }
+
+    @Test
+    void noHaySugerenciaParaUnaResenaQueNoExiste() {
+        when(resenas.porId(99L)).thenReturn(Optional.empty());
+        assertThrows(NoExisteException.class, () -> servicio.sugerirParaResena(99L));
+        verify(ia, never()).sugerir(any());
     }
 }

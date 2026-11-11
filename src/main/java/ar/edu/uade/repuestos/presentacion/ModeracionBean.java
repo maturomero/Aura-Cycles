@@ -1,5 +1,6 @@
 package ar.edu.uade.repuestos.presentacion;
 
+import ar.edu.uade.repuestos.integracion.SugerenciaIA;
 import ar.edu.uade.repuestos.modelo.Devolucion;
 import ar.edu.uade.repuestos.modelo.Resena;
 import ar.edu.uade.repuestos.negocio.ServicioDeModeracion;
@@ -11,7 +12,9 @@ import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 @Named("moderacionBean")
@@ -29,6 +32,9 @@ public class ModeracionBean implements Serializable {
     private String solapa = "resenas";
     private String motivoRechazo;
 
+    // Sugerencias ya pedidas en esta vista, por id de resena
+    private final Map<Long, SugerenciaIA> sugerencias = new HashMap<>();
+
     @PostConstruct
     public void cargar() {
         try {
@@ -37,6 +43,21 @@ public class ModeracionBean implements Serializable {
         } catch (EJBAccessException e) {
             Mensajes.error("No tenes permiso para ver el panel de moderacion.");
         }
+    }
+
+    // Se pide de a una y a mano: la IA no corre sola sobre toda la cola
+    public void pedirSugerencia(Long id) {
+        try {
+            sugerencias.put(id, servicioDeModeracion.sugerirParaResena(id));
+        } catch (EJBAccessException e) {
+            Mensajes.error("No tenes permiso para hacer esa operacion.");
+        } catch (ReglaNegocioException e) {
+            Mensajes.error(e.getMessage());
+        }
+    }
+
+    public SugerenciaIA sugerencia(Long id) {
+        return sugerencias.get(id);
     }
 
     public void aprobarResena(Long id) {

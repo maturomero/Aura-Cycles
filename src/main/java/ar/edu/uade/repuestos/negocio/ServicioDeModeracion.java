@@ -2,11 +2,14 @@ package ar.edu.uade.repuestos.negocio;
 
 import ar.edu.uade.repuestos.datos.DevolucionRepository;
 import ar.edu.uade.repuestos.datos.ResenaRepository;
+import ar.edu.uade.repuestos.integracion.AIGateway;
+import ar.edu.uade.repuestos.integracion.SugerenciaIA;
 import ar.edu.uade.repuestos.modelo.Devolucion;
 import ar.edu.uade.repuestos.modelo.EstadoDevolucion;
 import ar.edu.uade.repuestos.modelo.EstadoResena;
 import ar.edu.uade.repuestos.modelo.Resena;
 import ar.edu.uade.repuestos.util.MensajeriaNoDisponibleException;
+import ar.edu.uade.repuestos.util.NoExisteException;
 import ar.edu.uade.repuestos.util.ReglaNegocioException;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -51,6 +54,9 @@ public class ServicioDeModeracion {
     private ServicioDeNotificaciones servicioDeNotificaciones;
 
     @Inject
+    private AIGateway aiGateway;
+
+    @Inject
     private JMSContext jms;
 
     @Resource(lookup = TOPICO_DEVOLUCIONES)
@@ -77,6 +83,16 @@ public class ServicioDeModeracion {
     @RolesAllowed("MODERADOR")
     public List<Devolucion> devolucionesPendientes() {
         return devolucionRepository.porEstado(EstadoDevolucion.PENDIENTE);
+    }
+
+    // La IA solo sugiere: aprobar o rechazar lo sigue decidiendo el moderador.
+    // Sin transaccion: la llamada al modelo puede tardar 5 s y no tiene que retener una conexion a la base
+    @RolesAllowed("MODERADOR")
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    public SugerenciaIA sugerirParaResena(Long resenaId) {
+        Resena resena = resenaRepository.porId(resenaId)
+                .orElseThrow(() -> new NoExisteException("La resena no existe."));
+        return aiGateway.sugerir(resena);
     }
 
     @RolesAllowed("MODERADOR")

@@ -10,7 +10,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
-// Messages API del proveedor. La clave sale de IA_API_KEY (nunca en el repo); sin clave, falla y el gateway usa el fallback
+// Messages API del proveedor. La clave sale de IA_API_KEY (nunca en el repo); sin clave, falla y el gateway usa el fallback.
+// Con IA_URL apuntando al MockLLM se usa el modelo simulado (asi viene en docker compose)
 @Dependent
 public class ClienteLLMHttp implements ClienteLLM {
 
