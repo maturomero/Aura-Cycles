@@ -12,8 +12,8 @@ with sync_playwright() as p:
     page.goto(f"{APP}/login.xhtml")
     page.fill("input[id$='email']", sys.argv[1])
     page.fill("input[id$='pass']", os.environ.get("CLAVE", "Clave1234"))
-    page.click("input[value='Ingresar']")
-    page.wait_for_load_state()
+    with page.expect_navigation(timeout=60_000):
+        page.click("input[value='Ingresar']")
     if "login.xhtml" in page.url:
         sys.exit("no pudo loguearse " + sys.argv[1])
     print(next(c["value"] for c in ctx.cookies() if c["name"] == "JSESSIONID"))

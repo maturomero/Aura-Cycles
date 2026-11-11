@@ -73,7 +73,9 @@ def ingresar(p, proxy=None):
     page.goto(f"{APP}/login.xhtml")
     page.fill("input[id$='email']", email)
     page.fill("input[id$='pass']", os.environ.get("CLAVE", "Clave1234"))
-    clic(page, "input[value='Ingresar']")
+    # Se espera la navegacion del login y no solo "load": a veces el chequeo de abajo corria antes de la redireccion
+    with page.expect_navigation(timeout=60_000):
+        page.locator("input[value='Ingresar']").click()
     if "login.xhtml" in page.url:
         sys.exit("no pudo loguearse " + email)
     return navegador, ctx, page
