@@ -33,8 +33,8 @@ Queda afuera: Mercado Pago real (se prueba contra el simulador del compose; el s
 | Cobertura de la API (`api`) | sin umbral propio | 94 % de líneas y 92 % de ramas |
 | Mutación | 60 % | 94 % (347 de 368) |
 | SpotBugs | 0 hallazgos sin justificar | 0 |
-| ZAP | 0 High y cada Medium justificado | pendiente de volver a correr con la API |
-| Carga | p95 menor a 500 ms y menos de 1 % de errores | pendiente de volver a correr con la API |
+| ZAP | 0 High y cada Medium justificado | pasa en el CI sobre las pantallas (pasivo y activo); falta sumar la API al escaneo |
+| Carga | p95 menor a 500 ms y menos de 1 % de errores | pendiente de volver a correr en esta rama |
 | Defectos | ninguno Bloqueante ni Crítico abierto | 21 encontrados (DEF-01 a DEF-21), todos cerrados |
 
 Los números de "Hoy" son de la corrida del 11/11 sobre la rama `entrega-2`. Las pantallas JSF (`presentacion`) no entran en la cobertura unitaria: se prueban de punta a punta.
