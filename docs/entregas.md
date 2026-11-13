@@ -13,7 +13,7 @@ Grupo 3 · exponemos 13/11 a las 09:00, 20/11 a las 10:00 y la final el 27/11 a 
 | Mensajería en al menos un proceso | `topico.devoluciones` con tres suscriptores y `cola.validaciones` | Aprobar una devolución y ver en el log los tres consumidores; consola de Artemis en http://localhost:8161 |
 | Primeros tests unitarios | 391 unitarios y 20 de integración | `mvn verify` |
 | Jira al día | Proyecto AUR | El tablero |
-| Feedback del diseño incorporado | **Falta**: anotar acá cada observación de la devolución del diseño y dónde se corrigió | |
+| Feedback del diseño incorporado | Al 12/11 no tenemos la devolución del diseño. Cuando llegue, se anota acá cada observación y dónde se corrigió (`AUR-214`) | |
 
 Guion sugerido para los 30 minutos: levantar (ya levantado antes de entrar), recorrido por las pantallas (5 min), `./demo/api.sh` explicando cada paso (8 min), código del State y de los patrones (7 min), tests y Jira (5 min), preguntas.
 
