@@ -103,7 +103,7 @@ class ValidadorDeGarantiasTest {
                 .thenThrow(new GarantiaNoValidaException("FUERA_DE_PLAZO"));
         validador.reintentar(4L);
         assertEquals(EstadoDevolucion.RECHAZADA, pendiente.getEstado());
-        verify(notificaciones).devolucionResuelta(pendiente);
+        verify(notificaciones).avisarResolucion(pendiente);
         verifyNoInteractions(jms);
     }
 

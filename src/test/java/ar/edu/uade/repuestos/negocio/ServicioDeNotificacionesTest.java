@@ -61,4 +61,17 @@ class ServicioDeNotificacionesTest {
         assertTrue(lineas.get(2).contains("46800.00"));
         assertTrue(lineas.get(3).contains("RES-000003"));
     }
+
+    @Test
+    void elAvisoDeLaResolucionSaleUnaSolaVez() {
+        Devolucion d = Datos.devolucion(4L, Datos.venta(10L, Datos.ana(), 1, EstadoVenta.PAGADA), MotivoDevolucion.DEFECTUOSO);
+
+        assertTrue(servicio.avisarResolucion(d));
+        assertFalse(servicio.avisarResolucion(d));
+
+        assertEquals(2, lineas.size());
+        assertTrue(lineas.get(0).contains("DEV-000004"));
+        assertTrue(lineas.get(1).contains("ya avisada"));
+        assertTrue(d.isResolucionAvisada());
+    }
 }

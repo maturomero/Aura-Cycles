@@ -27,6 +27,16 @@ public class ServicioDeNotificaciones {
             enmascararEmail(cliente.getEmail()), devolucion.getCodigo(), devolucion.getEstado()));
     }
 
+    // Consumidor idempotente: si el broker reentrega el evento, el cliente no recibe dos avisos
+    public boolean avisarResolucion(Devolucion devolucion) {
+        if (!devolucion.marcarResolucionAvisada()) {
+            LOG.info(() -> "[NOTIFICACION] " + devolucion.getCodigo() + " ya avisada, mensaje repetido");
+            return false;
+        }
+        devolucionResuelta(devolucion);
+        return true;
+    }
+
     public void reembolsoEmitido(Devolucion devolucion) {
         Usuario cliente = devolucion.getVenta().getUsuario();
         LOG.info(() -> String.format(

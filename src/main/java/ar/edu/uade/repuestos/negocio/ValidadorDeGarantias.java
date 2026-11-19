@@ -87,7 +87,7 @@ public class ValidadorDeGarantias {
             LOG.info(() -> "[GARANTIA] " + d.getCodigo() + " validada (" + d.getRma() + "), pasa al moderador");
         } catch (GarantiaNoValidaException e) {
             d.garantiaRechazada();
-            servicioDeNotificaciones.devolucionResuelta(d);
+            servicioDeNotificaciones.avisarResolucion(d);
             LOG.info(() -> "[GARANTIA] " + d.getCodigo() + " rechazada por el proveedor (" + e.getCodigo() + ")");
         } catch (ProveedorNoDisponibleException e) {
             if (d.validacionFallida(MAX_INTENTOS)) {

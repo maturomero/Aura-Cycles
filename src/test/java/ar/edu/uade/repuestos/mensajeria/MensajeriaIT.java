@@ -114,7 +114,7 @@ class MensajeriaIT {
         ServicioDeVentas ventas = mock(ServicioDeVentas.class);
         Devolucion d = new Devolucion();
         d.setId(33L);
-        when(repo.porId(33L)).thenReturn(Optional.of(d));
+        when(repo.porIdBloqueado(33L)).thenReturn(Optional.of(d));
         StockMDB mdb = new StockMDB();
         inyectar(mdb, "devolucionRepository", repo);
         inyectar(mdb, "servicioDeVentas", ventas);
@@ -134,7 +134,7 @@ class MensajeriaIT {
 
         DevolucionRepository repo = mock(DevolucionRepository.class);
         ServicioDeReembolsos reembolsos = mock(ServicioDeReembolsos.class);
-        when(repo.porId(404L)).thenReturn(Optional.empty());
+        when(repo.porIdBloqueado(404L)).thenReturn(Optional.empty());
         ReembolsosMDB mdb = new ReembolsosMDB();
         inyectar(mdb, "devolucionRepository", repo);
         inyectar(mdb, "servicioDeReembolsos", reembolsos);
@@ -154,14 +154,37 @@ class MensajeriaIT {
         DevolucionRepository repo = mock(DevolucionRepository.class);
         ServicioDeNotificaciones avisos = mock(ServicioDeNotificaciones.class);
         Devolucion d = new Devolucion();
-        when(repo.porId(55L)).thenReturn(Optional.of(d));
+        when(repo.porIdBloqueado(55L)).thenReturn(Optional.of(d));
         NotificacionesMDB mdb = new NotificacionesMDB();
         inyectar(mdb, "devolucionRepository", repo);
         inyectar(mdb, "servicioDeNotificaciones", avisos);
 
         mdb.onMessage(m);
 
-        verify(avisos).devolucionResuelta(d);
+        verify(avisos).avisarResolucion(d);
+    }
+
+    // El broker reentrega el mismo mensaje (por ejemplo, despues de un rollback): el cliente recibe un solo aviso
+    @Test
+    void notificacionesMdbConElMensajeRepetidoAvisaUnaSolaVez() throws Exception {
+        Session s = conexion.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        MessageConsumer c = s.createDurableSubscriber(topico, "notif-repetido");
+        publicar(56, "APROBADA");
+        Message m = c.receive(5000);
+
+        DevolucionRepository repo = mock(DevolucionRepository.class);
+        ServicioDeNotificaciones avisos = org.mockito.Mockito.spy(new ServicioDeNotificaciones());
+        Devolucion d = new Devolucion();
+        org.mockito.Mockito.doNothing().when(avisos).devolucionResuelta(d);
+        when(repo.porIdBloqueado(56L)).thenReturn(Optional.of(d));
+        NotificacionesMDB mdb = new NotificacionesMDB();
+        inyectar(mdb, "devolucionRepository", repo);
+        inyectar(mdb, "servicioDeNotificaciones", avisos);
+
+        mdb.onMessage(m);
+        mdb.onMessage(m);
+
+        verify(avisos, org.mockito.Mockito.times(1)).devolucionResuelta(d);
     }
 
     // Un mensaje que falla siempre (por ejemplo, Mercado Pago caido) se reintenta N veces y termina en la DLQ,

@@ -58,6 +58,10 @@ public class Devolucion implements Serializable {
     @Column(name = "stock_repuesto", nullable = false)
     private boolean stockRepuesto;
 
+    // Lo mismo para el aviso al cliente: sale una sola vez aunque el mensaje llegue repetido
+    @Column(name = "resolucion_avisada", nullable = false)
+    private boolean resolucionAvisada;
+
     @Column(name = "fecha_solicitud", nullable = false)
     private LocalDateTime fechaSolicitud;
 
@@ -150,6 +154,18 @@ public class Devolucion implements Serializable {
         stockRepuesto = true;
         return true;
     }
+
+    // Devuelve false si al cliente ya se le aviso
+    public boolean marcarResolucionAvisada() {
+        if (resolucionAvisada) {
+            return false;
+        }
+        resolucionAvisada = true;
+        return true;
+    }
+
+    public boolean isResolucionAvisada() { return resolucionAvisada; }
+    public void setResolucionAvisada(boolean resolucionAvisada) { this.resolucionAvisada = resolucionAvisada; }
 
     public boolean isStockRepuesto() { return stockRepuesto; }
     public void setStockRepuesto(boolean stockRepuesto) { this.stockRepuesto = stockRepuesto; }
