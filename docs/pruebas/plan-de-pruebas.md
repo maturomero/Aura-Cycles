@@ -1,6 +1,6 @@
 # Plan de pruebas
 
-Versión 1 · 11/11/2026 · Grupo 3 (García, Espinel, Ariotti, Oubiña, Romero)
+Versión 1.1 · 19/11/2026 · Grupo 3 (García, Espinel, Ariotti, Oubiña, Romero)
 
 Primera versión para el 3er checkpoint. La versión final se cierra con el documento de Criterios de Testing de la cátedra.
 
@@ -14,11 +14,11 @@ Queda afuera de lo automatizado: Mercado Pago real y el envío real de emails (l
 
 | Nivel | Qué cubre | Con qué | Cuántos | Cómo se corre |
 |---|---|---|---|---|
-| Unitario | Reglas de negocio, el State, las políticas de reembolso, los clientes de integración contra simuladores, la API REST con la capa de negocio mockeada | JUnit 5 y Mockito | 389 | `mvn test` |
-| Integración | Repositorios contra MySQL real y mensajería contra Artemis real | Testcontainers | 20 | `mvn verify` (con Docker) |
-| Punta a punta | Los flujos completos por las pantallas y por la API, con todo levantado | Playwright y pytest | 38 | `docker compose up -d --build` y `cd e2e && pytest` |
+| Unitario | Reglas de negocio, el State, las políticas de reembolso, los clientes de integración contra simuladores, la API REST con la capa de negocio mockeada | JUnit 5 y Mockito | 392 | `mvn test` |
+| Integración | Repositorios contra MySQL real y mensajería contra Artemis real | Testcontainers | 21 | `mvn verify` (con Docker) |
+| Punta a punta | Los flujos completos por las pantallas y por la API, con todo levantado | Playwright y pytest | 40 | `docker compose up -d --build` y `cd e2e && pytest` |
 | Accesibilidad | WCAG 2 A y AA en 360, 768 y 1280 px | axe | 3 (6 pantallas cada uno) | dentro de los E2E |
-| Mutación | Que los tests del dominio detecten cambios en el código | PIT | 368 mutantes | `mvn test-compile org.pitest:pitest-maven:mutationCoverage` |
+| Mutación | Que los tests del dominio detecten cambios en el código | PIT | 377 mutantes | `mvn test-compile org.pitest:pitest-maven:mutationCoverage` |
 | Estático | Bugs y fallas de seguridad en el código | SpotBugs con FindSecBugs | | `mvn compile spotbugs:check` |
 | Seguridad dinámica | La app corriendo, sin sesión y logueado como cliente y como moderador | OWASP ZAP pasivo y activo | | `seguridad/zap.sh` y `seguridad/zap-activo.sh` |
 | Carga | 50 usuarios durante 5 minutos | k6 | | `carga/correr.sh` |
@@ -28,16 +28,16 @@ Queda afuera de lo automatizado: Mercado Pago real y el envío real de emails (l
 
 | Qué | Umbral | Hoy |
 |---|---|---|
-| Tests | todos pasan | 391 unitarios, 20 de integración y 39 E2E pasan |
+| Tests | todos pasan | 392 unitarios, 21 de integración y 40 E2E pasan |
 | Cobertura de la capa de negocio (`negocio` y `modelo`) | 80 % de líneas y 70 % de ramas; si no, falla el build | negocio 97 % y 93 %; modelo 92 % y 97 % |
 | Cobertura de la API (`api`) | sin umbral propio | 94 % de líneas y 92 % de ramas |
-| Mutación | 60 % | 94 % (347 de 368) |
+| Mutación | 60 % | 94 % (355 de 377) |
 | SpotBugs | 0 hallazgos sin justificar | 0 |
 | ZAP | 0 High y cada Medium justificado | pasa en el CI sobre las pantallas (pasivo y activo); falta sumar la API al escaneo |
 | Carga | p95 menor a 500 ms y menos de 1 % de errores | pendiente de volver a correr en esta rama |
-| Defectos | ninguno Bloqueante ni Crítico abierto | 21 encontrados (DEF-01 a DEF-21), todos cerrados |
+| Defectos | ninguno Bloqueante ni Crítico abierto | 22 encontrados (DEF-01 a DEF-22), todos cerrados |
 
-Los números de "Hoy" son de la corrida del 11/11 sobre la rama `entrega-2`. Las pantallas JSF (`presentacion`) no entran en la cobertura unitaria: se prueban de punta a punta.
+Los números de "Hoy" son de la corrida del CI del 19/11 sobre la rama `checkpoint-3` (PR #3). Las pantallas JSF (`presentacion`) no entran en la cobertura unitaria: se prueban de punta a punta.
 
 ## 4. Ambiente
 
