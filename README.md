@@ -33,7 +33,7 @@ Con todo levantado, el recorrido de la API (JWT, roles, Idempotency-Key, ETag y 
 ./demo/api.sh
 ```
 
-Qué levanta: WildFly 37 con la app, MySQL 8.4 con `sql/schema.sql`, el broker Artemis aparte (así se puede apagar en la demo) y los tres sistemas externos simulados (Mercado Pago, el proveedor y el modelo de IA). Si cambiaste código: `docker compose up --build` de nuevo. Para empezar de cero: `docker compose down -v`.
+Qué levanta: WildFly 37 con la app, MySQL 8.4 con `sql/schema.sql`, el broker Artemis aparte (así se puede apagar en la demo) y los tres sistemas externos simulados (Mercado Pago, el proveedor y el modelo de IA). Si cambiaste código: `docker compose up --build` de nuevo. Si lo tenías levantado de la 2.ª entrega, corré antes `docker compose down`: la base suma una columna (`resolucion_avisada`). Para empezar de cero, con el broker vacío incluido: `docker compose down -v`.
 
 Arquitectura en capas sobre Jakarta EE 10:
 
@@ -121,6 +121,7 @@ Fallas para mostrar en vivo:
 | Mercado Pago caído al reembolsar | modo `error` y aprobar una devolución | Queda *Aprobada* y el broker reintenta cada 10 s. Con Mercado Pago en `normal` termina *Reembolsada*; al décimo intento el mensaje va a la DLQ |
 | IA caída, lenta o contestando cualquier cosa | http://localhost:8092/__modo?valor=error (o `lento`, `roto`) y pedir una sugerencia | "IA sin respuesta". Con `lento` tarda 5 s y corta. El moderador aprueba o rechaza como siempre |
 | Broker apagado | `docker compose stop artemis` y aprobar | "No pudimos procesarla ahora: la mensajería no responde…" y no cambia nada. Se vuelve con `docker compose start artemis` |
+| Broker apagado con un reembolso pendiente | Mercado Pago en `error`, aprobar, `docker compose stop artemis`, Mercado Pago en `normal` y `docker compose start artemis` | El mensaje del reembolso no se pierde: está en el journal del broker (volumen `artemis-datos`). Al volver, el broker lo reentrega y la devolución termina *Reembolsada*, con el stock repuesto y el aviso enviado una sola vez |
 
 Los modos se vuelven a `normal` con `?valor=normal`.
 

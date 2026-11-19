@@ -1,6 +1,6 @@
 # Manual de usuario
 
-Versión 1 · 11/11/2026 · Aura Cycles, repuestos de bicicleta
+Versión 1.1 · 19/11/2026 · Aura Cycles, repuestos de bicicleta
 
 La tienda se usa desde el navegador, en la computadora o en el celular. Hay dos tipos de usuario: el **cliente**, que compra, reseña y pide devoluciones, y el **moderador**, que revisa reseñas y resuelve devoluciones.
 
@@ -81,6 +81,8 @@ Una devolución marcada **Sin validar con el proveedor** es una que el proveedor
 
 Si al aprobar aparece "la mensajería no responde", no se cambió nada. Probá de nuevo en un rato.
 
+Si una devolución aprobada se queda en **Aprobada** y no pasa a **Reembolsada**, Mercado Pago no contestó al hacer el reembolso. No hay que aprobarla de nuevo: el sistema lo reintenta solo cada 10 segundos, y al cliente no le llega un segundo aviso.
+
 ## Si algo sale mal
 
 | Mensaje | Qué hacer |
@@ -88,6 +90,7 @@ Si al aprobar aparece "la mensajería no responde", no se cambió nada. Probá d
 | "Demasiados intentos fallidos" | Esperar 5 minutos |
 | "No pudimos abrir la solicitud" | El plazo de 30 días venció, la compra no está pagada o ya tiene una devolución |
 | "Mercado Pago no responde" | La compra quedó reservada: pagala desde Mis compras dentro de los 30 minutos |
+| Una devolución sigue en "Aprobada" después de varios minutos | Mercado Pago no responde. Se reintenta sola; si después de 10 intentos sigue igual, avisar al administrador para que la reprocese |
 | "No pudimos mostrar esa página" | Volver al inicio. Si se repite, avisar al administrador |
 
 ## Para integrar otro sistema
