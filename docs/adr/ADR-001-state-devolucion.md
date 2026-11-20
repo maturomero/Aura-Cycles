@@ -4,7 +4,7 @@
 **Patrón:** GoF de comportamiento
 
 ## Contexto
-Una devolución pasa por PENDIENTE, APROBADA o RECHAZADA y, cuando se emite el reembolso, REEMBOLSADA. Antes, las reglas de qué se podía hacer en cada estado estaban sueltas en ServicioDeModeracion con ifs (`exigirPendiente`). Para la Entrega 4 se suma un estado nuevo, PENDIENTE_VALIDACION, cuando el SOAP del proveedor no contesta.
+Una devolución pasa por PENDIENTE, APROBADA o RECHAZADA y, cuando se emite el reembolso, REEMBOLSADA. Antes, las reglas de qué se podía hacer en cada estado estaban sueltas en ServicioDeModeracion con ifs (`exigirPendiente`). En la 2.ª entrega se suma un estado nuevo, PENDIENTE_VALIDACION, cuando el SOAP del proveedor no contesta.
 
 ## Decisión
 La interfaz `TransicionesDeDevolucion` define aprobar, rechazar y reembolsar, y por defecto las rechaza con `TransicionInvalidaException`. El enum `EstadoDevolucion` la implementa y cada estado habilita solo sus transiciones. `Devolucion` no pregunta en qué estado está: delega (`estado = estado.aprobar()`).

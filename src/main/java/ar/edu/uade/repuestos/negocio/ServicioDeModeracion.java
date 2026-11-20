@@ -26,6 +26,7 @@ import jakarta.jms.Topic;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 // Fachada del panel de moderacion. La autorizacion la aplica el contenedor, no un if.
@@ -38,6 +39,11 @@ import java.util.logging.Logger;
 public class ServicioDeModeracion {
 
     public static final String TOPICO_DEVOLUCIONES = "java:/jms/topic/devoluciones";
+
+    // Version del formato del evento. Si cambia el contenido del mensaje se sube, y un consumidor viejo
+    // puede distinguir uno nuevo. Va como propiedad JMS, junto con el estado que usan los selectores
+    public static final String PROPIEDAD_VERSION = "version";
+    public static final String VERSION_EVENTO = "1";
 
     private static final Logger LOG = Logger.getLogger(ServicioDeModeracion.class.getName());
 
@@ -135,17 +141,23 @@ public class ServicioDeModeracion {
         publicar(devolucion);
     }
 
-    // Sale recien cuando la transaccion confirma: si algo falla, no se publica nada
+    // Sale recien cuando la transaccion confirma: si algo falla, no se publica nada.
+    // El correlationId es uno por evento y lo loguean el que publica y los tres consumidores:
+    // buscandolo en el server.log se sigue la aprobacion de punta a punta
     private void publicar(Devolucion devolucion) {
+        String correlationId = UUID.randomUUID().toString();
         try {
             jms.createProducer()
                .setProperty("estado", devolucion.getEstado().name())
+               .setProperty(PROPIEDAD_VERSION, VERSION_EVENTO)
+               .setJMSCorrelationID(correlationId)
                .send(topicoDevoluciones, Map.<String, Object>of("idDevolucion", devolucion.getId()));
         } catch (JMSRuntimeException e) {
             LOG.warning(() -> "[TOPICO] broker no disponible, " + devolucion.getCodigo() + " vuelve atras");
             throw new MensajeriaNoDisponibleException(e);
         }
-        LOG.info(() -> "[TOPICO] publicada " + devolucion.getCodigo() + " " + devolucion.getEstado());
+        LOG.info(() -> "[TOPICO] publicada " + devolucion.getCodigo() + " " + devolucion.getEstado()
+                + " v" + VERSION_EVENTO + " correlationId=" + correlationId);
     }
 
     private Resena buscarResena(Long id) {
