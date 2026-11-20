@@ -47,7 +47,7 @@ Usuarios de prueba: `ana`, `carlos`, `lucia` y `javier` (clientes) y `mod` (mode
 
 ## 5. Quién prueba qué
 
-La revisión de los tests por integrante está en [../REVISION.md](../REVISION.md). Cada uno corre los suyos, rompe el código una vez para ver que el test falla y sube su commit.
+Cada integrante prueba su área: Valen la seguridad de las pantallas y el JWT de la API; Lautaro los repositorios, la mensajería, el State y la resiliencia del broker; Fran el SOAP, ventas, reseñas, usuarios y la IA; Matías Mercado Pago, la API, los E2E, ZAP, la carga y el CI; Ariotti el plan de pruebas, la matriz de trazabilidad y el manual. Cada uno corre los suyos y rompe el código una vez para ver que el test falla.
 
 ## 6. Defectos
 

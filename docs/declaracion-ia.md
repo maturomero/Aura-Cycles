@@ -19,7 +19,7 @@ Lo usamos mucho y lo decimos así. Con asistencia de IA se generó:
 
 - Elegir el dominio, el alcance y el stack, y las decisiones que están en los ADR: qué es stateful, por qué un tópico y por qué una cola, cobrar con Mercado Pago, qué quedaba afuera.
 - Decirle a la IA qué no hacer cuando proponía cosas de más. El criterio acordado con la cátedra fue implementar solo lo que el problema necesita.
-- Leer, correr y probar lo generado. Cada integrante revisa los tests de su parte, los hace fallar a propósito y sube su commit (ver [REVISION.md](REVISION.md)).
+- Leer, correr y probar lo generado. Cada integrante revisa los tests de su parte y los hace fallar a propósito para ver que detectan el error (plan de pruebas, sección 5).
 - Los bocetos de las pantallas y el Figma.
 
 ## Qué no afirmamos

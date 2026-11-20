@@ -62,5 +62,5 @@ Lo que falta para los ejes:
 - **Sonar:** el CI ya tiene el paso, pero necesita el proyecto creado en SonarCloud y el secreto `SONAR_TOKEN` en el repo.
 - **ZAP y carga con la API:** volver a correr `seguridad/zap.sh`, `seguridad/zap-activo.sh` y `carga/correr.sh` y sumar la API al escaneo.
 - **Testing de la IA:** correr el set de 20 casos contra el modelo real y guardar el resultado.
-- **Defensa individual:** cada uno con lo suyo de `docs/REVISION.md`.
+- **Defensa individual:** cada uno con su área (plan de pruebas, sección 5).
 - Leer completo el PDF de Criterios de Testing y revisar los umbrales contra `docs/pruebas/plan-de-pruebas.md`.
