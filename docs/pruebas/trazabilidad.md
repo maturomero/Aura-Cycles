@@ -2,7 +2,7 @@
 
 Versión 1.1 · 19/11/2026 · Grupo 3
 
-Cada historia de usuario comprometida en el diseño, con sus casos de prueba y dónde están automatizados. Las HU y los casos son los del Jira (proyecto AUR): cada caso es una subtarea de su historia. CP-01 a CP-71 son `AUR-125` a `AUR-195`; los de la API y la IA, CP-72 a CP-83, se agregaron para la 2.ª entrega y son `AUR-221` a `AUR-232`. CP-84 es `AUR-235` y CP-85, del 3er checkpoint, es `AUR-239`.
+Cada historia de usuario comprometida en el diseño, con sus casos de prueba y dónde están automatizados. Las HU y los casos son los del Jira (proyecto AUR): cada caso es una subtarea de su historia. CP-01 a CP-71 son `AUR-125` a `AUR-195`; los de la API y la IA, CP-72 a CP-83, se agregaron para la 2.ª entrega y son `AUR-221` a `AUR-232`. CP-84 es `AUR-235` y CP-85, del 3er checkpoint, es `AUR-239`. CP-86 a CP-90 salen de las correcciones de la 2.ª entrega (20/11).
 
 | HU | Historia | MoSCoW | Casos de prueba | Tests automatizados | Estado |
 |---|---|---|---|---|---|
@@ -15,11 +15,19 @@ Cada historia de usuario comprometida en el diseño, con sus casos de prueba y d
 | HU-07 (`AUR-119`) | Ver mis compras y pagar una reserva | Should | CP-63, CP-64 | `ServicioDeCobrosTest`, `e2e/test_1_compra.py`, `e2e/test_6_cuenta_y_catalogo.py` | Pasa |
 | HU-08 (`AUR-120`) | Escribir una reseña | Should | CP-33, CP-34, CP-65, CP-81 | `ServicioDeResenasYProductosTest` · API: `ResenasRecursoTest`, `e2e/test_7_api.py` | Pasa |
 | HU-09 (`AUR-121`) | Moderar reseñas | Should | CP-35, CP-43, CP-44, CP-66, CP-67, CP-82 | `ServicioDeModeracionTest`, `e2e/test_4_seguridad.py` · IA: `AIGatewayTest`, `ClienteLLMHttpTest` | Pasa |
-| HU-10 (`AUR-122`) | Pedir una devolución | Must | CP-18, CP-19, CP-20, CP-21, CP-22, CP-23, CP-24, CP-25, CP-26, CP-27, CP-42, CP-68, CP-69, CP-75, CP-76, CP-77, CP-83 | `ServicioDeDevolucionesTest`, `ValidadorDeGarantiasTest`, `ClienteProveedorTest`, `ContratoWsdlTest`, `e2e/test_2_devolucion.py` · API: `ServicioDeSolicitudesTest`, `DevolucionesRecursoTest`, `CuerpoTest`, `RepositoriosIT`, `e2e/test_7_api.py` | Pasa |
-| HU-11 (`AUR-123`) | Aprobar o rechazar devoluciones y reembolsar | Must | CP-13, CP-14, CP-15, CP-16, CP-17, CP-28, CP-29, CP-30, CP-31, CP-32, CP-52, CP-70, CP-71, CP-78, CP-79, CP-80, CP-85 | `ServicioDeModeracionTest`, `ServicioDeReembolsosTest`, `PoliticasDeReembolsoTest`, `EstadoDevolucionTest`, `DevolucionTest`, `MensajeriaIT`, `e2e/test_2_devolucion.py`, `e2e/test_3_resiliencia.py` · API: `DevolucionesRecursoTest`, `ErroresDeLaApiTest`, `e2e/test_7_api.py` | Pasa |
+| HU-10 (`AUR-122`) | Pedir una devolución | Must | CP-18, CP-19, CP-20, CP-21, CP-22, CP-23, CP-24, CP-25, CP-26, CP-27, CP-42, CP-68, CP-69, CP-75, CP-76, CP-77, CP-83, CP-87 | `ServicioDeDevolucionesTest`, `ValidadorDeGarantiasTest`, `ClienteProveedorTest`, `CircuitoDelProveedorTest`, `ContratoWsdlTest`, `e2e/test_2_devolucion.py` · API: `ServicioDeSolicitudesTest`, `DevolucionesRecursoTest`, `CuerpoTest`, `RepositoriosIT`, `e2e/test_7_api.py` | Pasa |
+| HU-11 (`AUR-123`) | Aprobar o rechazar devoluciones y reembolsar | Must | CP-13, CP-14, CP-15, CP-16, CP-17, CP-28, CP-29, CP-30, CP-31, CP-32, CP-52, CP-70, CP-71, CP-78, CP-79, CP-80, CP-85, CP-86 | `ServicioDeModeracionTest`, `EventoDevolucionTest`, `ServicioDeReembolsosTest`, `PoliticasDeReembolsoTest`, `EstadoDevolucionTest`, `DevolucionTest`, `MensajeriaIT`, `e2e/test_2_devolucion.py`, `e2e/test_3_resiliencia.py` · API: `DevolucionesRecursoTest`, `ErroresDeLaApiTest`, `e2e/test_7_api.py` | Pasa |
 | HU-12 (`AUR-124`) | Usar la tienda en celular, tablet o computadora | Should | CP-49, CP-57 | `e2e/test_5_accesibilidad.py` (axe en 360, 768 y 1280 px) y Lighthouse a mano | Pasa |
 
-Son 12 historias y 85 casos de prueba. Ninguna historia queda sin casos y ningún caso queda sin historia.
+Además hay tres casos transversales, que no son de una historia sino del sistema entero:
+
+| Caso | Qué prueba | Tests automatizados | Estado |
+|---|---|---|---|
+| CP-88 | `GET /api/v1/salud`: 200 con la base y el broker arriba; 503 con el broker apagado, diciendo cuál falla | `ServicioDeSaludTest`, `SaludRecursoTest`, `e2e/test_8_contrato.py`, colección Postman | Pasa |
+| CP-89 | Cada respuesta real de la API cumple el contrato `docs/api/openapi.yaml`, y cada endpoint tiene un caso de éxito y uno de error | `e2e/test_8_contrato.py`, colección Postman con Newman | Pasa |
+| CP-90 | La base se arma con migraciones versionadas (V1 a V4) y una base vieja se toma como V4 sin perder datos | `RepositoriosIT` (Flyway contra MySQL real), servicio `flyway` del compose | Pasa |
+
+Son 12 historias y 90 casos de prueba. Ninguna historia queda sin casos.
 
 ## Casos agregados para la API REST y la IA
 
@@ -38,6 +46,8 @@ Son 12 historias y 85 casos de prueba. Ninguna historia queda sin casos y ningú
 | CP-78 | HU-11 | El cliente no puede resolver ni el moderador solicitar: 403 (BFLA) |
 | CP-79 | HU-11 | ETag: 304 con If-None-Match, 428 sin If-Match, 412 con ETag viejo |
 | CP-80 | HU-11 | Transición que el State no permite por la API: 409 en Problem Details |
+| CP-86 | HU-11 | El evento de la devolución sale con versión y correlationId, y los tres consumidores lo loguean |
+| CP-87 | HU-10 | Con 3 fallas seguidas del proveedor el circuito se abre: la devolución queda pendiente al instante y a los 30 s se vuelve a probar |
 | CP-85 | HU-11 | Con un reembolso pendiente se apaga y se prende el broker: el mensaje no se pierde y la devolución termina Reembolsada, con un solo aviso |
 
 ## Requisitos de las entregas que no son historias
