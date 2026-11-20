@@ -14,13 +14,32 @@ services:
       MYSQL_USER: aura
       MYSQL_PASSWORD: ${DB_PASSWORD:-aura-local}
       TZ: America/Argentina/Buenos_Aires
-    volumes:
-      - ./sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    # El esquema ya no se carga aca: lo crea el servicio flyway con las migraciones de sql/migraciones.
+    # Por TCP y no por socket: asi el chequeo no da OK con el servidor temporal del arranque
     healthcheck:
-      test: ["CMD-SHELL", "mysql -uaura -p\"$$MYSQL_PASSWORD\" -e 'SELECT 1 FROM repuestos_bici.venta LIMIT 1' >/dev/null 2>&1"]
+      test: ["CMD-SHELL", "mysql -h127.0.0.1 -uaura -p\"$$MYSQL_PASSWORD\" -e 'SELECT 1' >/dev/null 2>&1"]
       interval: 3s
       timeout: 3s
       retries: 60
+
+  # Migraciones versionadas (V1, V2, ...). Corre una vez, aplica las que falten y termina.
+  # Si la base ya existia de antes (cargada con el viejo schema.sql) la toma como V4 y no toca nada
+  flyway:
+    image: flyway/flyway:11
+    command: ["migrate"]
+    environment:
+      FLYWAY_URL: jdbc:mysql://mysql:3306/repuestos_bici?allowPublicKeyRetrieval=true&useSSL=false
+      FLYWAY_USER: aura
+      FLYWAY_PASSWORD: ${DB_PASSWORD:-aura-local}
+      FLYWAY_LOCATIONS: filesystem:/flyway/sql
+      FLYWAY_BASELINE_ON_MIGRATE: "true"
+      FLYWAY_BASELINE_VERSION: "4"
+      FLYWAY_CONNECT_RETRIES: "30"
+    volumes:
+      - ./sql/migraciones:/flyway/sql:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
 
   artemis:
     image: apache/activemq-artemis:2.42.0
@@ -84,8 +103,8 @@ services:
       - "8080:8080"
       - "8443:8443"
     depends_on:
-      mysql:
-        condition: service_healthy
+      flyway:
+        condition: service_completed_successfully
       artemis:
         condition: service_started
       mercadopago-mock:

@@ -1,0 +1,79 @@
+-- V4: datos de prueba (usuarios, repuestos, compras, resenas y una devolucion)
+-- Migracion versionada: la aplica Flyway (servicio flyway del docker-compose o mvn flyway:migrate).
+-- No editar una migracion ya aplicada: cualquier cambio va en una V nueva.
+
+-- =========================================================================
+--  DATOS DE PRUEBA
+--  Todos los usuarios tienen la contrasena: Clave1234
+--  Los hashes se generaron con ar.edu.uade.repuestos.util.GeneradorHash,
+--  cada uno con su propio salt (por eso son distintos entre si).
+-- =========================================================================
+
+INSERT INTO usuario (email, password_hash, nombre, rol) VALUES
+('ana@mail.com', '$2a$12$jN983Xpe0k6NFs11Jcqu3uAaCW8xf6jMQeI0SUG76HCvcHSLQcQiG', 'Ana Torres',      'CLIENTE'),
+('carlos@mail.com', '$2a$12$6IZyKmMIIWGtncwsNwoBE.l9Fl8eguy6uCEX1ezy5g.t6BiWpQPwa', 'Carlos Duarte',   'CLIENTE'),
+('lucia@mail.com', '$2a$12$fPBbEvBHd/1.963uAmGwqOs9..GVRGQ0z2KNLzoVNtinvl/ThDwA6', 'Lucia Ferreyra',  'CLIENTE'),
+('javier@mail.com', '$2a$12$BrTzd8yL4FObwKpctmK.DeFaO.CbUAwd2qXpAKSFVi9c4IzT/6.8i', 'Javier Pereyra',  'CLIENTE'),
+('mod@mail.com', '$2a$12$30aRUWsIp6/Cb/JpL/mlS.31EwkF7/ux1kX0rL0ChXTKhW4TXZ5Ju', 'Marina Avalos',   'MODERADOR');
+
+INSERT INTO producto (codigo, nombre, categoria, descripcion, precio, stock) VALUES
+('CUB-29-210', 'Cubierta MTB 29 x 2.10',        'Cubiertas',
+ 'Cubierta rodado 29 con taco medio para uso mixto, tanto en tierra compactada como en asfalto.', 46800.00, 14),
+
+('CAS-1134-9', 'Cassette 11-34T 9 velocidades', 'Transmision',
+ 'Cassette de 9 velocidades con desarrollo amplio, ideal para subidas exigentes.', 58700.00, 7),
+
+('CAD-HG53-9', 'Cadena Shimano HG-53 9v',       'Transmision',
+ 'Cadena de 9 velocidades con tratamiento antioxido. Incluye pin de union.', 23400.00, 22),
+
+('PAS-DISC-01','Pastillas de freno a disco',    'Frenos',
+ 'Juego de pastillas organicas para freno a disco. Buena mordida en humedo.', 9200.00, 40),
+
+('DES-M370',   'Desviador trasero Altus M370',  'Transmision',
+ 'Desviador trasero de 9 velocidades, jaula media. Cambios precisos y buen desarrollo.', 71500.00, 5),
+
+('CAM-29-PRE', 'Camara 29 valvula presta',      'Cubiertas',
+ 'Camara de aire rodado 29 con valvula presta de 48 mm.', 7800.00, 55),
+
+('MAZ-DEL-32', 'Maza delantera 32 rayos',       'Ruedas',
+ 'Maza delantera de aluminio, 32 rayos, eje solido de 9 mm.', 34900.00, 9),
+
+('SIL-COMF-1', 'Sillin comfort con gel',        'Contacto',
+ 'Sillin ancho con relleno de gel, pensado para uso urbano y paseos largos.', 18600.00, 18);
+
+-- Compras: mezcla de recientes (devolvibles) y viejas (fuera de los 30 dias).
+-- Son anteriores a Mercado Pago: quedan PAGADA y sin mp_pago_id, asi que su reembolso es manual.
+INSERT INTO venta (usuario_id, producto_id, cantidad, importe, fecha, estado, referencia_pago) VALUES
+(1, 1, 1,  46800.00, DATE_SUB(NOW(), INTERVAL  4 DAY), 'PAGADA', UUID()),   -- Ana, cubierta       -> devolvible
+(1, 4, 2,  18400.00, DATE_SUB(NOW(), INTERVAL 12 DAY), 'PAGADA', UUID()),   -- Ana, pastillas      -> devolvible
+(2, 3, 1,  23400.00, DATE_SUB(NOW(), INTERVAL  6 DAY), 'PAGADA', UUID()),   -- Carlos, cadena      -> devolvible
+(2, 5, 1,  71500.00, DATE_SUB(NOW(), INTERVAL 45 DAY), 'PAGADA', UUID()),   -- Carlos, desviador   -> VENCIDO
+(3, 2, 1,  58700.00, DATE_SUB(NOW(), INTERVAL  9 DAY), 'PAGADA', UUID()),   -- Lucia, cassette     -> devolvible
+(3, 6, 3,  23400.00, DATE_SUB(NOW(), INTERVAL  2 DAY), 'PAGADA', UUID()),   -- Lucia, camaras      -> devolvible
+(4, 5, 1,  71500.00, DATE_SUB(NOW(), INTERVAL 15 DAY), 'PAGADA', UUID()),   -- Javier, desviador   -> devolvible
+(4, 8, 1,  18600.00, DATE_SUB(NOW(), INTERVAL 20 DAY), 'PAGADA', UUID());   -- Javier, sillin      -> devolvible
+
+-- Resenas: dos aprobadas (se ven en la pantalla de producto) y dos
+-- pendientes (aparecen en la cola del panel de moderacion)
+INSERT INTO resena (usuario_id, producto_id, puntaje, titulo, texto, estado, fecha) VALUES
+(1, 1, 5, 'Excelente agarre',
+ 'La use en tierra y en asfalto. En mojado responde mucho mejor de lo que esperaba.',
+ 'APROBADA', DATE_SUB(NOW(), INTERVAL 3 DAY)),
+
+(3, 2, 4, 'Buen desarrollo',
+ 'Cambios precisos, buen desarrollo para subidas. El montaje me llevo un rato.',
+ 'APROBADA', DATE_SUB(NOW(), INTERVAL 7 DAY)),
+
+(2, 3, 4, 'Cumple sin problemas',
+ 'Cadena firme, el pin de union viene incluido y entro sin herramienta especial.',
+ 'PENDIENTE', DATE_SUB(NOW(), INTERVAL 1 DAY)),
+
+(4, 8, 2, 'Mas duro de lo que esperaba',
+ 'El gel se siente poco. Para salidas de mas de una hora me resulto incomodo.',
+ 'PENDIENTE', NOW());
+
+-- Devoluciones: una pendiente para probar el panel de moderacion
+INSERT INTO devolucion (venta_id, motivo, comentario, estado, rma, fecha_solicitud) VALUES
+(7, 'NO_COMPATIBLE',
+ 'Lo pedi para una bici de 8 velocidades y es de 9. No entra en el patin.',
+ 'PENDIENTE', 'RMA-2026-00001', DATE_SUB(NOW(), INTERVAL 1 DAY));
