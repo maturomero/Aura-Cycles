@@ -1,7 +1,7 @@
 # Etapa 1: compila el WAR y baja el driver de MySQL
 FROM maven:3.9.11-eclipse-temurin-21 AS build
 WORKDIR /src
-COPY pom.xml .
+COPY pom.xml checkstyle.xml ./
 RUN mvn -q -B dependency:go-offline
 COPY src src
 RUN mvn -q -B package -DskipTests \
