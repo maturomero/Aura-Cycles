@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+        "https://checkstyle.org/dtds/configuration_1_3.dtd">
+<!-- Estilo del grupo (Q2). Lo aplica maven-checkstyle-plugin en validate: si algo no cumple, el build falla.
+     Reglas pocas y claras: las que ya seguiamos a mano, ahora exigidas. El IDE formatea igual con .editorconfig -->
+<module name="Checker">
+  <property name="charset" value="UTF-8"/>
+  <property name="severity" value="error"/>
+  <property name="fileExtensions" value="java"/>
+
+  <module name="FileTabCharacter"/>
+  <module name="NewlineAtEndOfFile"/>
+  <module name="RegexpSingleline">
+    <property name="format" value="\s+$"/>
+    <property name="message" value="Espacios al final de la linea"/>
+  </module>
+  <module name="LineLength">
+    <property name="max" value="160"/>
+  </module>
+
+  <module name="TreeWalker">
+    <!-- Imports -->
+    <!-- Las entidades JPA usan jakarta.persistence.* a proposito: son 15 anotaciones del mismo paquete -->
+    <module name="AvoidStarImport">
+      <property name="excludes" value="jakarta.persistence"/>
+    </module>
+    <module name="UnusedImports"/>
+    <module name="RedundantImport"/>
+    <module name="IllegalImport"/>
+    <!-- Nombres -->
+    <module name="TypeName"/>
+    <module name="MethodName"/>
+    <module name="ConstantName"/>
+    <module name="LocalVariableName"/>
+    <module name="MemberName"/>
+    <module name="ParameterName"/>
+    <module name="PackageName"/>
+    <!-- Bloques y llaves -->
+    <!-- Un if de una sola linea sin llaves se acepta (guardas cortas); de dos lineas, no -->
+    <module name="NeedBraces">
+      <property name="allowSingleLineStatement" value="true"/>
+    </module>
+    <module name="EmptyStatement"/>
+    <module name="OneStatementPerLine"/>
+    <module name="MultipleVariableDeclarations"/>
+    <!-- Espacios -->
+    <module name="WhitespaceAfter"/>
+    <module name="WhitespaceAround">
+      <property name="allowEmptyConstructors" value="true"/>
+      <property name="allowEmptyMethods" value="true"/>
+      <property name="allowEmptyTypes" value="true"/>
+      <property name="allowEmptyLambdas" value="true"/>
+    </module>
+    <module name="GenericWhitespace"/>
+    <module name="MethodParamPad"/>
+    <module name="ParenPad"/>
+    <!-- Errores comunes -->
+    <module name="EqualsHashCode"/>
+    <module name="SimplifyBooleanExpression"/>
+    <module name="SimplifyBooleanReturn"/>
+    <module name="StringLiteralEquality"/>
+    <module name="UpperEll"/>
+    <module name="ArrayTypeStyle"/>
+    <module name="ModifierOrder"/>
+  </module>
+</module>

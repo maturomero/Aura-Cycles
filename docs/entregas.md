@@ -41,6 +41,22 @@ Guion sugerido (todo levantado antes de entrar):
 5. La sugerencia de la IA en Reseñas pendientes y `AIGateway` en el código (3 min).
 6. La última corrida del CI con el resumen de cobertura, y `docs/pruebas/` y el manual (5 min).
 
+Reparto de la presentación: Matías la tapa, lo que pide el checkpoint, el CI y el cierre; Fran las integraciones, el timeout y la IA; Lautaro los consumidores y el broker; Valen Idempotency-Key, ETag y Problem Details; Ariotti el plan de pruebas, la trazabilidad y el manual.
+
+### Correcciones de la devolución de la 2.ª entrega
+
+| Criterio de la rúbrica | Qué hicimos | Dónde se ve |
+|---|---|---|
+| E2, G2, Q5: commits de todos | Lo hablamos con el profe: las versiones nos las pasábamos por zip y se subían desde una cuenta. El reparto de cada corrección queda en Jira y cada uno defiende la suya | Jira, etiqueta correccion-entrega-2 |
+| M3: versión y correlationId | El evento sale con `version` y `JMSCorrelationID`; publicación y consumidores los loguean | `docker compose logs app \| grep correlationId` |
+| P7: circuit breaker | `CircuitoDelProveedor`: 3 fallas seguidas lo abren 30 s | Proveedor en `error` y tres devoluciones: "circuito abierto" en el log |
+| O4: endpoint de salud | `GET /api/v1/salud`: 200 o 503 | `curl -k https://localhost:8443/repuestos/api/v1/salud` con y sin broker |
+| R4: contrato OpenAPI | `e2e/test_8_contrato.py` valida cada respuesta contra `openapi.yaml` en el CI, y la colección Postman corre con Newman | Paso E2E del CI |
+| D3: migraciones | Flyway con `sql/migraciones` (V1 a V4) | `docker compose logs flyway` |
+| Q2: estilo | Checkstyle en `validate`, corta el build; `.editorconfig` | `mvn package` |
+| A4, DC4, E7 | Tabla stateful/stateless, cifras de una corrida y declaración de IA en el informe | `Entrega3_Informe_AuraCycles.docx` |
+| DC4: ADR-001 | Ya no menciona "la Entrega 4" | `docs/adr/ADR-001-state-devolucion.md` |
+
 ## Entrega final · viernes 27/11
 
 Condiciones eliminatorias:
