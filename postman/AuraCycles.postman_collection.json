@@ -823,7 +823,7 @@
           ]
         },
         {
-          "name": "Ver de nuevo para tomar el ETag nuevo",
+          "name": "Ver de nuevo cuando terminan los consumidores",
           "request": {
             "method": "GET",
             "header": [
@@ -844,6 +844,17 @@
             }
           },
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Al aprobar, stock, reembolso y aviso cambian la devolucion por el topico y con eso cambia el ETag.",
+                  "// Se espera a que terminen para tomar el ETag final",
+                  "setTimeout(() => {}, 4000);"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
