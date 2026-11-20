@@ -136,9 +136,16 @@ jobs:
           docker compose logs app | tail -200
           exit 1
 
+      # Coleccion Postman versionada en el repo: cada endpoint con un caso de exito y uno de error.
+      # Va antes de Playwright: la prueba de fuerza bruta de los E2E deja el login bloqueado unos minutos
+      - name: API con Newman (coleccion Postman)
+        run: npx --yes newman@6 run postman/AuraCycles.postman_collection.json --insecure --reporters cli,junit --reporter-junit-export newman-resultados.xml
+
       - name: E2E (Playwright)
+        if: always()
         working-directory: e2e
         run: python -m pytest --junitxml=resultados-e2e.xml
+
 
       - name: Resumen E2E
         if: always()
@@ -172,6 +179,7 @@ jobs:
           name: reportes-e2e
           path: |
             e2e/resultados-e2e.xml
+            newman-resultados.xml
             trivy-imagen.txt
             compose.log
           if-no-files-found: ignore

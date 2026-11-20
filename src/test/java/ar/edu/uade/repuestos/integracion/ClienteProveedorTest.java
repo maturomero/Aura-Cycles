@@ -98,6 +98,31 @@ class ClienteProveedorTest {
         assertEquals(1, mock.pedidos());
     }
 
+    // con el proveedor fallando, a la tercera falla el circuito se abre y la cuarta ni sale:
+    // falla al instante con la misma excepcion, asi la devolucion va al fallback sin esperar
+    @Test
+    void despuesDeTresFallasElCircuitoSeAbreYNoSeLlamaAlProveedor() {
+        mock.modo("error");
+        for (int i = 0; i < CircuitoDelProveedor.FALLAS_PARA_ABRIR; i++) {
+            assertThrows(ProveedorNoDisponibleException.class, () -> validar("CUB-29-210", LocalDate.now()));
+        }
+        assertEquals(CircuitoDelProveedor.Estado.ABIERTO, cliente.estadoDelCircuito());
+        int pedidosAntes = mock.pedidos();
+
+        var e = assertThrows(ProveedorNoDisponibleException.class, () -> validar("CUB-29-210", LocalDate.now()));
+        assertTrue(e.getMessage().contains("circuito abierto"));
+        assertEquals(pedidosAntes, mock.pedidos(), "con el circuito abierto no tiene que salir ningun pedido");
+    }
+
+    // Una garantia rechazada es una respuesta valida del proveedor: no abre el circuito
+    @Test
+    void losFaultsDeNegocioNoAbrenElCircuito() {
+        for (int i = 0; i < 5; i++) {
+            assertThrows(GarantiaNoValidaException.class, () -> validar("PAS-DISC-01", LocalDate.now()));
+        }
+        assertEquals(CircuitoDelProveedor.Estado.CERRADO, cliente.estadoDelCircuito());
+    }
+
     private String validar(String codigo, LocalDate fecha) {
         return cliente.validarGarantia(codigo, fecha, 1, "DEFECTUOSO", "ORD-000001");
     }
