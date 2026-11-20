@@ -1,12 +1,14 @@
 package ar.edu.uade.repuestos.negocio;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -39,6 +41,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -68,6 +71,7 @@ class ServicioDeModeracionTest {
         when(devoluciones.porIdBloqueado(7L)).thenReturn(Optional.of(devolucion));
         when(jms.createProducer()).thenReturn(productor);
         when(productor.setProperty(anyString(), anyString())).thenReturn(productor);
+        when(productor.setJMSCorrelationID(anyString())).thenReturn(productor);
     }
 
     // SEC-04: el rol lo exige el EJB, no solo la pantalla. Un metodo publico nuevo sin @RolesAllowed rompe este test
@@ -94,6 +98,23 @@ class ServicioDeModeracionTest {
         verify(devoluciones).guardar(devolucion);
         verify(productor).setProperty("estado", "APROBADA");
         verify(productor).send(topico, Map.<String, Object>of("idDevolucion", 7L));
+    }
+
+    // cada evento sale con la version del formato y un correlationId propio para seguirlo en el log
+    @Test
+    void elEventoLlevaVersionYUnCorrelationIdDistintoCadaVez() {
+        when(reembolsos.calcularMonto(devolucion)).thenReturn(BigDecimal.TEN);
+        servicio.aprobarDevolucion(7L);
+        Devolucion otra = Datos.devolucion(8L, Datos.venta(10L, Datos.ana(), 1, EstadoVenta.PAGADA), MotivoDevolucion.ARREPENTIMIENTO);
+        otra.garantiaValidada("RMA-2026-00011");
+        when(devoluciones.porIdBloqueado(8L)).thenReturn(Optional.of(otra));
+        servicio.rechazarDevolucion(8L);
+
+        verify(productor, times(2)).setProperty(ServicioDeModeracion.PROPIEDAD_VERSION, ServicioDeModeracion.VERSION_EVENTO);
+        ArgumentCaptor<String> ids = ArgumentCaptor.forClass(String.class);
+        verify(productor, times(2)).setJMSCorrelationID(ids.capture());
+        assertEquals(36, ids.getAllValues().get(0).length());
+        assertNotEquals(ids.getAllValues().get(0), ids.getAllValues().get(1));
     }
 
     @Test

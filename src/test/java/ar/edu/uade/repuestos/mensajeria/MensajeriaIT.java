@@ -66,11 +66,29 @@ class MensajeriaIT {
         fabrica.close();
     }
 
-    // Igual que publicar(): cuerpo con el id, estado como propiedad
+    // Igual que publicar(): cuerpo con el id; estado, version y correlationId como propiedades
     private void publicar(long id, String estado) {
         try (JMSContext ctx = fabrica.createContext()) {
-            ctx.createProducer().setProperty("estado", estado).send(ctx.createTopic("topico.devoluciones"),
-                    Map.<String, Object>of("idDevolucion", id));
+            ctx.createProducer().setProperty("estado", estado).setProperty("version", "1")
+                    .setJMSCorrelationID("corr-" + id)
+                    .send(ctx.createTopic("topico.devoluciones"), Map.<String, Object>of("idDevolucion", id));
+        }
+    }
+
+    // version y correlationId viajan por el broker real y les llegan iguales a todos los suscriptores
+    @Test
+    void laVersionYElCorrelationIdLleganIgualesATodosLosConsumidores() throws Exception {
+        Session s = conexion.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        MessageConsumer stock = s.createDurableSubscriber(topico, "stock-traza", "estado = 'APROBADA'", false);
+        MessageConsumer avisos = s.createDurableSubscriber(topico, "notificaciones-traza");
+
+        publicar(90, "APROBADA");
+
+        for (MessageConsumer c : new MessageConsumer[] {stock, avisos}) {
+            Message m = c.receive(5000);
+            assertEquals("v1", EventoDevolucion.versionDe(m));
+            assertEquals("corr-90", EventoDevolucion.correlationIdDe(m));
+            assertEquals(90L, EventoDevolucion.idDe(m));
         }
     }
 

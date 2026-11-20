@@ -252,6 +252,21 @@ paths:
         "403": { $ref: "#/components/responses/Problema" }
         "404": { $ref: "#/components/responses/Problema" }
         "422": { $ref: "#/components/responses/Problema" }
+  /salud:
+    get:
+      summary: Estado de la app, la base y el broker (sin token)
+      security: []
+      responses:
+        "200":
+          description: La base y el broker responden
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Salud" }
+        "503":
+          description: La base o el broker no responden; el cuerpo dice cuál
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Salud" }
 components:
   securitySchemes:
     jwt:
@@ -305,6 +320,14 @@ components:
         autor: { type: string }
         fecha: { type: string }
         estado: { type: string, description: Solo viene al crearla }
+    Salud:
+      type: object
+      additionalProperties: false
+      required: [estado, base, broker]
+      properties:
+        estado: { type: string, enum: [UP, DOWN] }
+        base: { type: string, enum: [UP, DOWN] }
+        broker: { type: string, enum: [UP, DOWN] }
     Problema:
       type: object
       required: [type, title, status, detail, instance]

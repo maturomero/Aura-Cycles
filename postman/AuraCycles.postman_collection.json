@@ -1,0 +1,1249 @@
+{
+  "info": {
+    "_postman_id": "02423e0a-03dc-59f4-8486-cbe5c669f8f8",
+    "name": "Aura Cycles - API v1",
+    "description": "Coleccion versionada de la API REST. Cada endpoint tiene al menos un caso de exito y uno de error. Corre en el CI con Newman contra docker compose (trabajo E2E). Local: npx newman run postman/AuraCycles.postman_collection.json --insecure",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login cliente (Lucia)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/auth/login",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"lucia@mail.com\", \"password\": \"{{clave}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "const r = pm.response.json();",
+                  "pm.test(\"Devuelve un JWT Bearer de 15 minutos\", () => { pm.expect(r.tipo).to.eql(\"Bearer\"); pm.expect(r.expiraEn).to.eql(900); pm.expect(r.rol).to.eql(\"CLIENTE\"); });",
+                  "pm.collectionVariables.set(\"tokenCliente\", r.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login cliente (Ana)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/auth/login",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"ana@mail.com\", \"password\": \"{{clave}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"tokenOtroCliente\", pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login moderador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/auth/login",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"mod@mail.com\", \"password\": \"{{clave}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"tokenModerador\", pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login con clave mala: 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/auth/login",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"lucia@mail.com\", \"password\": \"no-es-la-clave\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"Problem Details (RFC 9457)\", () => {",
+                  "  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "  const p = pm.response.json();",
+                  "  pm.expect(p).to.have.all.keys(\"type\", \"title\", \"status\", \"detail\", \"instance\");",
+                  "  pm.expect(p.status).to.eql(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Devoluciones",
+      "item": [
+        {
+          "name": "Listar sin token: 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base}}/devoluciones",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "devoluciones"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"Problem Details (RFC 9457)\", () => {",
+                  "  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "  const p = pm.response.json();",
+                  "  pm.expect(p).to.have.all.keys(\"type\", \"title\", \"status\", \"detail\", \"instance\");",
+                  "  pm.expect(p.status).to.eql(pm.response.code);",
+                  "});",
+                  "pm.test(\"Pide Bearer\", () => pm.expect(pm.response.headers.get(\"WWW-Authenticate\")).to.eql(\"Bearer\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar mis devoluciones",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/devoluciones",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "devoluciones"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Trae total e items\", () => { const r = pm.response.json(); pm.expect(r).to.have.property(\"total\"); pm.expect(r.items).to.be.an(\"array\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar con un estado que no existe: 400",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenModerador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/devoluciones?estado=CUALQUIERA",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "devoluciones?estado=CUALQUIERA"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Problem Details (RFC 9457)\", () => {",
+                  "  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "  const p = pm.response.json();",
+                  "  pm.expect(p).to.have.all.keys(\"type\", \"title\", \"status\", \"detail\", \"instance\");",
+                  "  pm.expect(p.status).to.eql(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pedir una devolucion sin Idempotency-Key: 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/devoluciones",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "devoluciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"ventaId\": 5, \"motivo\": \"ARREPENTIMIENTO\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Problem Details (RFC 9457)\", () => {",
+                  "  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "  const p = pm.response.json();",
+                  "  pm.expect(p).to.have.all.keys(\"type\", \"title\", \"status\", \"detail\", \"instance\");",
+                  "  pm.expect(p.status).to.eql(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pedir la devolucion de la compra 5 (cassette de Lucia)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCliente}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "postman-ci-venta-5"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/devoluciones",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "devoluciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"ventaId\": 5, \"motivo\": \"ARREPENTIMIENTO\", \"comentario\": \"Coleccion Postman del CI\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 201 (o 201 repetido si la coleccion ya corrio)\", () => pm.response.to.have.status(201));",
+                  "const d = pm.response.json();",
+                  "pm.test(\"Devuelve la devolucion con su ETag y Location\", () => {",
+                  "  pm.expect(d.ventaId).to.eql(5);",
+                  "  pm.expect(pm.response.headers.get(\"ETag\")).to.match(/^\".+\"$/);",
+                  "  pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/devoluciones/\" + d.id);",
+                  "});",
+                  "pm.collectionVariables.set(\"devolucionId\", d.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Repetir el mismo pedido: misma devolucion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCliente}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "postman-ci-venta-5"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/devoluciones",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "devoluciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"ventaId\": 5, \"motivo\": \"ARREPENTIMIENTO\", \"comentario\": \"Coleccion Postman del CI\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Es la misma devolucion\", () => pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get(\"devolucionId\"))));",
+                  "pm.test(\"Avisa que es un reintento\", () => pm.expect(pm.response.headers.get(\"Idempotent-Replayed\")).to.eql(\"true\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Misma clave con otro contenido: 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCliente}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "postman-ci-venta-5"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/devoluciones",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "devoluciones"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"ventaId\": 5, \"motivo\": \"DEFECTUOSO\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"Problem Details (RFC 9457)\", () => {",
+                  "  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "  const p = pm.response.json();",
+                  "  pm.expect(p).to.have.all.keys(\"type\", \"title\", \"status\", \"detail\", \"instance\");",
+                  "  pm.expect(p.status).to.eql(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ver la devolucion",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenModerador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/devoluciones/{{devolucionId}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "devoluciones",
+                "{{devolucionId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"etag\", pm.response.headers.get(\"ETag\"));",
+                  "pm.collectionVariables.set(\"estadoAntes\", pm.response.json().estado);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ver con If-None-Match vigente: 304",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenModerador}}"
+              },
+              {
+                "key": "If-None-Match",
+                "value": "{{etag}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/devoluciones/{{devolucionId}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "devoluciones",
+                "{{devolucionId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 304\", () => pm.response.to.have.status(304));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Otro cliente pide la devolucion: 404 (BOLA)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenOtroCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/devoluciones/{{devolucionId}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "devoluciones",
+                "{{devolucionId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Problem Details (RFC 9457)\", () => {",
+                  "  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "  const p = pm.response.json();",
+                  "  pm.expect(p).to.have.all.keys(\"type\", \"title\", \"status\", \"detail\", \"instance\");",
+                  "  pm.expect(p.status).to.eql(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Una devolucion que no existe: 404",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenModerador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/devoluciones/999999",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "devoluciones",
+                "999999"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Problem Details (RFC 9457)\", () => {",
+                  "  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "  const p = pm.response.json();",
+                  "  pm.expect(p).to.have.all.keys(\"type\", \"title\", \"status\", \"detail\", \"instance\");",
+                  "  pm.expect(p.status).to.eql(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "El cliente quiere aprobar: 403 (BFLA)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCliente}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "{{etag}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/devoluciones/{{devolucionId}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "devoluciones",
+                "{{devolucionId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"estado\": \"APROBADA\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"Problem Details (RFC 9457)\", () => {",
+                  "  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "  const p = pm.response.json();",
+                  "  pm.expect(p).to.have.all.keys(\"type\", \"title\", \"status\", \"detail\", \"instance\");",
+                  "  pm.expect(p.status).to.eql(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Aprobar sin If-Match: 428",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenModerador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/devoluciones/{{devolucionId}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "devoluciones",
+                "{{devolucionId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"estado\": \"APROBADA\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 428\", () => pm.response.to.have.status(428));",
+                  "pm.test(\"Problem Details (RFC 9457)\", () => {",
+                  "  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "  const p = pm.response.json();",
+                  "  pm.expect(p).to.have.all.keys(\"type\", \"title\", \"status\", \"detail\", \"instance\");",
+                  "  pm.expect(p.status).to.eql(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Aprobar con un ETag viejo: 412",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenModerador}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "\"0000000000000000\""
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/devoluciones/{{devolucionId}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "devoluciones",
+                "{{devolucionId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"estado\": \"APROBADA\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 412\", () => pm.response.to.have.status(412));",
+                  "pm.test(\"Problem Details (RFC 9457)\", () => {",
+                  "  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "  const p = pm.response.json();",
+                  "  pm.expect(p).to.have.all.keys(\"type\", \"title\", \"status\", \"detail\", \"instance\");",
+                  "  pm.expect(p.status).to.eql(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Aprobar con el ETag vigente",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenModerador}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "{{etag}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/devoluciones/{{devolucionId}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "devoluciones",
+                "{{devolucionId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"estado\": \"APROBADA\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// La primera corrida la aprueba (200). Si la coleccion se vuelve a correr sobre la misma base,",
+                  "// la devolucion ya no esta PENDIENTE y el State tiene que responder 409",
+                  "if (pm.collectionVariables.get(\"estadoAntes\") === \"PENDIENTE\") {",
+                  "  pm.test(\"Responde 200 y queda APROBADA\", () => { pm.response.to.have.status(200); pm.expect(pm.response.json().estado).to.eql(\"APROBADA\"); });",
+                  "} else {",
+                  "  pm.test(\"Ya resuelta: 409 del State\", () => pm.response.to.have.status(409));",
+                  "}",
+                  "pm.collectionVariables.set(\"etag\", pm.response.headers.get(\"ETag\") || pm.collectionVariables.get(\"etag\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ver de nuevo cuando terminan los consumidores",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenModerador}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/devoluciones/{{devolucionId}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "devoluciones",
+                "{{devolucionId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Al aprobar, stock, reembolso y aviso cambian la devolucion por el topico y con eso cambia el ETag.",
+                  "// Se espera a que terminen para tomar el ETag final",
+                  "setTimeout(() => {}, 4000);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"etag\", pm.response.headers.get(\"ETag\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Rechazar una ya aprobada: 409 del State",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenModerador}}"
+              },
+              {
+                "key": "If-Match",
+                "value": "{{etag}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/devoluciones/{{devolucionId}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "devoluciones",
+                "{{devolucionId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"estado\": \"RECHAZADA\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"Problem Details (RFC 9457)\", () => {",
+                  "  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "  const p = pm.response.json();",
+                  "  pm.expect(p).to.have.all.keys(\"type\", \"title\", \"status\", \"detail\", \"instance\");",
+                  "  pm.expect(p.status).to.eql(pm.response.code);",
+                  "});",
+                  "pm.test(\"Tipo transicion-invalida\", () => pm.expect(pm.response.json().type).to.eql(\"urn:auracycles:problema:transicion-invalida\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Resenas",
+      "item": [
+        {
+          "name": "Resenas publicadas de un repuesto",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/productos/1/resenas",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "productos",
+                "1",
+                "resenas"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Trae items\", () => pm.expect(pm.response.json().items).to.be.an(\"array\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Resenas de un repuesto que no existe: 404",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/productos/999999/resenas",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "productos",
+                "999999",
+                "resenas"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Problem Details (RFC 9457)\", () => {",
+                  "  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "  const p = pm.response.json();",
+                  "  pm.expect(p).to.have.all.keys(\"type\", \"title\", \"status\", \"detail\", \"instance\");",
+                  "  pm.expect(p.status).to.eql(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Resenar un repuesto que no compro: 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/productos/5/resenas",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "productos",
+                "5",
+                "resenas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"puntaje\": 4, \"texto\": \"No lo compre\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 422\", () => pm.response.to.have.status(422));",
+                  "pm.test(\"Problem Details (RFC 9457)\", () => {",
+                  "  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "  const p = pm.response.json();",
+                  "  pm.expect(p).to.have.all.keys(\"type\", \"title\", \"status\", \"detail\", \"instance\");",
+                  "  pm.expect(p.status).to.eql(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Resenar sin texto: 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/productos/2/resenas",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "productos",
+                "2",
+                "resenas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"puntaje\": 4}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Problem Details (RFC 9457)\", () => {",
+                  "  pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/problem+json\");",
+                  "  const p = pm.response.json();",
+                  "  pm.expect(p).to.have.all.keys(\"type\", \"title\", \"status\", \"detail\", \"instance\");",
+                  "  pm.expect(p.status).to.eql(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Resenar el cassette que compro",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/productos/2/resenas",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "productos",
+                "2",
+                "resenas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"puntaje\": 5, \"titulo\": \"Cambia preciso\", \"texto\": \"Coleccion Postman del CI\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 201 y queda PENDIENTE (o 422 si ya la habia escrito en otra corrida)\", () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([201, 422]);",
+                  "  if (pm.response.code === 201) pm.expect(pm.response.json().estado).to.eql(\"PENDIENTE\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Salud",
+      "item": [
+        {
+          "name": "Salud de la app",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base}}/salud",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "salud"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Todo UP\", () => pm.expect(pm.response.json()).to.eql({estado: \"UP\", base: \"UP\", broker: \"UP\"}));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Salud con un metodo no permitido: 405",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/salud",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "salud"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Responde 405\", () => pm.response.to.have.status(405));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base",
+      "value": "https://localhost:8443/repuestos/api/v1"
+    },
+    {
+      "key": "clave",
+      "value": "Clave1234"
+    },
+    {
+      "key": "tokenCliente",
+      "value": ""
+    },
+    {
+      "key": "tokenOtroCliente",
+      "value": ""
+    },
+    {
+      "key": "tokenModerador",
+      "value": ""
+    },
+    {
+      "key": "devolucionId",
+      "value": ""
+    },
+    {
+      "key": "etag",
+      "value": ""
+    },
+    {
+      "key": "estadoAntes",
+      "value": ""
+    }
+  ]
+}

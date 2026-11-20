@@ -33,7 +33,7 @@ Con todo levantado, el recorrido de la API (JWT, roles, Idempotency-Key, ETag y 
 ./demo/api.sh
 ```
 
-Qué levanta: WildFly 37 con la app, MySQL 8.4 con `sql/schema.sql`, el broker Artemis aparte (así se puede apagar en la demo) y los tres sistemas externos simulados (Mercado Pago, el proveedor y el modelo de IA). Si cambiaste código: `docker compose up --build` de nuevo. Si lo tenías levantado de la 2.ª entrega, corré antes `docker compose down`: la base suma una columna (`resolucion_avisada`). Para empezar de cero, con el broker vacío incluido: `docker compose down -v`.
+Qué levanta: WildFly 37 con la app, MySQL 8.4 con el esquema que arma Flyway a partir de las migraciones de `sql/migraciones` (V1, V2, ...), el broker Artemis aparte (así se puede apagar en la demo) y los tres sistemas externos simulados (Mercado Pago, el proveedor y el modelo de IA). Si cambiaste código: `docker compose up --build` de nuevo. Si lo tenías levantado de antes, corré primero `docker compose down`. Para empezar de cero, con el broker vacío incluido: `docker compose down -v`.
 
 Arquitectura en capas sobre Jakarta EE 10:
 
@@ -77,11 +77,11 @@ Sirve para depurar con breakpoints. Para la demo conviene docker: el broker va a
 |---|---|---|
 | JDK | 21 | |
 | WildFly | 37, variante **EE 10** | Desde WildFly 40 el estándar pasó a EE 11 y eliminó `@ManagedBean` |
-| MySQL | 8.x | Más MySQL Workbench para correr el schema |
+| MySQL | 8.x | Las tablas las crea Flyway (`mvn flyway:migrate`) |
 | Eclipse | IDE **for Enterprise Java and Web Developers** | La edición "Java Developers" no trae herramientas de servidor |
 | JBoss Tools | desde el Eclipse Marketplace | Arranca y para WildFly desde el IDE |
 
-1. **Base.** Abrí `sql/schema.sql` en MySQL Workbench y ejecutalo entero: crea el esquema y carga los datos de prueba.
+1. **Base.** Con MySQL andando: `mvn flyway:migrate -Dflyway.password=<clave de root>` (en Eclipse: Run As → Maven build..., Goals `flyway:migrate`, parámetro `flyway.password`). Crea la base `repuestos_bici` y aplica las migraciones de `sql/migraciones` en orden: V1 esquema, V2 tabla de Idempotency-Key, V3 columna del aviso, V4 datos de prueba. Si tu base ya existía de antes (cargada con el viejo `schema.sql`), Flyway la toma como V4 y no toca nada. Un cambio nuevo en la base va en una V5, nunca editando una migración ya aplicada.
 2. **Perfil con mensajería.** WildFly tiene que arrancar con `standalone-full.xml` (el `standalone.xml` común no trae el broker y las MDB no despliegan). En Eclipse: en el runtime de WildFly, *Configuration file* = `standalone-full.xml`. Por consola: `./standalone.sh -c standalone-full.xml`.
 3. **Driver de MySQL.** Con WildFly levantado, en `jboss-cli.sh --connect`:
    ```

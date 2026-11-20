@@ -14,12 +14,14 @@ Queda afuera de lo automatizado: Mercado Pago real y el envío real de emails (l
 
 | Nivel | Qué cubre | Con qué | Cuántos | Cómo se corre |
 |---|---|---|---|---|
-| Unitario | Reglas de negocio, el State, las políticas de reembolso, los clientes de integración contra simuladores, la API REST con la capa de negocio mockeada | JUnit 5 y Mockito | 392 | `mvn test` |
-| Integración | Repositorios contra MySQL real y mensajería contra Artemis real | Testcontainers | 21 | `mvn verify` (con Docker) |
-| Punta a punta | Los flujos completos por las pantallas y por la API, con todo levantado | Playwright y pytest | 40 | `docker compose up -d --build` y `cd e2e && pytest` |
+| Unitario | Reglas de negocio, el State, las políticas de reembolso, los clientes de integración contra simuladores, la API REST con la capa de negocio mockeada | JUnit 5 y Mockito | 416 (273 `@Test` y 143 casos de 29 parametrizados) | `mvn test` |
+| Integración | Repositorios contra MySQL real y mensajería contra Artemis real | Testcontainers; la base se arma con las migraciones de Flyway | 22 | `mvn verify` (con Docker) |
+| Punta a punta | Los flujos completos por las pantallas y por la API, con todo levantado | Playwright y pytest | 49 | `docker compose up -d --build` y `cd e2e && pytest` |
+| Contrato | Que cada respuesta real de la API cumpla `docs/api/openapi.yaml` y cada pedido SOAP, el WSDL | openapi-core (`e2e/test_8_contrato.py`) y `ContratoWsdlTest` | 9 + 1 | dentro de los E2E y de `mvn test` |
+| API | Cada endpoint con al menos un caso de éxito y uno de error | Colección Postman (`postman/`) con Newman | 28 pedidos, 51 aserciones | `npx newman run postman/AuraCycles.postman_collection.json --insecure` (en el CI, antes de Playwright) |
 | Accesibilidad | WCAG 2 A y AA en 360, 768 y 1280 px | axe | 3 (6 pantallas cada uno) | dentro de los E2E |
-| Mutación | Que los tests del dominio detecten cambios en el código | PIT | 377 mutantes | `mvn test-compile org.pitest:pitest-maven:mutationCoverage` |
-| Estático | Bugs y fallas de seguridad en el código | SpotBugs con FindSecBugs | | `mvn compile spotbugs:check` |
+| Mutación | Que los tests del dominio detecten cambios en el código | PIT | 384 mutantes (94 % muertos) | `mvn test-compile org.pitest:pitest-maven:mutationCoverage` |
+| Estático | Bugs y fallas de seguridad en el código, y el estilo | SpotBugs con FindSecBugs, y Checkstyle (corta el build) | | `mvn compile spotbugs:check` |
 | Seguridad dinámica | La app corriendo, sin sesión y logueado como cliente y como moderador | OWASP ZAP pasivo y activo | | `seguridad/zap.sh` y `seguridad/zap-activo.sh` |
 | Carga | 50 usuarios durante 5 minutos | k6 | | `carga/correr.sh` |
 | Secretos y dependencias | Todo el historial del repo y las librerías | gitleaks y Trivy | | en el CI |
@@ -41,7 +43,7 @@ Los números de "Hoy" son de la corrida del CI del 19/11 sobre la rama `checkpoi
 
 ## 4. Ambiente
 
-Un solo comando levanta lo mismo en la máquina de cualquiera y en el CI: `docker compose up --build`. Son la app en WildFly 37, MySQL 8.4 con `sql/schema.sql`, el broker Artemis aparte (para poder apagarlo) y tres simuladores: Mercado Pago, el proveedor SOAP y el modelo de IA. Cada simulador tiene modos `lento`, `error` y `roto` para forzar las fallas.
+Un solo comando levanta lo mismo en la máquina de cualquiera y en el CI: `docker compose up --build`. Son la app en WildFly 37, MySQL 8.4 con el esquema que arman las migraciones de Flyway (`sql/migraciones`), el broker Artemis aparte (para poder apagarlo) y tres simuladores: Mercado Pago, el proveedor SOAP y el modelo de IA. Cada simulador tiene modos `lento`, `error` y `roto` para forzar las fallas.
 
 Usuarios de prueba: `ana`, `carlos`, `lucia` y `javier` (clientes) y `mod` (moderador), todos `@mail.com` y con la clave `Clave1234`.
 

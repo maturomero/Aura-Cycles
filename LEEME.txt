@@ -5,7 +5,9 @@ pero el dia a dia es Eclipse.
 
 Una sola vez
 1. Traer la rama: clic derecho en el proyecto > Team > Pull. Despues F5 y Maven > Update Project.
-2. Correr sql/schema.sql en MySQL Workbench (borra y crea la base con los datos de prueba).
+2. Crear la base con Flyway: clic derecho en el proyecto > Run As > Maven build...
+     Goals: flyway:migrate   Parametro: flyway.password = la clave de root de tu MySQL
+   Crea repuestos_bici y aplica sql/migraciones en orden (V1 a V4, con los datos de prueba).
 3. El servidor tiene que estar en standalone-full: vista Servers, doble clic en WildFly >
    Runtime Environment > Configuration file: standalone-full.xml.
 4. Con el servidor levantado, correr configurar-entrega4.cli:
@@ -21,8 +23,7 @@ Una sola vez
 
 Una sola vez para la 2da entrega (API REST e IA)
 1. Traer la rama (Team > Pull), F5 y Maven > Update Project: baja la libreria del JWT.
-2. Correr de nuevo sql/schema.sql en MySQL Workbench: agrega la tabla pedido_idempotente (la usa el POST de la API).
-   Ojo que borra y vuelve a crear la base con los datos de prueba.
+2. La tabla pedido_idempotente (la usa el POST de la API) ya viene en la migracion V2.
 3. Para ver la sugerencia de la IA en el panel: vista Servers > doble clic en WildFly > Open launch configuration >
    Arguments > VM arguments, agregar:
      -DIA_MODERACION=true -DIA_URL=http://localhost:8092 -DIA_API_KEY=simulado
@@ -33,9 +34,16 @@ Una sola vez para la 2da entrega (API REST e IA)
 
 Una sola vez para el 3er checkpoint
 1. Traer la rama (Team > Pull) y F5.
-2. Correr de nuevo sql/schema.sql en MySQL Workbench: agrega la columna resolucion_avisada en devolucion
-   (el aviso al cliente sale una sola vez aunque el broker reentregue el mensaje). Borra y crea la base de nuevo.
+2. La columna resolucion_avisada (el aviso al cliente sale una sola vez) ya viene en la migracion V3.
 3. Con Docker: si ya estaba levantado, docker compose down y despues docker compose up --build.
+
+Una sola vez para pasar a las migraciones con Flyway
+1. Traer la rama (Team > Pull), F5 y Maven > Update Project.
+2. Ya no hay schema.sql: el esquema esta versionado en sql/migraciones (V1, V2, ...).
+   Si tu base ya estaba armada, correr una vez flyway:migrate (paso 2 de arriba): la toma como V4 y no borra nada.
+   Para empezar de cero: borrar la base en Workbench (DROP DATABASE repuestos_bici) y correr flyway:migrate.
+3. Cualquier cambio nuevo en la base va en un archivo V5__descripcion.sql. Nunca editar una V ya aplicada.
+4. El build ahora corre Checkstyle (checkstyle.xml): si algo no respeta el estilo, Maven lo dice con archivo y linea.
 
 Cada vez que se trabaja
 1. Levantar los sistemas externos simulados. En src/test/java > ar.edu.uade.repuestos.integracion,
