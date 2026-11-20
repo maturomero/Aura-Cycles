@@ -41,6 +41,8 @@ Guion sugerido (todo levantado antes de entrar):
 5. La sugerencia de la IA en Reseñas pendientes y `AIGateway` en el código (3 min).
 6. La última corrida del CI con el resumen de cobertura, y `docs/pruebas/` y el manual (5 min).
 
+Reparto de la presentación: Matías la tapa, lo que pide el checkpoint, el CI y el cierre; Fran las integraciones, el timeout y la IA; Lautaro los consumidores y el broker; Valen Idempotency-Key, ETag y Problem Details; Ariotti el plan de pruebas, la trazabilidad y el manual.
+
 ## Entrega final · viernes 27/11
 
 Condiciones eliminatorias:
