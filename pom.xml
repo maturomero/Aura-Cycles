@@ -18,6 +18,15 @@
     <failOnMissingWebXml>false</failOnMissingWebXml>
     <!-- Vacio por defecto: JaCoCo lo completa con su agente. Sin esto PIT falla si se corre solo -->
     <argLine></argLine>
+    <flyway.version>11.20.3</flyway.version>
+    <!-- Migraciones a mano contra el MySQL local (Eclipse): mvn flyway:migrate -Dflyway.password=... -->
+    <flyway.url>jdbc:mysql://localhost:3306/?allowPublicKeyRetrieval=true&amp;useSSL=false</flyway.url>
+    <!-- Si la base no existe, Flyway la crea -->
+    <flyway.schemas>repuestos_bici</flyway.schemas>
+    <flyway.user>root</flyway.user>
+    <flyway.locations>filesystem:sql/migraciones</flyway.locations>
+    <flyway.baselineOnMigrate>true</flyway.baselineOnMigrate>
+    <flyway.baselineVersion>4</flyway.baselineVersion>
     <!-- SonarCloud: el token va en el secreto SONAR_TOKEN del repo, nunca aca -->
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <sonar.organization>maturomero</sonar.organization>
@@ -119,6 +128,13 @@
       <version>2.0.16</version>
       <scope>test</scope>
     </dependency>
+    <!-- Migraciones versionadas (D3): RepositoriosIT arma la base con sql/migraciones igual que el compose -->
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-mysql</artifactId>
+      <version>${flyway.version}</version>
+      <scope>test</scope>
+    </dependency>
     <!-- Tests de las transiciones del State -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -148,6 +164,24 @@
         <configuration>
           <argLine>@{argLine} -XX:+EnableDynamicAgentLoading</argLine>
         </configuration>
+      </plugin>
+      <!-- mvn flyway:migrate aplica sql/migraciones contra el MySQL local (ver propiedades flyway.* arriba) -->
+      <plugin>
+        <groupId>org.flywaydb</groupId>
+        <artifactId>flyway-maven-plugin</artifactId>
+        <version>${flyway.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
+            <version>${flyway.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>9.1.0</version>
+          </dependency>
+        </dependencies>
       </plugin>
       <!-- Analisis estatico en el CI: SpotBugs + FindSecBugs (seguridad). mvn spotbugs:check -->
       <plugin>
