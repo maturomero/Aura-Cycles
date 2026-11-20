@@ -24,10 +24,11 @@ final class EventoDevolucion {
         }
     }
 
-    // Si la devolucion no existe se descarta el mensaje, asi no queda reintentando para siempre
+    // Si la devolucion no existe se descarta el mensaje, asi no queda reintentando para siempre.
+    // Se bloquea la fila: los tres consumidores tocan la misma devolucion y asi ninguno pisa lo que guardo otro
     static Optional<Devolucion> devolucionDe(Message mensaje, DevolucionRepository repositorio) {
         long id = idDe(mensaje);
-        Optional<Devolucion> devolucion = repositorio.porId(id);
+        Optional<Devolucion> devolucion = repositorio.porIdBloqueado(id);
         if (devolucion.isEmpty()) {
             LOG.warning(() -> "[TOPICO] llego la devolucion " + id + " pero no existe, se descarta");
         }

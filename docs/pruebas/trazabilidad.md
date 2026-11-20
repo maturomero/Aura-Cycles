@@ -1,8 +1,8 @@
 # Matriz de trazabilidad
 
-Versión 1 · 11/11/2026 · Grupo 3
+Versión 1.1 · 19/11/2026 · Grupo 3
 
-Cada historia de usuario comprometida en el diseño, con sus casos de prueba y dónde están automatizados. Las HU y los casos son los del Jira (proyecto AUR): cada caso es una subtarea de su historia. CP-01 a CP-71 son `AUR-125` a `AUR-195`; los de la API y la IA, CP-72 a CP-83, se agregaron para la 2.ª entrega y son `AUR-221` a `AUR-232`.
+Cada historia de usuario comprometida en el diseño, con sus casos de prueba y dónde están automatizados. Las HU y los casos son los del Jira (proyecto AUR): cada caso es una subtarea de su historia. CP-01 a CP-71 son `AUR-125` a `AUR-195`; los de la API y la IA, CP-72 a CP-83, se agregaron para la 2.ª entrega y son `AUR-221` a `AUR-232`. CP-84 es `AUR-235` y CP-85, del 3er checkpoint, es `AUR-239`.
 
 | HU | Historia | MoSCoW | Casos de prueba | Tests automatizados | Estado |
 |---|---|---|---|---|---|
@@ -16,10 +16,10 @@ Cada historia de usuario comprometida en el diseño, con sus casos de prueba y d
 | HU-08 (`AUR-120`) | Escribir una reseña | Should | CP-33, CP-34, CP-65, CP-81 | `ServicioDeResenasYProductosTest` · API: `ResenasRecursoTest`, `e2e/test_7_api.py` | Pasa |
 | HU-09 (`AUR-121`) | Moderar reseñas | Should | CP-35, CP-43, CP-44, CP-66, CP-67, CP-82 | `ServicioDeModeracionTest`, `e2e/test_4_seguridad.py` · IA: `AIGatewayTest`, `ClienteLLMHttpTest` | Pasa |
 | HU-10 (`AUR-122`) | Pedir una devolución | Must | CP-18, CP-19, CP-20, CP-21, CP-22, CP-23, CP-24, CP-25, CP-26, CP-27, CP-42, CP-68, CP-69, CP-75, CP-76, CP-77, CP-83 | `ServicioDeDevolucionesTest`, `ValidadorDeGarantiasTest`, `ClienteProveedorTest`, `ContratoWsdlTest`, `e2e/test_2_devolucion.py` · API: `ServicioDeSolicitudesTest`, `DevolucionesRecursoTest`, `CuerpoTest`, `RepositoriosIT`, `e2e/test_7_api.py` | Pasa |
-| HU-11 (`AUR-123`) | Aprobar o rechazar devoluciones y reembolsar | Must | CP-13, CP-14, CP-15, CP-16, CP-17, CP-28, CP-29, CP-30, CP-31, CP-32, CP-52, CP-70, CP-71, CP-78, CP-79, CP-80 | `ServicioDeModeracionTest`, `ServicioDeReembolsosTest`, `PoliticasDeReembolsoTest`, `EstadoDevolucionTest`, `DevolucionTest`, `MensajeriaIT`, `e2e/test_2_devolucion.py`, `e2e/test_3_resiliencia.py` · API: `DevolucionesRecursoTest`, `ErroresDeLaApiTest`, `e2e/test_7_api.py` | Pasa |
+| HU-11 (`AUR-123`) | Aprobar o rechazar devoluciones y reembolsar | Must | CP-13, CP-14, CP-15, CP-16, CP-17, CP-28, CP-29, CP-30, CP-31, CP-32, CP-52, CP-70, CP-71, CP-78, CP-79, CP-80, CP-85 | `ServicioDeModeracionTest`, `ServicioDeReembolsosTest`, `PoliticasDeReembolsoTest`, `EstadoDevolucionTest`, `DevolucionTest`, `MensajeriaIT`, `e2e/test_2_devolucion.py`, `e2e/test_3_resiliencia.py` · API: `DevolucionesRecursoTest`, `ErroresDeLaApiTest`, `e2e/test_7_api.py` | Pasa |
 | HU-12 (`AUR-124`) | Usar la tienda en celular, tablet o computadora | Should | CP-49, CP-57 | `e2e/test_5_accesibilidad.py` (axe en 360, 768 y 1280 px) y Lighthouse a mano | Pasa |
 
-Son 12 historias y 84 casos de prueba. Ninguna historia queda sin casos y ningún caso queda sin historia.
+Son 12 historias y 85 casos de prueba. Ninguna historia queda sin casos y ningún caso queda sin historia.
 
 ## Casos agregados para la API REST y la IA
 
@@ -38,6 +38,7 @@ Son 12 historias y 84 casos de prueba. Ninguna historia queda sin casos y ningú
 | CP-78 | HU-11 | El cliente no puede resolver ni el moderador solicitar: 403 (BFLA) |
 | CP-79 | HU-11 | ETag: 304 con If-None-Match, 428 sin If-Match, 412 con ETag viejo |
 | CP-80 | HU-11 | Transición que el State no permite por la API: 409 en Problem Details |
+| CP-85 | HU-11 | Con un reembolso pendiente se apaga y se prende el broker: el mensaje no se pierde y la devolución termina Reembolsada, con un solo aviso |
 
 ## Requisitos de las entregas que no son historias
 
@@ -46,8 +47,8 @@ Son 12 historias y 84 casos de prueba. Ninguna historia queda sin casos y ningú
 | El State devuelve 409 ante una transición inválida | `EstadoDevolucionTest` (las 15 transiciones inválidas), `ErroresDeLaApiTest`, `e2e/test_7_api.py` |
 | JWT y control de acceso por rol | `TokensJwtTest`, `SeguridadDeLaApiTest`, `e2e/test_7_api.py` |
 | Timeout de 5 s con fallback | `ClienteProveedorTest`, `ClienteMercadoPagoTest`, `ClienteLLMHttpTest`, `e2e/test_3_resiliencia.py` |
-| Consumidores idempotentes y DLQ | `MensajeriaIT`, `ServicioDeReembolsosTest`, `ServicioDeVentasTest` |
-| Con el broker apagado no se pierden mensajes | `MensajeriaIT`, `e2e/test_3_resiliencia.py` |
+| Consumidores idempotentes y DLQ | `MensajeriaIT` (incluye el aviso con el mensaje repetido y la DLQ), `ServicioDeReembolsosTest`, `ServicioDeVentasTest`, `ServicioDeNotificacionesTest` |
+| Con el broker apagado no se pierden mensajes | `MensajeriaIT`, `e2e/test_3_resiliencia.py` (CP-30 y CP-85) |
 | Idempotency-Key y ETag en la API | `ServicioDeSolicitudesTest`, `DevolucionesRecursoTest`, `RepositoriosIT`, `e2e/test_7_api.py` |
 | Errores en Problem Details | `ErroresDeLaApiTest`, `e2e/test_7_api.py` |
 | Sin secretos en el repo | gitleaks sobre todo el historial, en el CI |

@@ -27,6 +27,8 @@ services:
     environment:
       ANONYMOUS_LOGIN: "true"
     volumes:
+      # El journal del broker queda en un volumen: los mensajes pendientes sobreviven a un stop o a un down
+      - artemis-datos:/var/lib/artemis-instance
       - ./docker/artemis/broker.properties:/var/lib/artemis-instance/etc-override/broker.properties:ro
     ports:
       - "8161:8161"
@@ -92,3 +94,6 @@ services:
         condition: service_started
       ia-mock:
         condition: service_started
+
+volumes:
+  artemis-datos:

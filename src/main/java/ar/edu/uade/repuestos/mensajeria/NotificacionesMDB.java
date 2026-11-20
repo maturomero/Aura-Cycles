@@ -9,7 +9,7 @@ import jakarta.inject.Inject;
 import jakarta.jms.Message;
 import jakarta.jms.MessageListener;
 
-// Le avisa al cliente cuando su devolucion se aprueba o se rechaza
+// Le avisa al cliente cuando su devolucion se aprueba o se rechaza, una sola vez aunque el mensaje se repita
 @MessageDriven(activationConfig = {
     @ActivationConfigProperty(propertyName = "destinationLookup", propertyValue = ServicioDeModeracion.TOPICO_DEVOLUCIONES),
     @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "jakarta.jms.Topic"),
@@ -28,6 +28,6 @@ public class NotificacionesMDB implements MessageListener {
     @Override
     public void onMessage(Message mensaje) {
         EventoDevolucion.devolucionDe(mensaje, devolucionRepository)
-                .ifPresent(servicioDeNotificaciones::devolucionResuelta);
+                .ifPresent(servicioDeNotificaciones::avisarResolucion);
     }
 }

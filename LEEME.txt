@@ -31,6 +31,12 @@ Una sola vez para la 2da entrega (API REST e IA)
 4. La API no necesita tocar WildFly. Queda en https://localhost:8443/repuestos/api/v1 y el JWT se firma con una clave
    que la app genera al arrancar (o con -DJWT_SECRET=una-clave-de-32-caracteres-o-mas).
 
+Una sola vez para el 3er checkpoint
+1. Traer la rama (Team > Pull) y F5.
+2. Correr de nuevo sql/schema.sql en MySQL Workbench: agrega la columna resolucion_avisada en devolucion
+   (el aviso al cliente sale una sola vez aunque el broker reentregue el mensaje). Borra y crea la base de nuevo.
+3. Con Docker: si ya estaba levantado, docker compose down y despues docker compose up --build.
+
 Cada vez que se trabaja
 1. Levantar los sistemas externos simulados. En src/test/java > ar.edu.uade.repuestos.integracion,
    clic derecho > Run As > Java Application sobre:
@@ -45,7 +51,7 @@ Cada vez que se trabaja
    todos con Clave1234.
 
 Tests desde Eclipse
-- Unitarios: clic derecho en src/test/java > Run As > JUnit Test (391, menos de un minuto; uno espera 5 s a proposito
+- Unitarios: clic derecho en src/test/java > Run As > JUnit Test (392, menos de un minuto; uno espera 5 s a proposito
   para probar el timeout de la IA).
 - Las clases que terminan en IT (RepositoriosIT, MensajeriaIT) usan Testcontainers y necesitan Docker
   abierto. Sin Docker, Eclipse las saltea solas. Con Maven: clic derecho en el proyecto > Run As >
