@@ -2,10 +2,11 @@
 FROM maven:3.9.11-eclipse-temurin-21 AS build
 WORKDIR /src
 COPY pom.xml checkstyle.xml ./
-RUN mvn -q -B dependency:go-offline
+# Maven Central a veces responde 429 a los runners del CI: se reintenta con espera creciente
+RUN for i in 1 2 3 4 5; do mvn -q -B org.apache.maven.plugins:maven-dependency-plugin:3.8.1:go-offline && exit 0; sleep $((i * 15)); done; exit 1
 COPY src src
 RUN mvn -q -B package -DskipTests \
- && mvn -q -B dependency:copy -Dartifact=com.mysql:mysql-connector-j:9.1.0 -DoutputDirectory=/drivers
+ && mvn -q -B org.apache.maven.plugins:maven-dependency-plugin:3.8.1:copy -Dartifact=com.mysql:mysql-connector-j:9.1.0 -DoutputDirectory=/drivers
 
 # Etapa 2: WildFly 37 (Jakarta EE 10) configurado con docker/wildfly/configurar.cli
 FROM quay.io/wildfly/wildfly:37.0.1.Final-jdk21
