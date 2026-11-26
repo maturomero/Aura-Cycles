@@ -61,7 +61,7 @@ HU → criterio de aceptación → casos de prueba → tests automatizados → r
 |  | **HU-11.6** Broker apagado: aviso en 5 s y no cambia nada | Falla externa | CP-30, CP-85, CP-88 | `test_3_resiliencia`, `ServicioDeModeracionTest`, `ServicioDeSaludTest`, `SaludRecursoTest`, `test_8_contrato`, `Postman` | Pasa | reportes-e2e, reportes-pruebas | DEF-02, DEF-03 |
 |  | **HU-11.7** MP caído al reembolsar: reintenta cada 10 s y al décimo DLQ | Falla externa | CP-15, CP-31 | `ServicioDeReembolsosTest`, `MensajeriaIT` | Pasa | reportes-pruebas, reportes-pruebas (IT) | DEF-05 |
 | HU-12 Responsive y accesible (`AUR-124`, Should) | **HU-12.1** 360, 768 y 1280 px sin scroll horizontal ni violaciones serias de axe | Feliz | CP-49 | `test_5_accesibilidad` | Pasa | reportes-e2e | DEF-16, DEF-18, DEF-19 |
-|  | **HU-12.2** Lighthouse accesibilidad 90 o más | Alternativo | CP-57 | Manual (Lighthouse) | Pasa | captura Lighthouse | - |
+|  | **HU-12.2** Lighthouse accesibilidad 90 o más | Alternativo | CP-57 | Manual (Lighthouse) | Pasa | captura Lighthouse | DEF-24 |
 |  | **HU-12.3** Un problema serio de accesibilidad hace fallar el CI | Error | CP-49 | `test_5_accesibilidad` | Pasa | reportes-e2e | - |
 
 Son 12 historias, 57 criterios y 94 casos de prueba. Todas las historias y todos los criterios tienen al menos un caso. 76 de los 94 casos (81 %) son negativos o de borde. El único caso manual es CP-57 (Lighthouse).

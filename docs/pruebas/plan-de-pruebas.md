@@ -50,7 +50,7 @@ Probabilidad (P) e impacto (I) de 1 a 3. La prioridad es P × I; de 6 para arrib
 | R10 | La IA sugiere aprobar una reseña con instrucciones ajenas, filtra datos o revela el prompt | 3 | 2 | 6 | CP-82, CP-91 (20 casos, 6 adversariales). DEF-23 |
 | R11 | Pantallas o API lentas con 50 usuarios | 2 | 2 | 4 | `carga/carga.js` y CP-94. DEF-17 |
 | R12 | La API no cumple su contrato y rompe a quien la usa | 2 | 2 | 4 | CP-89 y la colección Postman |
-| R13 | Pantallas no usables en celular o con lector de pantalla | 2 | 2 | 4 | CP-49, CP-57. DEF-18, DEF-19 |
+| R13 | Pantallas no usables en celular o con lector de pantalla | 2 | 2 | 4 | CP-49, CP-57. DEF-18, DEF-19, DEF-24 |
 | R14 | Datos personales o tokens en los logs | 1 | 3 | 3 | SEC-09 (`AUR-66`): `DatosPersonalesTest` (el log enmascara el email) y `AIGatewayTest` (al modelo no le llega email ni teléfono) |
 | R15 | Una migración de base rompe datos existentes | 1 | 3 | 3 | CP-90 (`RepositoriosIT` y el servicio `flyway` del compose) |
 
