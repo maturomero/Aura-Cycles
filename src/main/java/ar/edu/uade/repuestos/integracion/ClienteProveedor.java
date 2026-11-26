@@ -1,6 +1,6 @@
 package ar.edu.uade.repuestos.integracion;
 
-import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -17,32 +17,64 @@ import org.w3c.dom.NodeList;
 /**
  * CAPA DE INTEGRACION. Cliente SOAP 1.1 del proveedor mayorista (wsdl/ProveedorMayorista.wsdl).
  * Solo usamos validarGarantia: por eso un cliente chico y no todo lo que generaria wsimport.
+ * ApplicationScoped: una sola instancia para toda la app, asi el circuit breaker cuenta las fallas de todas
+ * las devoluciones y no las de cada una por separado.
  */
-@Dependent
+@ApplicationScoped
 public class ClienteProveedor {
 
     private static final Logger LOG = Logger.getLogger(ClienteProveedor.class.getName());
     static final String NS = "http://proveedor.mayorista.ar/ws";
     static final String NS_SOAP = "http://schemas.xmlsoap.org/soap/envelope/";
-    public static final Duration TIMEOUT = Duration.ofSeconds(5);
+    public static final Duration ESPERA_MAXIMA = Duration.ofSeconds(5);
 
     private final String url;
     private final Duration timeout;
     private final HttpClient http;
+    private final CircuitoDelProveedor circuito;
 
     public ClienteProveedor() {
-        this(urlDelEntorno(), TIMEOUT);
+        this(urlDelEntorno(), ESPERA_MAXIMA);
     }
 
     public ClienteProveedor(String url, Duration timeout) {
+        this(url, timeout, new CircuitoDelProveedor());
+    }
+
+    public ClienteProveedor(String url, Duration timeout, CircuitoDelProveedor circuito) {
         this.url = url;
         this.timeout = timeout;
         this.http = HttpClient.newBuilder().connectTimeout(timeout).build();
+        this.circuito = circuito;
     }
 
-    // Devuelve el RMA. Fault de negocio: GarantiaNoValidaException. Cualquier otra falla: ProveedorNoDisponibleException
+    // Devuelve el RMA. Fault de negocio: GarantiaNoValidaException. Cualquier otra falla: ProveedorNoDisponibleException.
+    // Con el circuito abierto falla al instante con ProveedorNoDisponibleException, sin esperar el timeout
     public String validarGarantia(String codigoProducto, LocalDate fechaCompra, int cantidad,
                                   String motivo, String referencia) {
+        if (!circuito.permiteLlamar()) {
+            LOG.warning(() -> "[SOAP] validarGarantia " + referencia + ": circuito abierto, no se llama al proveedor");
+            throw new ProveedorNoDisponibleException("El proveedor fallo varias veces seguidas (circuito abierto)");
+        }
+        try {
+            String rma = llamarValidarGarantia(codigoProducto, fechaCompra, cantidad, motivo, referencia);
+            circuito.registrarExito();
+            return rma;
+        } catch (GarantiaNoValidaException e) {
+            circuito.registrarExito();
+            throw e;
+        } catch (ProveedorNoDisponibleException e) {
+            circuito.registrarFalla();
+            throw e;
+        }
+    }
+
+    public CircuitoDelProveedor.Estado estadoDelCircuito() {
+        return circuito.estado();
+    }
+
+    private String llamarValidarGarantia(String codigoProducto, LocalDate fechaCompra, int cantidad,
+                                         String motivo, String referencia) {
         Document respuesta = enviar("validarGarantia",
                 cuerpoValidarGarantia(codigoProducto, fechaCompra, cantidad, motivo, referencia));
 

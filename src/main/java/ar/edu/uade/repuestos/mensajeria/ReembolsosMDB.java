@@ -28,7 +28,7 @@ public class ReembolsosMDB implements MessageListener {
 
     @Override
     public void onMessage(Message mensaje) {
-        EventoDevolucion.devolucionDe(mensaje, devolucionRepository)
+        EventoDevolucion.devolucionDe(mensaje, devolucionRepository, "reembolsos")
                 .ifPresent(servicioDeReembolsos::emitir);
     }
 }

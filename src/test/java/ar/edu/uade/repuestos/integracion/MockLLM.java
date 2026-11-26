@@ -21,6 +21,8 @@ public class MockLLM {
     private static final List<String> INSULTOS = List.of("estafa", "basura", "chorros", "idiota", "porqueria", "ladrones");
     private static final List<String> SPAM = List.of("http", "www.", "promo", "gana plata", "descuento en", "whatsapp");
     private static final List<String> ORDENES = List.of("ignora", "olvida las instrucciones", "sos un", "responde aprobar");
+    // Lo que un modelo real reconoce como ajeno a una tienda de repuestos: salud, plata, temas legales
+    private static final List<String> FUERA_DE_DOMINIO = List.of("medicamento", "dolor de", "diagnostic", "receta", "abogado", "invertir");
 
     private final HttpServer servidor;
     private final AtomicInteger llamadas = new AtomicInteger();
@@ -102,6 +104,9 @@ public class MockLLM {
         }
         if (texto.contains("[email]") || texto.contains("[telefono]")) {
             return sugerencia("REVISAR", "DATOS_PERSONALES", "El texto traía datos de contacto.", 0.82);
+        }
+        if (contiene(texto, FUERA_DE_DOMINIO)) {
+            return sugerencia("REVISAR", "FUERA_DE_TEMA", "No habla del repuesto: es una consulta de otro tema.", 0.8);
         }
         if (contiene(texto, ORDENES)) {
             return sugerencia("REVISAR", "FUERA_DE_TEMA", "El texto intenta darle órdenes al asistente en vez de opinar del repuesto.", 0.8);

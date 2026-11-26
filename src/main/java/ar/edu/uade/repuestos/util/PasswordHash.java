@@ -1,5 +1,7 @@
 package ar.edu.uade.repuestos.util;
 
+import java.util.UUID;
+
 import org.mindrot.jbcrypt.BCrypt;
 
 // SEC-02: bcrypt con costo 12 (unas 250 ms por intento). WildFly valida el mismo hash con el modular-crypt-mapper
@@ -8,8 +10,8 @@ public final class PasswordHash {
     public static final int COSTO = 12;
     public static final int LARGO_MAXIMO = 64;  // bcrypt ignora lo que pase de 72 bytes
 
-    // Hash de una clave que nadie tiene: se compara igual cuando el email no existe, asi tarda lo mismo
-    private static final String HASH_FALSO = BCrypt.hashpw("no-existe-este-usuario", BCrypt.gensalt(COSTO));
+    // Hash de una clave al azar que nadie conoce: se compara igual cuando el email no existe, asi tarda lo mismo
+    private static final String HASH_FALSO = BCrypt.hashpw(UUID.randomUUID().toString(), BCrypt.gensalt(COSTO));
 
     private PasswordHash() {
     }

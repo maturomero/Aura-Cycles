@@ -19,13 +19,13 @@ import jakarta.persistence.LockModeType;
 import jakarta.persistence.Persistence;
 import jakarta.persistence.PersistenceException;
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -34,9 +34,9 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.mysql.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.MountableFile;
 
-// Repositorios contra un MySQL 8.4 real cargado con sql/schema.sql (los mismos datos de prueba que la app)
+// Repositorios contra un MySQL 8.4 real armado con las migraciones de sql/migraciones (las mismas que aplica
+// el servicio flyway del compose): si una migracion no anda, este test lo dice antes que la demo
 @Testcontainers(disabledWithoutDocker = true) // en Eclipse sin Docker se saltean; en el CI corren siempre
 class RepositoriosIT {
 
@@ -44,8 +44,7 @@ class RepositoriosIT {
     static final MySQLContainer MYSQL = new MySQLContainer("mysql:8.4")
             .withDatabaseName("repuestos_bici")
             .withUsername("aura")
-            .withPassword("aura-local")
-            .withCopyFileToContainer(MountableFile.forHostPath("sql/schema.sql"), "/docker-entrypoint-initdb.d/schema.sql");
+            .withPassword("aura-local");
 
     static EntityManagerFactory emf;
     EntityManager em;
@@ -58,6 +57,11 @@ class RepositoriosIT {
 
     @BeforeAll
     static void unidad() {
+        Flyway.configure()
+                .dataSource(MYSQL.getJdbcUrl(), "aura", "aura-local")
+                .locations("filesystem:sql/migraciones")
+                .load()
+                .migrate();
         emf = Persistence.createEntityManagerFactory("repuestosIT", Map.of(
                 "jakarta.persistence.jdbc.url", MYSQL.getJdbcUrl(),
                 "jakarta.persistence.jdbc.user", "aura",

@@ -27,7 +27,7 @@ public class NotificacionesMDB implements MessageListener {
 
     @Override
     public void onMessage(Message mensaje) {
-        EventoDevolucion.devolucionDe(mensaje, devolucionRepository)
+        EventoDevolucion.devolucionDe(mensaje, devolucionRepository, "notificaciones")
                 .ifPresent(servicioDeNotificaciones::avisarResolucion);
     }
 }

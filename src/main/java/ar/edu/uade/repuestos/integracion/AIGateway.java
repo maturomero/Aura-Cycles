@@ -8,6 +8,7 @@ import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
 import java.io.StringReader;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.logging.Logger;
 
 /**
@@ -27,6 +28,14 @@ public class AIGateway {
     static final int LARGO_TEXTO = 2000;
     static final int LARGO_EXPLICACION = 200;
     static final double CONFIANZA_MINIMA = 0.6;
+
+    // Senales de que el texto le habla al asistente en vez de opinar del repuesto. Si aparecen, la IA nunca aprueba
+    // "juan arroba gmail punto com": un email escrito con palabras para que no lo detecte el filtro
+    private static final String EMAIL_EN_PALABRAS = "(?i)(?<![\\w.+-])[\\w.+-]{1,64}\\s{1,3}arroba\\s{1,3}[\\w-]{1,63}"
+            + "\\s{1,3}punto\\s{1,3}[a-z]{2,10}(?:\\s{1,3}punto\\s{1,3}[a-z]{2,10})?";
+    private static final Pattern SENALES_DE_INYECCION = Pattern.compile("(?iu)ignor[aáe]\\w*"
+            + "|olvid[aáe]\\w* (las |tus )?instrucciones|tus instrucciones|instrucciones (anteriores|del sistema)"
+            + "|\\bprompt\\b|sistema\\s*:|system\\s*:|\"sugerencia\"\\s*:");
 
     private static final Set<String> SUGERENCIAS = Set.of("APROBAR", "REVISAR", "RECHAZAR");
     private static final Set<String> MOTIVOS = Set.of("OK", "OFENSIVA", "SPAM", "DATOS_PERSONALES", "FUERA_DE_TEMA");
@@ -51,7 +60,7 @@ public class AIGateway {
         }
         long inicio = System.nanoTime();
         try {
-            SugerenciaIA s = interpretar(modelo.completar(INSTRUCCIONES, pedido(resena)));
+            SugerenciaIA s = conBarrera(resena, interpretar(modelo.completar(INSTRUCCIONES, pedido(resena))));
             LOG.info(() -> "[IA] resena " + resena.getId() + ": " + s.sugerencia() + " en "
                     + (System.nanoTime() - inicio) / 1_000_000 + " ms");
             return s;
@@ -78,9 +87,20 @@ public class AIGateway {
                 .build().toString();
     }
 
+    // Aunque el modelo se deje convencer, una resena con ordenes para el asistente la revisa una persona
+    static SugerenciaIA conBarrera(Resena r, SugerenciaIA s) {
+        String escrito = (r.getTitulo() == null ? "" : r.getTitulo()) + " " + (r.getTexto() == null ? "" : r.getTexto());
+        if ("APROBAR".equals(s.sugerencia()) && SENALES_DE_INYECCION.matcher(escrito).find()) {
+            return new SugerenciaIA("REVISAR", "FUERA_DE_TEMA", "El texto trae instrucciones para el asistente: la revisa una persona.",
+                    s.confianza());
+        }
+        return s;
+    }
+
     static String sinDatosPersonales(String texto) {
-        return texto.replaceAll("[\\w.+-]+@[\\w-]+(\\.[\\w-]+)+", "[email]")
-                    .replaceAll("\\+?\\d[\\d\\s-]{6,}\\d", "[telefono]");
+        return texto.replaceAll("(?<![\\w.+-])[\\w.+-]++@[\\w-]++(?:\\.[\\w-]++)++", "[email]")
+                    .replaceAll(EMAIL_EN_PALABRAS, "[email]")
+                    .replaceAll("\\+?\\d(?:[\\s-]?+\\d){7,}+", "[telefono]");
     }
 
     static SugerenciaIA interpretar(String respuesta) {

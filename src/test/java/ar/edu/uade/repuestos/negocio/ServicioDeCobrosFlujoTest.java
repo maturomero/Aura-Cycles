@@ -58,7 +58,7 @@ class ServicioDeCobrosFlujoTest {
         when(ventas.porIdBloqueado(9L)).thenReturn(Optional.of(venta));
         when(ventas.guardar(any())).thenAnswer(i -> i.getArgument(0));
         when(mp.configuracion()).thenReturn(new ConfiguracionMercadoPago("http://mp", "TEST-x",
-                "https://localhost:8443/repuestos", ConfiguracionMercadoPago.TIMEOUT));
+                "https://localhost:8443/repuestos", ConfiguracionMercadoPago.ESPERA_MAXIMA));
     }
 
     @Test

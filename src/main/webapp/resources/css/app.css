@@ -629,8 +629,8 @@ table.tabla tbody tr:hover td { background: var(--surface-alt); }
   margin-bottom: 8px;
 }
 
-.mensajes .error, .mensajes li.error { border-left-color: var(--danger); color: var(--danger); background: var(--danger-soft); border-color: transparent; border-left-color: var(--danger); }
-.mensajes .info, .mensajes li.info { border-left-color: var(--ok); color: var(--ok); background: var(--ok-soft); border-color: transparent; border-left-color: var(--ok); }
+.mensajes .error, .mensajes li.error { color: var(--danger); background: var(--danger-soft); border-color: transparent; border-left-color: var(--danger); }
+.mensajes .info, .mensajes li.info { color: var(--ok); background: var(--ok-soft); border-color: transparent; border-left-color: var(--ok); }
 
 /* ---------- VACIO ---------- */
 .vacio {
@@ -940,6 +940,7 @@ table.tabla tbody tr:hover td { background: var(--surface-alt); }
 .texto-135 { font-size:13.5px !important; }
 .texto-115 { font-size:11.5px !important; }
 .oculto { display:none !important; }
+.solo-lector { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
 .resena-cabecera { display:flex !important; align-items:center !important; gap:10px !important; flex-wrap:wrap !important; }
 .texto-suave-mt0 { color:var(--text-muted) !important; margin-top:0 !important; }
 .texto-tenue { color:var(--text-faint) !important; }

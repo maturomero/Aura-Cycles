@@ -1,8 +1,9 @@
-# CI de Aura Cycles. Cinco trabajos en paralelo para que entre en 15 minutos:
+# CI de Aura Cycles. Cuatro trabajos en paralelo (unos 7 minutos):
 #  pruebas: unitarios, integracion con Testcontainers, JaCoCo 80/70, PIT 60 %, SpotBugs + FindSecBugs, jscpd y SonarCloud si esta el token
 #  e2e: docker compose + Playwright (pantallas y API REST), gitleaks y Trivy
 #  zap: escaneo DAST pasivo sin sesion, como cliente y como moderador
-#  zap-activo (x2): escaneo activo logueado como cliente y como moderador
+#  zap-api: escaneo activo de la API REST con el JWT de un cliente y de un moderador
+# El ZAP activo con sesion sobre las pantallas esta en zap-activo.yml: puede tardar hasta 25 minutos
 name: CI
 
 on:
@@ -28,6 +29,9 @@ jobs:
     name: Unitarios, integracion, cobertura, mutacion y SAST
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      # A nivel del trabajo: asi el "if" del paso de Sonar lo ve (los env del paso no se leen en su propio if)
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -50,8 +54,6 @@ jobs:
       # Solo corre si el repo tiene el secreto SONAR_TOKEN (proyecto creado en sonarcloud.io)
       - name: SonarCloud (Quality Gate)
         if: env.SONAR_TOKEN != ''
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn -B -ntp org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar -Dsonar.qualitygate.wait=true
 
       - name: Codigo duplicado (jscpd, maximo 3 %)
@@ -136,9 +138,16 @@ jobs:
           docker compose logs app | tail -200
           exit 1
 
+      # Coleccion Postman versionada en el repo: cada endpoint con un caso de exito y uno de error.
+      # Va antes de Playwright: la prueba de fuerza bruta de los E2E deja el login bloqueado unos minutos
+      - name: API con Newman (coleccion Postman)
+        run: npx --yes newman@6 run postman/AuraCycles.postman_collection.json --insecure --reporters cli,junit --reporter-junit-export newman-resultados.xml
+
       - name: E2E (Playwright)
+        if: always()
         working-directory: e2e
         run: python -m pytest --junitxml=resultados-e2e.xml
+
 
       - name: Resumen E2E
         if: always()
@@ -172,6 +181,7 @@ jobs:
           name: reportes-e2e
           path: |
             e2e/resultados-e2e.xml
+            newman-resultados.xml
             trivy-imagen.txt
             compose.log
           if-no-files-found: ignore
@@ -222,56 +232,38 @@ jobs:
           path: zap-reportes/
           if-no-files-found: ignore
 
-  zap-activo:
-    name: DAST activo con sesion (${{ matrix.usuario }})
+  zap-api:
+    name: DAST activo sobre la API REST (cliente y moderador)
     runs-on: ubuntu-latest
-    # Con margen: si el escaneo dispara el bloqueo por fuerza bruta, espera hasta que se libere (5 minutos)
-    timeout-minutes: 25
-    strategy:
-      fail-fast: false
-      matrix:
-        usuario: [ana@mail.com, mod@mail.com]
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
       - name: Levantar todo con un comando
         run: |
-          # Maven Central a veces devuelve 502: un reintento antes de dar el build por fallado
           docker compose build || { sleep 20; docker compose build; }
           docker compose up -d
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: pip
-          cache-dependency-path: e2e/requirements.txt
-      - name: Playwright (recorre la app a traves de ZAP)
-        run: |
-          pip install -r e2e/requirements.txt
-          # Lo unico que baja --with-deps en este runner son fuentes: si apt no llega a Ubuntu, se sigue sin ellas
-          python -m playwright install --with-deps chromium || python -m playwright install chromium
 
       - name: Esperar a que la app responda
         run: |
           for i in $(seq 1 120); do
-            curl -sk -o /dev/null -w '%{http_code}' https://localhost:8443/repuestos/login.xhtml | grep -q 200 && exit 0
+            curl -sk -o /dev/null -w '%{http_code}' https://localhost:8443/repuestos/api/v1/salud | grep -q 200 && exit 0
             sleep 2
           done
           exit 1
 
-      - name: ZAP activo (corta con algun High o un Medium sin justificar)
+      - name: ZAP sobre la API con el contrato OpenAPI (corta con algun High o un Medium sin justificar)
         shell: bash
         env:
-          ZAP_USUARIOS: ${{ matrix.usuario }}
-          ZAP_TITULO: ZAP activo ${{ matrix.usuario }}
+          ZAP_TITULO: ZAP API
         run: |
-          mkdir -p zap-activo
-          seguridad/zap-activo.sh zap-activo | tee zap-activo/resumen.md
+          mkdir -p zap-api
+          seguridad/zap-api.sh zap-api | tee zap-api/resumen.md
 
       - name: Reportes
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: reportes-zap-activo-${{ strategy.job-index }}
-          path: zap-activo/
+          name: reportes-zap-api
+          path: zap-api/
           if-no-files-found: ignore

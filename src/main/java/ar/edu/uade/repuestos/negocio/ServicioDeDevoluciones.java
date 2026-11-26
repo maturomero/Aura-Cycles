@@ -21,6 +21,7 @@ import jakarta.inject.Inject;
 import java.io.Serializable;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -90,7 +91,7 @@ public class ServicioDeDevoluciones implements Serializable {
                 "Ya existe una solicitud de devolucion para la orden " + venta.getNumeroOrden() + ".");
         }
 
-        long dias = Duration.between(venta.getFecha(), LocalDateTime.now()).toDays();
+        long dias = diasDesde(venta);
         if (dias > DIAS_PARA_DEVOLVER) {
             throw new ReglaNegocioException(
                 "El plazo de " + DIAS_PARA_DEVOLVER + " dias para devolver esta compra ya vencio.");
@@ -163,7 +164,7 @@ public class ServicioDeDevoluciones implements Serializable {
         if (venta.getEstado() != EstadoVenta.PAGADA || devolucionRepository.existeParaVenta(venta.getId())) {
             return false;
         }
-        long dias = Duration.between(venta.getFecha(), LocalDateTime.now()).toDays();
+        long dias = diasDesde(venta);
         return dias <= DIAS_PARA_DEVOLVER;
     }
 
@@ -186,4 +187,10 @@ public class ServicioDeDevoluciones implements Serializable {
     public LocalDateTime getIniciadoEn() { return iniciadoEn; }
 
     public boolean hayBorrador() { return ventaSeleccionada != null; }
+
+    // Con zona horaria: la fecha de la venta se guarda en la hora del servidor
+    private static long diasDesde(Venta venta) {
+        ZoneId zona = ZoneId.systemDefault();
+        return Duration.between(venta.getFecha().atZone(zona), LocalDateTime.now().atZone(zona)).toDays();
+    }
 }

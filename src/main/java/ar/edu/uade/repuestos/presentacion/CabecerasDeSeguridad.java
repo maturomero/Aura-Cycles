@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.annotation.WebFilter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
@@ -35,6 +36,23 @@ public class CabecerasDeSeguridad implements Filter {
         r.setHeader("Cross-Origin-Resource-Policy", "same-origin");
         r.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
         r.setHeader("Cache-Control", "no-store");
-        chain.doFilter(req, res);
+        try {
+            chain.doFilter(req, res);
+        } catch (ServletException | RuntimeException e) {
+            if (!sesionCerradaEnElCamino(e) || r.isCommitted()) {
+                throw e;
+            }
+            // Otro pedido de la misma sesion la cerro (Cerrar sesion) mientras este se procesaba: al login, sin 500
+            r.sendRedirect(((HttpServletRequest) req).getContextPath() + "/login.xhtml");
+        }
+    }
+
+    static boolean sesionCerradaEnElCamino(Throwable e) {
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            if (String.valueOf(t.getMessage()).contains("UT000010")) {
+                return true;
+            }
+        }
+        return false;
     }
 }

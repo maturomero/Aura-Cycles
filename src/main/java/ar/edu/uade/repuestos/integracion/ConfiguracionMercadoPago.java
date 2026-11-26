@@ -8,7 +8,7 @@ import java.util.List;
 // El token nunca va en el repo: sale de los VM arguments del servidor en Eclipse (-DMP_ACCESS_TOKEN=...) o de una variable de entorno
 public record ConfiguracionMercadoPago(String urlBase, String accessToken, String urlApp, Duration timeout) {
 
-    public static final Duration TIMEOUT = Duration.ofSeconds(5);
+    public static final Duration ESPERA_MAXIMA = Duration.ofSeconds(5);
     public static final String API_REAL = "https://api.mercadopago.com";
     public static final String SIMULADO = "http://localhost:8089";
     static final String TOKEN_SIMULADO = "TEST-simulado";
@@ -18,9 +18,9 @@ public record ConfiguracionMercadoPago(String urlBase, String accessToken, Strin
         String token = valor("MP_ACCESS_TOKEN", null);
         String urlApp = valor("AURA_URL", "https://localhost:8443/repuestos");
         if (token == null) {
-            return new ConfiguracionMercadoPago(valor("MP_BASE_URL", SIMULADO), TOKEN_SIMULADO, urlApp, TIMEOUT);
+            return new ConfiguracionMercadoPago(valor("MP_BASE_URL", SIMULADO), TOKEN_SIMULADO, urlApp, ESPERA_MAXIMA);
         }
-        return new ConfiguracionMercadoPago(valor("MP_BASE_URL", API_REAL), token, urlApp, TIMEOUT);
+        return new ConfiguracionMercadoPago(valor("MP_BASE_URL", API_REAL), token, urlApp, ESPERA_MAXIMA);
     }
 
     public boolean esSimulado() {
@@ -36,8 +36,8 @@ public record ConfiguracionMercadoPago(String urlBase, String accessToken, Strin
         }
         if (!esSimulado() && urlAppEsLocal()) {
             avisos.add("AURA_URL es " + urlApp + " y Mercado Pago no acepta localhost en las URLs de vuelta: "
-                    + "el comprador ve un error despues de pagar. Poner la IP de la maquina, por ejemplo "
-                    + "https://192.168.0.15:8443/repuestos");
+                    + "el comprador ve un error despues de pagar. Poner la IP de la maquina en la red, "
+                    + "por ejemplo https://<ip>:8443/repuestos");
         }
         return avisos;
     }

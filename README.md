@@ -33,7 +33,7 @@ Con todo levantado, el recorrido de la API (JWT, roles, Idempotency-Key, ETag y 
 ./demo/api.sh
 ```
 
-Qué levanta: WildFly 37 con la app, MySQL 8.4 con `sql/schema.sql`, el broker Artemis aparte (así se puede apagar en la demo) y los tres sistemas externos simulados (Mercado Pago, el proveedor y el modelo de IA). Si cambiaste código: `docker compose up --build` de nuevo. Si lo tenías levantado de la 2.ª entrega, corré antes `docker compose down`: la base suma una columna (`resolucion_avisada`). Para empezar de cero, con el broker vacío incluido: `docker compose down -v`.
+Qué levanta: WildFly 39 con la app, MySQL 8.4 con el esquema que arma Flyway a partir de las migraciones de `sql/migraciones` (V1, V2, ...), el broker Artemis aparte (así se puede apagar en la demo) y los tres sistemas externos simulados (Mercado Pago, el proveedor y el modelo de IA). Si cambiaste código: `docker compose up --build` de nuevo. Si lo tenías levantado de antes, corré primero `docker compose down`. Para empezar de cero, con el broker vacío incluido: `docker compose down -v`.
 
 Arquitectura en capas sobre Jakarta EE 10:
 
@@ -77,11 +77,11 @@ Sirve para depurar con breakpoints. Para la demo conviene docker: el broker va a
 |---|---|---|
 | JDK | 21 | |
 | WildFly | 37, variante **EE 10** | Desde WildFly 40 el estándar pasó a EE 11 y eliminó `@ManagedBean` |
-| MySQL | 8.x | Más MySQL Workbench para correr el schema |
+| MySQL | 8.x | Las tablas las crea Flyway (`mvn flyway:migrate`) |
 | Eclipse | IDE **for Enterprise Java and Web Developers** | La edición "Java Developers" no trae herramientas de servidor |
 | JBoss Tools | desde el Eclipse Marketplace | Arranca y para WildFly desde el IDE |
 
-1. **Base.** Abrí `sql/schema.sql` en MySQL Workbench y ejecutalo entero: crea el esquema y carga los datos de prueba.
+1. **Base.** Con MySQL andando: `mvn flyway:migrate -Dflyway.password=<clave de root>` (en Eclipse: Run As → Maven build..., Goals `flyway:migrate`, parámetro `flyway.password`). Crea la base `repuestos_bici` y aplica las migraciones de `sql/migraciones` en orden: V1 esquema, V2 tabla de Idempotency-Key, V3 columna del aviso, V4 datos de prueba. Si tu base ya existía de antes (cargada con el viejo `schema.sql`), Flyway la toma como V4 y no toca nada. Un cambio nuevo en la base va en una V5, nunca editando una migración ya aplicada.
 2. **Perfil con mensajería.** WildFly tiene que arrancar con `standalone-full.xml` (el `standalone.xml` común no trae el broker y las MDB no despliegan). En Eclipse: en el runtime de WildFly, *Configuration file* = `standalone-full.xml`. Por consola: `./standalone.sh -c standalone-full.xml`.
 3. **Driver de MySQL.** Con WildFly levantado, en `jboss-cli.sh --connect`:
    ```
@@ -442,15 +442,20 @@ hash. bcrypt es lento a propósito: unas 250 ms por intento.
 | Recorrido de la API para la demo | con la app levantada: `./demo/api.sh` | 17 pasos, cada uno con el código esperado |
 | DAST con ZAP (pasivo) | con la app levantada: `seguridad/zap.sh` | 0 High, y cada Medium justificado en `seguridad/zap-justificadas.tsv` |
 | DAST con ZAP (activo con sesión) | con la app levantada: `seguridad/zap-activo.sh` (unos 6 minutos por usuario) | lo mismo |
+| DAST con ZAP sobre la API (activo, con JWT de cliente y de moderador) | con la app levantada: `seguridad/zap-api.sh` | lo mismo |
+| API con Postman | con la app levantada: `npx newman run postman/AuraCycles.postman_collection.json --insecure` | cada endpoint con un caso de éxito y uno de error |
+| Contrato OpenAPI | dentro de los E2E: `e2e/test_8_contrato.py` | cada respuesta cumple `docs/api/openapi.yaml` |
+| Evaluación de la IA (20 casos) | `mvn test -Dtest=EvaluacionIATest`, informe en `target/ia/evaluacion.md`. Contra el modelo real: `IA_EVAL_REAL=true IA_API_KEY=... mvn test -Dtest=EvaluacionIATest` | 80 % de aciertos y ninguna aprobación indebida |
 | Código duplicado | `npx jscpd@4.0.5 src/main --min-tokens 50 --threshold 3` | 3 % como máximo |
-| Carga con k6 | con la app levantada: `carga/correr.sh` | 50 usuarios, 5 min, p95 < 500 ms y < 1 % de errores |
+| Carga con k6 | con la app levantada: `carga/correr.sh` (pantallas) y `carga/correr.sh carga-api.js` (API) | 50 usuarios, 5 min, p95 < 500 ms y < 1 % de errores |
+| Estilo | `mvn validate` (Checkstyle, también corre en cada build) | 0 violaciones |
 | Secretos | `docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.30.1 git /repo` | nada encontrado en todo el historial |
 
 Los E2E dejan la IP de la máquina bloqueada 5 minutos (el último prueba fuerza bruta). Para correrlos de nuevo enseguida: `docker compose restart app`. Para arrancar con la base limpia: `docker compose down -v`.
 
-La documentación de pruebas está en `docs/pruebas/` (plan y matriz de trazabilidad), el manual en `docs/manual-de-usuario.md`, lo que se muestra en cada entrega en `docs/entregas.md` y la declaración de uso de IA en `docs/declaracion-ia.md`.
+La documentación de pruebas está en `docs/pruebas/` (plan, matriz de trazabilidad y prueba contra Mercado Pago real), el manual en `docs/manual-de-usuario.md`, lo que se muestra en cada entrega en `docs/entregas.md` y la declaración de uso de IA en `docs/declaracion-ia.md`.
 
-**CI (GitHub Actions).** `.github/workflows/ci.yml` corre en cada push a `main` y `entrega-testing`, en cada PR y en los tags `v*`. Si el repo tiene el secreto `SONAR_TOKEN`, el trabajo de pruebas también manda el análisis a SonarCloud. Son cinco trabajos en paralelo (unos 7 minutos en total): pruebas + cobertura + mutación + SpotBugs + duplicación; gitleaks + Trivy + E2E contra el compose; ZAP pasivo sin sesión, como cliente y como moderador; y ZAP activo como cliente y como moderador (uno por trabajo). Los reportes quedan como artefactos de cada corrida.
+**CI (GitHub Actions).** `.github/workflows/ci.yml` corre en cada push a `main` y `entrega-testing`, en cada PR y en los tags `v*`. Si el repo tiene el secreto `SONAR_TOKEN`, el trabajo de pruebas también manda el análisis a SonarCloud. Son cuatro trabajos en paralelo (unos 7 minutos en total): pruebas + cobertura + mutación + SpotBugs + duplicación; gitleaks + Trivy + Newman + E2E contra el compose; ZAP pasivo sin sesión, como cliente y como moderador; y ZAP activo sobre la API con el JWT de cada rol. El ZAP activo con sesión sobre las pantallas está aparte, en `.github/workflows/zap-activo.yml` (mismos disparadores, uno por usuario), porque si el escaneo dispara el bloqueo por fuerza bruta espera a que se libere y puede tardar hasta 25 minutos. Los reportes quedan como artefactos de cada corrida.
 
 Dos workflows más, a mano desde la pestaña Actions ("Run workflow") o poniendo la marca en el mensaje de un commit:
 

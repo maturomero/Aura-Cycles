@@ -252,3 +252,22 @@ def test_resenas_por_la_api():
     es_problema(h, cuerpo, 422, "regla-de-negocio")
     st, h, cuerpo = pedir("GET", "/productos/9999/resenas", ana)
     assert st == 404
+
+
+# Mass assignment: los campos que no son del pedido (estado, rma, monto, dueño) se ignoran y nunca se guardan
+def test_mass_assignment_en_la_api(abrir):
+    lucia_web = abrir("lucia@mail.com")
+    venta = _compra_pagada(lucia_web, 3, 2)
+    lucia = token("lucia@mail.com")
+    pedido = {"ventaId": venta, "motivo": "ARREPENTIMIENTO", "estado": "APROBADA", "rma": "RMA-TRUCHO",
+              "montoReembolso": 999999, "usuarioId": ANA, "id": 1}
+    st, _, creada = pedir("POST", "/devoluciones", lucia, pedido, **{"Idempotency-Key": "mass-" + uuid.uuid4().hex})
+    assert st == 201, creada
+    assert creada["estado"] == "PENDIENTE" and creada["rma"] != "RMA-TRUCHO" and creada["id"] != 1
+    guardada = sql(f"SELECT estado, rma, venta_id FROM devolucion WHERE id = {creada['id']}")
+    assert "PENDIENTE" in guardada and "RMA-TRUCHO" not in guardada
+    st, _, resena = pedir("POST", "/productos/2/resenas", lucia,
+                          {"puntaje": 5, "texto": "Cambia preciso.", "estado": "PUBLICADA", "autor": "Otro"})
+    assert st in (201, 422)
+    if st == 201:
+        assert resena["estado"] == "PENDIENTE" and resena["autor"] != "Otro"

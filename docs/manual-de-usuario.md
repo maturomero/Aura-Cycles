@@ -1,6 +1,6 @@
 # Manual de usuario
 
-Versión 1.1 · 19/11/2026 · Aura Cycles, repuestos de bicicleta
+Versión 1.2 · 20/11/2026 · Aura Cycles, repuestos de bicicleta
 
 La tienda se usa desde el navegador, en la computadora o en el celular. Hay dos tipos de usuario: el **cliente**, que compra, reseña y pide devoluciones, y el **moderador**, que revisa reseñas y resuelve devoluciones.
 
@@ -95,4 +95,6 @@ Si una devolución aprobada se queda en **Aprobada** y no pasa a **Reembolsada**
 
 ## Para integrar otro sistema
 
-Además de las pantallas hay una API REST para devoluciones y reseñas. El contrato está en [api/openapi.yaml](api/openapi.yaml) y un recorrido de ejemplo en `demo/api.sh`.
+Además de las pantallas hay una API REST para devoluciones y reseñas. El contrato está en [api/openapi.yaml](api/openapi.yaml), un recorrido de ejemplo en `demo/api.sh` y una colección para importar en Postman en `postman/`.
+
+Para saber si la tienda está funcionando, `GET /api/v1/salud` responde 200 si la base y la mensajería andan, o 503 diciendo cuál falla. No pide usuario.

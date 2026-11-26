@@ -1,0 +1,76 @@
+# ZAP activo con sesion sobre las pantallas (cliente y moderador). Va aparte del CI porque, si el escaneo dispara
+# el bloqueo por fuerza bruta, espera a que se libere (5 minutos) y la corrida puede llegar a 25 minutos
+name: ZAP activo
+
+on:
+  push:
+    branches: [main, entrega-testing]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zap-activo-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  COMPOSE_PROJECT_NAME: aura
+  COMPOSE_PROJECT: aura
+
+jobs:
+  zap-activo:
+    name: DAST activo con sesion (${{ matrix.usuario }})
+    runs-on: ubuntu-latest
+    # Con margen: si el escaneo dispara el bloqueo por fuerza bruta, espera hasta que se libere (5 minutos)
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        usuario: [ana@mail.com, mod@mail.com]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Levantar todo con un comando
+        run: |
+          # Maven Central a veces devuelve 502: un reintento antes de dar el build por fallado
+          docker compose build || { sleep 20; docker compose build; }
+          docker compose up -d
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: e2e/requirements.txt
+      - name: Playwright (recorre la app a traves de ZAP)
+        run: |
+          pip install -r e2e/requirements.txt
+          # Lo unico que baja --with-deps en este runner son fuentes: si apt no llega a Ubuntu, se sigue sin ellas
+          python -m playwright install --with-deps chromium || python -m playwright install chromium
+
+      - name: Esperar a que la app responda
+        run: |
+          for i in $(seq 1 120); do
+            curl -sk -o /dev/null -w '%{http_code}' https://localhost:8443/repuestos/login.xhtml | grep -q 200 && exit 0
+            sleep 2
+          done
+          exit 1
+
+      - name: ZAP activo (corta con algun High o un Medium sin justificar)
+        shell: bash
+        env:
+          ZAP_USUARIOS: ${{ matrix.usuario }}
+          ZAP_TITULO: ZAP activo ${{ matrix.usuario }}
+        run: |
+          mkdir -p zap-activo
+          seguridad/zap-activo.sh zap-activo | tee zap-activo/resumen.md
+
+      - name: Reportes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes-zap-activo-${{ strategy.job-index }}
+          path: zap-activo/
+          if-no-files-found: ignore

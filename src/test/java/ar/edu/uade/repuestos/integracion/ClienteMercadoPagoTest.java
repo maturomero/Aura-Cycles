@@ -144,7 +144,7 @@ class ClienteMercadoPagoTest {
     @Test
     void siMercadoPagoNoContestaCortaALos5Segundos() {
         ClienteMercadoPago real = new ClienteMercadoPago(new ConfiguracionMercadoPago(
-                mock.url(), "TEST-123", "http://localhost:8080/repuestos", ConfiguracionMercadoPago.TIMEOUT));
+                mock.url(), "TEST-123", "http://localhost:8080/repuestos", ConfiguracionMercadoPago.ESPERA_MAXIMA));
         mock.modo("lento");
 
         long inicio = System.nanoTime();
