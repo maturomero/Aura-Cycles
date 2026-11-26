@@ -11,16 +11,16 @@ Grupo 3 · Aura Cycles · versión final, 26/11/2026
 
 ## 2. Para qué la usamos
 
-Lo usamos mucho y lo decimos así. Con asistencia de IA se generó:
+Como asistente de programación y de testing. Cada cosa que salió de una conversación con la IA la revisó, la corrió y la subió un integrante, que responde por ella en la defensa.
 
-- La mayor parte del código de la aplicación: entidades, repositorios, servicios, integraciones con Mercado Pago y con el proveedor SOAP, mensajería, la API REST con JWT y las pantallas.
-- La mayor parte de los tests (unitarios, de integración, de punta a punta, de contrato y la colección Postman), los simuladores de los sistemas externos, los scripts de ZAP y de k6 y los workflows del CI.
-- El set de 20 casos de evaluación de la IA de moderación (`src/test/resources/ia/evaluacion.tsv`).
-- Borradores de la documentación: ADR, plan de pruebas, matriz de trazabilidad, manual de usuario y este documento.
+- Código: ayuda para escribir y revisar partes de la app (integraciones con Mercado Pago y el proveedor SOAP, mensajería, la API REST con JWT) y para buscar errores.
+- Tests: propuestas de casos unitarios, de integración, de punta a punta, de contrato y de la colección Postman, los simuladores de los sistemas externos y los scripts de ZAP y k6.
+- IA del producto: el diseño del gateway que sugiere aprobar, revisar o rechazar reseñas, y el set de 20 casos para evaluarlo (`src/test/resources/ia/evaluacion.tsv`).
+- Documentación: borradores de ADR, plan de pruebas, matriz de trazabilidad y manual de usuario, que después corregimos.
 
 ## 3. Prompts representativos
 
-- "Revisá el proyecto contra la rúbrica de la 2.ª entrega y hacé lo que falta. Verificalo en el código, no en el README."
+- "Revisá ServicioDeDevoluciones y decime qué casos de borde no tienen test. Verificalo en el código, no en el README."
 - "Armá un set de 20 casos para evaluar la IA de moderación: normales, difíciles y adversariales, con la salida esperada y un umbral."
 - "Agregá un endpoint de salud que pruebe la base y el broker de verdad, con su caso de error en el contrato."
 - "Corré la colección de Postman dos veces seguidas sobre la misma base y fijate que no dependa del orden."

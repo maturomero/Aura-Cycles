@@ -51,7 +51,7 @@ Prueba del sistema sobre el tag `v1.0-final`. QA: Matías Romero (`AUR-260`). El
 | G2 Tag `v1.0-final` en `main` antes de las 08:00 | `git tag` / Releases |
 | G3 CI en verde sobre el tag | Actions: `CI` y `ZAP activo` sobre el tag |
 | G4 Plan, trazabilidad, informe de ejecución y registro de defectos | Documento de testing en Teams y `docs/pruebas/` |
-| G5 Jira al día | Proyecto AUR: 94 casos (subtareas de su HU) y 24 defectos, cada uno con estado y responsable |
+| G5 Jira al día | Proyecto AUR: 94 casos (subtareas de su HU) y 26 defectos, cada uno con estado y responsable |
 | G6 Sin secretos | `docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.30.1 git /repo` |
 | G7 Demo en vivo | README, sección 3, y `./demo/api.sh` |
 | G8 Declaración de uso de IA | `docs/declaracion-ia.md` y sección 7 del documento de testing |
