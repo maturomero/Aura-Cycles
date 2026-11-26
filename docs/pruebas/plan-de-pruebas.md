@@ -65,7 +65,7 @@ Riesgos del proyecto (no del producto):
 
 ## 4. Ambiente y datos de prueba
 
-Un solo comando levanta lo mismo en cualquier máquina y en el CI: `docker compose up --build` (README, sección 2). Son la app en WildFly 37, MySQL 8.4 con el esquema que arman las migraciones de Flyway (`sql/migraciones`, V1 a V4), el broker Artemis aparte (para poder apagarlo) y tres simuladores: Mercado Pago, el proveedor SOAP y el modelo de IA. Cada simulador tiene modos `lento`, `error` y `roto` para forzar las fallas.
+Un solo comando levanta lo mismo en cualquier máquina y en el CI: `docker compose up --build` (README, sección 2). Son la app en WildFly 39, MySQL 8.4 con el esquema que arman las migraciones de Flyway (`sql/migraciones`, V1 a V4), el broker Artemis aparte (para poder apagarlo) y tres simuladores: Mercado Pago, el proveedor SOAP y el modelo de IA. Cada simulador tiene modos `lento`, `error` y `roto` para forzar las fallas.
 
 Datos de prueba: los carga la migración. Usuarios `ana`, `carlos`, `lucia` y `javier` (clientes) y `mod` (moderador), todos `@mail.com` con la clave `Clave1234`; repuestos con stock, sin stock y consumibles; compras pagadas de hace 30 y 31 días. Los E2E crean lo que necesitan sobre esa base y no dependen del orden, salvo `test_9`, que va último.
 
@@ -87,7 +87,7 @@ Salida (para dar por aprobada la versión del tag):
 | Mutación (PIT sobre el dominio) | 60 % o más |
 | SonarCloud | Quality Gate aprobado: 0 bugs Blocker o Critical, 0 vulnerabilidades, duplicación de 3 % o menos, A en confiabilidad y seguridad, hotspots revisados |
 | ZAP | 0 High; cada Medium justificado en `seguridad/zap-justificadas.tsv` |
-| Dependencias | 0 CVE críticas o altas sin mitigación |
+| Dependencias | 0 CVE críticas o altas sin mitigación ([dependencias.md](dependencias.md)) |
 | Secretos | gitleaks sin hallazgos en todo el historial |
 | Carga | p95 menor a 500 ms y menos de 1 % de errores en cada endpoint |
 | IA | 80 % o más de acierto en el set de evaluación y 0 aprobaciones indebidas |

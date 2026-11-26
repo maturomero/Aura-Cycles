@@ -33,7 +33,7 @@ Con todo levantado, el recorrido de la API (JWT, roles, Idempotency-Key, ETag y 
 ./demo/api.sh
 ```
 
-Qué levanta: WildFly 37 con la app, MySQL 8.4 con el esquema que arma Flyway a partir de las migraciones de `sql/migraciones` (V1, V2, ...), el broker Artemis aparte (así se puede apagar en la demo) y los tres sistemas externos simulados (Mercado Pago, el proveedor y el modelo de IA). Si cambiaste código: `docker compose up --build` de nuevo. Si lo tenías levantado de antes, corré primero `docker compose down`. Para empezar de cero, con el broker vacío incluido: `docker compose down -v`.
+Qué levanta: WildFly 39 con la app, MySQL 8.4 con el esquema que arma Flyway a partir de las migraciones de `sql/migraciones` (V1, V2, ...), el broker Artemis aparte (así se puede apagar en la demo) y los tres sistemas externos simulados (Mercado Pago, el proveedor y el modelo de IA). Si cambiaste código: `docker compose up --build` de nuevo. Si lo tenías levantado de antes, corré primero `docker compose down`. Para empezar de cero, con el broker vacío incluido: `docker compose down -v`.
 
 Arquitectura en capas sobre Jakarta EE 10:
 
