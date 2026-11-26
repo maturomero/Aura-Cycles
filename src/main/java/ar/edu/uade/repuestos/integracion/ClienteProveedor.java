@@ -26,7 +26,7 @@ public class ClienteProveedor {
     private static final Logger LOG = Logger.getLogger(ClienteProveedor.class.getName());
     static final String NS = "http://proveedor.mayorista.ar/ws";
     static final String NS_SOAP = "http://schemas.xmlsoap.org/soap/envelope/";
-    public static final Duration TIMEOUT = Duration.ofSeconds(5);
+    public static final Duration ESPERA_MAXIMA = Duration.ofSeconds(5);
 
     private final String url;
     private final Duration timeout;
@@ -34,7 +34,7 @@ public class ClienteProveedor {
     private final CircuitoDelProveedor circuito;
 
     public ClienteProveedor() {
-        this(urlDelEntorno(), TIMEOUT);
+        this(urlDelEntorno(), ESPERA_MAXIMA);
     }
 
     public ClienteProveedor(String url, Duration timeout) {

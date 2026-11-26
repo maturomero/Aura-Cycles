@@ -59,7 +59,7 @@ class ClienteProveedorTest {
 
     @Test
     void siElProveedorNoContestaCortaALos5Segundos() {
-        ClienteProveedor real = new ClienteProveedor(mock.url(), ClienteProveedor.TIMEOUT);
+        ClienteProveedor real = new ClienteProveedor(mock.url(), ClienteProveedor.ESPERA_MAXIMA);
         mock.modo("lento");
         long inicio = System.nanoTime();
         assertThrows(ProveedorNoDisponibleException.class, () -> real.validarGarantia(

@@ -30,6 +30,9 @@ public class AIGateway {
     static final double CONFIANZA_MINIMA = 0.6;
 
     // Senales de que el texto le habla al asistente en vez de opinar del repuesto. Si aparecen, la IA nunca aprueba
+    // "juan arroba gmail punto com": un email escrito con palabras para que no lo detecte el filtro
+    private static final String EMAIL_EN_PALABRAS = "(?i)(?<![\\w.+-])[\\w.+-]{1,64}\\s{1,3}arroba\\s{1,3}[\\w-]{1,63}"
+            + "\\s{1,3}punto\\s{1,3}[a-z]{2,10}(?:\\s{1,3}punto\\s{1,3}[a-z]{2,10})?";
     private static final Pattern SENALES_DE_INYECCION = Pattern.compile("(?iu)ignor[aáe]\\w*"
             + "|olvid[aáe]\\w* (las |tus )?instrucciones|tus instrucciones|instrucciones (anteriores|del sistema)"
             + "|\\bprompt\\b|sistema\\s*:|system\\s*:|\"sugerencia\"\\s*:");
@@ -95,9 +98,9 @@ public class AIGateway {
     }
 
     static String sinDatosPersonales(String texto) {
-        return texto.replaceAll("[\\w.+-]+@[\\w-]+(\\.[\\w-]+)+", "[email]")
-                    .replaceAll("(?i)[\\w.+-]+\\s+arroba\\s+[\\w-]+(\\s+punto\\s+[a-z]{2,})+", "[email]")
-                    .replaceAll("\\+?\\d[\\d\\s-]{6,}\\d", "[telefono]");
+        return texto.replaceAll("(?<![\\w.+-])[\\w.+-]++@[\\w-]++(?:\\.[\\w-]++)++", "[email]")
+                    .replaceAll(EMAIL_EN_PALABRAS, "[email]")
+                    .replaceAll("\\+?\\d(?:[\\s-]?+\\d){7,}+", "[telefono]");
     }
 
     static SugerenciaIA interpretar(String respuesta) {

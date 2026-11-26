@@ -629,8 +629,8 @@ table.tabla tbody tr:hover td { background: var(--surface-alt); }
   margin-bottom: 8px;
 }
 
-.mensajes .error, .mensajes li.error { border-left-color: var(--danger); color: var(--danger); background: var(--danger-soft); border-color: transparent; border-left-color: var(--danger); }
-.mensajes .info, .mensajes li.info { border-left-color: var(--ok); color: var(--ok); background: var(--ok-soft); border-color: transparent; border-left-color: var(--ok); }
+.mensajes .error, .mensajes li.error { color: var(--danger); background: var(--danger-soft); border-color: transparent; border-left-color: var(--danger); }
+.mensajes .info, .mensajes li.info { color: var(--ok); background: var(--ok-soft); border-color: transparent; border-left-color: var(--ok); }
 
 /* ---------- VACIO ---------- */
 .vacio {

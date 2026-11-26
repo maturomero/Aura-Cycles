@@ -39,13 +39,15 @@ class EntidadesTest {
         Object sinId = nueva.get();
         Object otroSinId = nueva.get();
 
-        assertEquals(a, a);
+        Object mismo = a;
+        assertEquals(a, mismo);
         assertEquals(a, b);
         assertEquals(a.hashCode(), b.hashCode());
         assertNotEquals(a, sinId);
         assertNotEquals(sinId, a);
         assertNotEquals(sinId, otroSinId);
-        assertEquals(sinId, sinId);
+        Object mismoSinId = sinId;
+        assertEquals(sinId, mismoSinId);
         assertNotEquals(a, "otra cosa");
         assertNotEquals(a, null);
         Set<Object> set = new HashSet<>();

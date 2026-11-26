@@ -34,6 +34,19 @@
     <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     <!-- Las pantallas JSF se prueban de punta a punta, no con unitarios -->
     <sonar.coverage.exclusions>**/presentacion/**,**/modelo/Estado*.java,**/util/GeneradorHash.java</sonar.coverage.exclusions>
+    <!-- Reglas que no aplican, revisadas una por una:
+         S6813: en EJB, MDB y recursos JAX-RS la inyeccion por campo es la forma estandar de Jakarta EE
+         S6840: Sonar no reconoce el type de h:inputSecret y marca autocomplete="current-password" como invalido
+         S8786 en los tests y en AIGateway: el texto que se revisa es de 2160 caracteres como mucho (titulo y texto validados antes) -->
+    <sonar.issue.ignore.multicriteria>e1,e2,e3,e4</sonar.issue.ignore.multicriteria>
+    <sonar.issue.ignore.multicriteria.e1.ruleKey>java:S6813</sonar.issue.ignore.multicriteria.e1.ruleKey>
+    <sonar.issue.ignore.multicriteria.e1.resourceKey>src/main/java/**/*.java</sonar.issue.ignore.multicriteria.e1.resourceKey>
+    <sonar.issue.ignore.multicriteria.e2.ruleKey>Web:S6840</sonar.issue.ignore.multicriteria.e2.ruleKey>
+    <sonar.issue.ignore.multicriteria.e2.resourceKey>src/main/webapp/**/*.xhtml</sonar.issue.ignore.multicriteria.e2.resourceKey>
+    <sonar.issue.ignore.multicriteria.e3.ruleKey>java:S8786</sonar.issue.ignore.multicriteria.e3.ruleKey>
+    <sonar.issue.ignore.multicriteria.e3.resourceKey>src/test/java/**/*.java</sonar.issue.ignore.multicriteria.e3.resourceKey>
+    <sonar.issue.ignore.multicriteria.e4.ruleKey>java:S8786</sonar.issue.ignore.multicriteria.e4.ruleKey>
+    <sonar.issue.ignore.multicriteria.e4.resourceKey>src/main/java/**/AIGateway.java</sonar.issue.ignore.multicriteria.e4.resourceKey>
   </properties>
 
   <dependencies>
