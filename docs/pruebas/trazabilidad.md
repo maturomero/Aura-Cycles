@@ -12,7 +12,7 @@ HU → criterio de aceptación → casos de prueba → tests automatizados → r
 |  | **HU-01.4** Clave de 7 o 65, email inválido o largo, nombre vacío o largo: mensaje y no se crea | Error | CP-37, CP-38, CP-61 | `ServicioDeUsuariosTest` | Pasa | reportes-pruebas | - |
 |  | **HU-01.5** rol=MODERADOR agregado y `<script>` en el nombre: queda CLIENTE y escapado | Error | CP-45 | `test_4_seguridad` | Pasa | reportes-e2e | - |
 | HU-02 Ingresar y salir (`AUR-114`, Must) | **HU-02.1** Login correcto: catálogo; la cookie cambia y sale Secure, HttpOnly, SameSite=Lax | Feliz | CP-48, CP-51, CP-59, CP-72 | `test_4_seguridad`, `ServicioDeUsuariosTest`, todos los E2E, `AuthRecursoTest`, `test_7_api` | Pasa | reportes-e2e, reportes-pruebas | DEF-09, DEF-13, DEF-15 |
-|  | **HU-02.2** Cerrar sesión: la cookie vieja ya no abre Mis compras | Alternativo | CP-50 | `test_4_seguridad` | Pasa | reportes-e2e | - |
+|  | **HU-02.2** Cerrar sesión: la cookie vieja ya no abre Mis compras | Alternativo | CP-50 | `test_4_seguridad` | Pasa | reportes-e2e | DEF-27 |
 |  | **HU-02.3** Clave mala o email inexistente: el mismo mensaje | Error | CP-41 | `PasswordHashTest`, `ServicioDeUsuariosTest` | Pasa | reportes-pruebas | DEF-01 |
 |  | **HU-02.4** 5 fallos en 10 min: 429 durante 5 min, aunque la clave sea correcta | Error | CP-39, CP-40, CP-74 | `test_9_fuerza_bruta`, `LimitadorDeIntentosTest`, `AuthRecursoTest` | Pasa | reportes-e2e, reportes-pruebas | DEF-08 |
 |  | **HU-02.5** Cookie o token inventado o adulterado: login (401 en la API), ningún dato | Error | CP-50, CP-73, CP-93 | `test_4_seguridad`, `TokensJwtTest`, `SeguridadDeLaApiTest`, `test_7_api`, `zap-api.sh (job zap-api)` | Pasa | reportes-e2e, reportes-pruebas, reportes-zap-api | - |

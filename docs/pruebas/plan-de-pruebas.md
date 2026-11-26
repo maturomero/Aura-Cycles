@@ -19,7 +19,7 @@ Queda afuera:
 
 | Nivel | Qué cubre | Con qué | Cuántos | Cómo se corre |
 |---|---|---|---|---|
-| Unitario | Reglas de negocio, el State, las políticas de reembolso, los clientes de integración contra simuladores, la API REST con la capa de negocio mockeada, el gateway de IA | JUnit 5 y Mockito | 428 | `mvn test` |
+| Unitario | Reglas de negocio, el State, las políticas de reembolso, los clientes de integración contra simuladores, la API REST con la capa de negocio mockeada, el gateway de IA | JUnit 5 y Mockito | 432 | `mvn test` |
 | Integración | Repositorios contra MySQL real y mensajería contra Artemis real | Testcontainers; la base se arma con las migraciones de Flyway | 22 | `mvn verify` (con Docker) |
 | Punta a punta | Los flujos completos por las pantallas y por la API, con todo levantado | Playwright y pytest | 50 | `docker compose up -d --build` y `cd e2e && pytest` |
 | Contrato | Cada respuesta real de la API contra `docs/api/openapi.yaml`, y los mensajes SOAP contra el WSDL | openapi-core (`e2e/test_8_contrato.py`) y `ContratoWsdlTest` | 9 + 1 | dentro de los E2E y de `mvn test` |
